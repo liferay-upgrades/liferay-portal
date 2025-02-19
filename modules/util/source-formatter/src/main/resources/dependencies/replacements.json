@@ -3581,6 +3581,14 @@
 		"to": "${variableName}.${prefixMethodName}Preferences"
 	},
 	{
+		"from": "CommerceOrderConstants.getPaymentStatusLabel(int paramName)",
+		"issueKey": "LPD-48412",
+		"newImports": [
+			"com.liferay.commerce.constants.CommercePaymentEntryConstants"
+		],
+		"to": "CommercePaymentEntryConstants.getPaymentStatusLabel(param#0#)"
+	},
+	{
 		"classNames": [
 			"CPAttachmentFileEntryService",
 			"CPAttachmentFileEntryServiceUtil"
