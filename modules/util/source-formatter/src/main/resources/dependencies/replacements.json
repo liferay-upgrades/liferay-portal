@@ -3582,6 +3582,14 @@
 	},
 	{
 		"classNames": [
+			"AccountEntry"
+		],
+		"from": "getCommerceAccountId",
+		"issueKey": "LPD-48402",
+		"to": "getAccountEntryId"
+	},
+	{
+		"classNames": [
 			"CPAttachmentFileEntryService",
 			"CPAttachmentFileEntryServiceUtil"
 		],
