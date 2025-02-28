@@ -66,6 +66,7 @@ com.liferay.commerce.account.service.CommerceAccountGroupRelLocalService=com.lif
 com.liferay.commerce.account.service.CommerceAccountGroupRelLocalServiceUtil=com.liferay.account.service.AccountGroupRelLocalServiceUtil
 com.liferay.commerce.account.service.CommerceAccountGroupRelService=com.liferay.account.service.AccountGroupRelService
 com.liferay.commerce.account.service.CommerceAccountGroupRelServiceUtil=com.liferay.account.service.AccountGroupRelServiceUtil
+com.liferay.commerce.account.service.CommerceAccountLocalService=com.liferay.account.service.AccountEntryLocalService
 com.liferay.commerce.account.service.CommerceAccountLocalServiceUtil=com.liferay.account.service.AccountEntryLocalServiceUtil
 com.liferay.commerce.constants.CommerceDestinationNames=com.liferay.portal.kernel.messaging.DestinationNames
 com.liferay.commerce.frontend.CommerceDataSetDataProvider=com.liferay.frontend.data.set.provider.FDSDataProvider
