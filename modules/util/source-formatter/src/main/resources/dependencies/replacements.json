@@ -3872,6 +3872,51 @@
 		"to": "fetchAccountEntryByExternalReferenceCode(param#1#, param#0#)"
 	},
 	{
+		"classNames": [
+			"CommercePriceEntryLocalService",
+			"CommercePriceEntryLocalServiceUtil"
+		],
+		"from": "addCommercePriceEntry(long paramName, long paramName, BigDecimal paramName, BigDecimal paramName, ServiceContext paramName)",
+		"issueKey": "LPD-51505",
+		"to": "addCommercePriceEntry(null, param#0#, null, param#1#, param#2#, false, param#3#, null, param#4#)"
+	},
+	{
+		"classNames": [
+			"CommercePriceEntryService",
+			"CommercePriceEntryServiceUtil"
+		],
+		"from": "addCommercePriceEntry(long paramName, long paramName, BigDecimal paramName, BigDecimal paramName, ServiceContext paramName)",
+		"issueKey": "LPD-51505",
+		"to": "addCommercePriceEntry(null, param#0#, param#1#, param#2#, false, param#3#, null, param#4#)"
+	},
+	{
+		"classNames": [
+			"CommercePriceEntryLocalService",
+			"CommercePriceEntryLocalServiceUtil"
+		],
+		"from": "addCommercePriceEntry(long paramName, long paramName, String paramName, BigDecimal paramName, BigDecimal paramName, ServiceContext paramName)",
+		"issueKey": "LPD-51505",
+		"to": "addCommercePriceEntry(param#2#, param#0#, null, param#1#, param#3#, false, param#4#, null, param#5#)"
+	},
+	{
+		"classNames": [
+			"CommercePriceEntryService",
+			"CommercePriceEntryServiceUtil"
+		],
+		"from": "addCommercePriceEntry(long paramName, long paramName, String paramName, BigDecimal paramName, BigDecimal paramName, ServiceContext paramName)",
+		"issueKey": "LPD-51505",
+		"to": "addCommercePriceEntry(param#2#, param#0#, param#1#, param#3#, false, param#4#, null, param#5#)"
+	},
+	{
+		"classNames": [
+			"CommercePriceEntryLocalService",
+			"CommercePriceEntryLocalServiceUtil"
+		],
+		"from": "addCommercePriceEntry(long paramName, String paramName, long paramName, BigDecimal paramName, BigDecimal paramName, ServiceContext paramName)",
+		"issueKey": "LPD-51505",
+		"to": "addCommercePriceEntry(null, param#0#, param#1#, param#2#, param#3#, false, param#4#, null, param#5#)"
+	},
+	{
 		"from": "CookieKeys.COMMERCE_CONTINUE_AS_GUEST",
 		"issueKey": "LPS-159679",
 		"newImports": [
