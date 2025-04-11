@@ -230,23 +230,23 @@ public class CommerceOrderModelListenerTest {
 			commerceAddress.getCommerceAddressId(),
 			commerceOrder.getBillingAddressId());
 		Assert.assertEquals(
-			commerceAddress.getCommerceAddressId(),
-			commerceOrder.getShippingAddressId());
-		Assert.assertEquals(
-			_commercePaymentMethodGroupRel.getPaymentIntegrationKey(),
-			commerceOrder.getCommercePaymentMethodKey());
-		Assert.assertEquals(
 			_commerceShippingMethod.getCommerceShippingMethodId(),
 			commerceOrder.getCommerceShippingMethodId());
-		Assert.assertEquals(
-			_commerceShippingFixedOption.getKey(),
-			commerceOrder.getShippingOptionName());
 		Assert.assertEquals(
 			_commerceDeliveryTerm.getCommerceTermEntryId(),
 			commerceOrder.getDeliveryCommerceTermEntryId());
 		Assert.assertEquals(
 			_commercePaymentTerm.getCommerceTermEntryId(),
 			commerceOrder.getPaymentCommerceTermEntryId());
+		Assert.assertEquals(
+			commerceAddress.getCommerceAddressId(),
+			commerceOrder.getShippingAddressId());
+		Assert.assertEquals(
+			_commercePaymentMethodGroupRel.getPaymentIntegrationKey(),
+			commerceOrder.getCommercePaymentMethodKey());
+		Assert.assertEquals(
+			_commerceShippingFixedOption.getKey(),
+			commerceOrder.getShippingOptionName());
 	}
 
 	private AccountEntry _accountEntry;
