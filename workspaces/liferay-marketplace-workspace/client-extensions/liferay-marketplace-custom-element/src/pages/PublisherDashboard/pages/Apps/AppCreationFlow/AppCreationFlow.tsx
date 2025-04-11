@@ -12,7 +12,10 @@ import Loading from '../../../../../components/Loading';
 import {AppFlowList} from '../../../../../components/NewAppFlowList/AppFlowList';
 import {useMarketplaceContext} from '../../../../../context/MarketplaceContext';
 import {MarketplaceTaxonomyVocabularies} from '../../../../../entity/MarketplaceTaxonomyVocabulary';
-import {ProductTypeVocabulary, ProductVocabulary} from '../../../../../enums/Product';
+import {
+	ProductTypeVocabulary,
+	ProductVocabulary,
+} from '../../../../../enums/Product';
 import {useAccount} from '../../../../../hooks/data/useAccounts';
 import {Liferay} from '../../../../../liferay/liferay';
 import HeadlessAdminTaxonomyImpl from '../../../../../services/rest/HeadlessAdminTaxonomy';
