@@ -191,7 +191,6 @@ public class RESTBuilder {
 		}
 
 		boolean createClientCustomFieldFiles = true;
-
 		List<String> validationErrorMessages = new ArrayList<>();
 
 		for (File openAPIYAMLFile :
@@ -342,9 +341,6 @@ public class RESTBuilder {
 				_createResourceImplFile(context, escapedVersion, schemaName);
 
 				if (Validator.isNotNull(_configYAML.getClientDir())) {
-					_createClientResourceFile(
-						context, escapedVersion, schemaName);
-
 					if (createClientCustomFieldFiles &&
 						_containsVulcanCustomFields(schema)) {
 
@@ -352,6 +348,9 @@ public class RESTBuilder {
 
 						createClientCustomFieldFiles = false;
 					}
+
+					_createClientResourceFile(
+						context, escapedVersion, schemaName);
 				}
 
 				if (Validator.isNotNull(_configYAML.getTestDir())) {
