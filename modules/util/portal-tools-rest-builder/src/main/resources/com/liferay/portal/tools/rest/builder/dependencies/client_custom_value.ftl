@@ -18,70 +18,11 @@ import javax.annotation.Generated;
 public class CustomValue {
 
 	public static CustomValue toDTO(String json) {
-		CustomValueJSONParser customValueJSONParser = new CustomValueJSONParser();
+		CustomValueJSONParser customValueJSONParser =
+			new CustomValueJSONParser();
 
 		return customValueJSONParser.parseToDTO(json);
 	}
-
-	public Object getData() {
-		return data;
-	}
-
-	public void setData(Object data) {
-		this.data = data;
-	}
-
-	public void setData(UnsafeSupplier<Object, Exception> dataUnsafeSupplier) {
-		try {
-			data = dataUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected Object data;
-
-	public Map<String, String> getData_i18n() {
-		return data_i18n;
-	}
-
-	public void setData_i18n(Map<String, String> data_i18n) {
-		this.data_i18n = data_i18n;
-	}
-
-	public void setData_i18n(
-		UnsafeSupplier<Map<String, String>, Exception>
-			data_i18nUnsafeSupplier) {
-
-		try {
-			data_i18n = data_i18nUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected Map<String, String> data_i18n;
-
-	public Geo getGeo() {
-		return geo;
-	}
-
-	public void setGeo(Geo geo) {
-		this.geo = geo;
-	}
-
-	public void setGeo(UnsafeSupplier<Geo, Exception> geoUnsafeSupplier) {
-		try {
-			geo = geoUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected Geo geo;
 
 	@Override
 	public boolean equals(Object object) {
@@ -98,6 +39,18 @@ public class CustomValue {
 		return Objects.equals(toString(), customValue.toString());
 	}
 
+	public Object getData() {
+		return data;
+	}
+
+	public Map<String, String> getData_i18n() {
+		return data_i18n;
+	}
+
+	public Geo getGeo() {
+		return geo;
+	}
+
 	@Override
 	public int hashCode() {
 		String string = toString();
@@ -105,59 +58,58 @@ public class CustomValue {
 		return string.hashCode();
 	}
 
+	public void setData(Object data) {
+		this.data = data;
+	}
+
+	public void setData(UnsafeSupplier<Object, Exception> dataUnsafeSupplier) {
+		try {
+			data = dataUnsafeSupplier.get();
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
+	}
+
+	public void setData_i18n(Map<String, String> data_i18n) {
+		this.data_i18n = data_i18n;
+	}
+
+	public void setData_i18n(
+		UnsafeSupplier<Map<String, String>, Exception>
+			data_i18nUnsafeSupplier) {
+
+		try {
+			data_i18n = data_i18nUnsafeSupplier.get();
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
+	}
+
+	public void setGeo(Geo geo) {
+		this.geo = geo;
+	}
+
+	public void setGeo(UnsafeSupplier<Geo, Exception> geoUnsafeSupplier) {
+		try {
+			geo = geoUnsafeSupplier.get();
+		}
+		catch (Exception exception) {
+			throw new RuntimeException(exception);
+		}
+	}
+
 	public String toString() {
 		return CustomValueJSONParser.toJSON(this);
 	}
 
-	private static class CustomValueJSONParser extends BaseJSONParser<CustomValue> {
+	protected Object data;
+	protected Map<String, String> data_i18n;
+	protected Geo geo;
 
-		@Override
-		protected CustomValue createDTO() {
-			return new CustomValue();
-		}
-
-		@Override
-		protected CustomValue[] createDTOArray(int size) {
-			return new CustomValue[size];
-		}
-
-		@Override
-		protected boolean parseMaps(String jsonParserFieldName) {
-			if (Objects.equals(jsonParserFieldName, "data")) {
-				return false;
-			}
-			else if (Objects.equals(jsonParserFieldName, "data_i18n")) {
-				return true;
-			}
-			else if (Objects.equals(jsonParserFieldName, "geo")) {
-				return false;
-			}
-
-			return false;
-		}
-
-		@Override
-		protected void setField(
-			CustomValue customValue, String jsonParserFieldName,
-			Object jsonParserFieldValue) {
-
-			if (Objects.equals(jsonParserFieldName, "data")) {
-				if (jsonParserFieldValue != null) {
-					customValue.setData((Object)jsonParserFieldValue);
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "data_i18n")) {
-				if (jsonParserFieldValue != null) {
-					customValue.setData_i18n(
-						(Map<String, String>)jsonParserFieldValue);
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "geo")) {
-				if (jsonParserFieldValue != null) {
-					customValue.setGeo(Geo.toDTO((String)jsonParserFieldValue));
-				}
-			}
-		}
+	private static class CustomValueJSONParser
+		extends BaseJSONParser<CustomValue> {
 
 		public static String toJSON(CustomValue customValue) {
 			if (customValue == null) {
@@ -210,6 +162,54 @@ public class CustomValue {
 			return sb.toString();
 		}
 
+		@Override
+		protected CustomValue createDTO() {
+			return new CustomValue();
+		}
+
+		@Override
+		protected CustomValue[] createDTOArray(int size) {
+			return new CustomValue[size];
+		}
+
+		@Override
+		protected boolean parseMaps(String jsonParserFieldName) {
+			if (Objects.equals(jsonParserFieldName, "data")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "data_i18n")) {
+				return true;
+			}
+			else if (Objects.equals(jsonParserFieldName, "geo")) {
+				return false;
+			}
+
+			return false;
+		}
+
+		@Override
+		protected void setField(
+			CustomValue customValue, String jsonParserFieldName,
+			Object jsonParserFieldValue) {
+
+			if (Objects.equals(jsonParserFieldName, "data")) {
+				if (jsonParserFieldValue != null) {
+					customValue.setData((Object)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "data_i18n")) {
+				if (jsonParserFieldValue != null) {
+					customValue.setData_i18n(
+						(Map<String, String>)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "geo")) {
+				if (jsonParserFieldValue != null) {
+					customValue.setGeo(Geo.toDTO((String)jsonParserFieldValue));
+				}
+			}
+		}
+
 		private static String _escape(Object object) {
 			String string = String.valueOf(object);
 
@@ -226,7 +226,6 @@ public class CustomValue {
 			@SuppressWarnings("unchecked")
 			Set set = map.entrySet();
 
-			@SuppressWarnings("unchecked")
 			Iterator<Map.Entry<String, ?>> iterator = set.iterator();
 
 			while (iterator.hasNext()) {
@@ -235,10 +234,7 @@ public class CustomValue {
 				sb.append("\"");
 				sb.append(entry.getKey());
 				sb.append("\": ");
-
-				Object value = entry.getValue();
-
-				sb.append(_toJSON(value));
+				sb.append(_toJSON(entry.getValue()));
 
 				if (iterator.hasNext()) {
 					sb.append(", ");
@@ -285,5 +281,7 @@ public class CustomValue {
 
 			return String.valueOf(value);
 		}
+
 	}
+
 }
