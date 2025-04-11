@@ -90,7 +90,6 @@ public class CustomFieldsUtilTest {
 			null, null, _expandoTable, ExpandoColumnConstants.DATE_ARRAY);
 		_expandoColumn5 = _addExpandoColumn(
 			null, null, _expandoTable, ExpandoColumnConstants.DOUBLE);
-
 		_expandoColumn6 = _addExpandoColumn(
 			new double[] {
 				_DATA_DOUBLE, RandomTestUtil.randomDouble(),
@@ -111,7 +110,6 @@ public class CustomFieldsUtilTest {
 			},
 			ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_SELECTION_LIST,
 			_expandoTable, ExpandoColumnConstants.DOUBLE_ARRAY);
-
 		_expandoColumn9 = _addExpandoColumn(
 			null, null, _expandoTable, ExpandoColumnConstants.FLOAT);
 		_expandoColumn10 = _addExpandoColumn(
@@ -124,7 +122,6 @@ public class CustomFieldsUtilTest {
 			null, null, _expandoTable, ExpandoColumnConstants.INTEGER_ARRAY);
 		_expandoColumn14 = _addExpandoColumn(
 			null, null, _expandoTable, ExpandoColumnConstants.LONG);
-
 		_expandoColumn15 = _addExpandoColumn(
 			new long[] {
 				_DATA_LONG, RandomTestUtil.randomLong(),
@@ -145,7 +142,6 @@ public class CustomFieldsUtilTest {
 			},
 			ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_SELECTION_LIST,
 			_expandoTable, ExpandoColumnConstants.LONG_ARRAY);
-
 		_expandoColumn18 = _addExpandoColumn(
 			null, null, _expandoTable, ExpandoColumnConstants.NUMBER);
 		_expandoColumn19 = _addExpandoColumn(
@@ -156,7 +152,6 @@ public class CustomFieldsUtilTest {
 			null, null, _expandoTable, ExpandoColumnConstants.SHORT_ARRAY);
 		_expandoColumn22 = _addExpandoColumn(
 			null, null, _expandoTable, ExpandoColumnConstants.STRING);
-
 		_expandoColumn23 = _addExpandoColumn(
 			new String[] {
 				_DATA_STRING, RandomTestUtil.randomString(),
@@ -177,7 +172,6 @@ public class CustomFieldsUtilTest {
 			},
 			ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_SELECTION_LIST,
 			_expandoTable, ExpandoColumnConstants.STRING_ARRAY);
-
 		_expandoColumn26 = _addExpandoColumn(
 			null, null, _expandoTable,
 			ExpandoColumnConstants.STRING_ARRAY_LOCALIZED);
