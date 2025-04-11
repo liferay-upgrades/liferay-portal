@@ -219,11 +219,9 @@ public class CommerceOrderModelListener
 					getCommercePaymentIntegration(
 						commercePaymentMethodGroupRel.
 							getPaymentIntegrationKey());
-
 			CommercePaymentMethod commercePaymentMethod =
 				_commercePaymentMethodRegistry.getCommercePaymentMethod(
 					commercePaymentMethodGroupRel.getPaymentIntegrationKey());
-
 			PermissionChecker permissionChecker =
 				_permissionCheckerFactory.create(user);
 

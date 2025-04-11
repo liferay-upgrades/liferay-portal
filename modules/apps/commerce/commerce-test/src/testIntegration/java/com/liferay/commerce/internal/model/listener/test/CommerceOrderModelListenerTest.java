@@ -115,7 +115,6 @@ public class CommerceOrderModelListenerTest {
 				RandomTestUtil.randomString(), 1000,
 				CommerceTermEntryConstants.TYPE_DELIVERY_TERMS, null,
 				_serviceContext);
-
 		_commercePaymentMethodGroupRel =
 			_commercePaymentMethodGroupRelLocalService.
 				addCommercePaymentMethodGroupRel(
@@ -123,7 +122,6 @@ public class CommerceOrderModelListenerTest {
 					RandomTestUtil.randomLocaleStringMap(),
 					RandomTestUtil.randomLocaleStringMap(), true, null,
 					TestCommercePaymentMethod.KEY, 99, null);
-
 		_commercePaymentTerm =
 			_commerceTermEntryLocalService.addCommerceTermEntry(
 				RandomTestUtil.randomString(), _user.getUserId(), true,
@@ -186,14 +184,12 @@ public class CommerceOrderModelListenerTest {
 				Address.class.getName(), commerceAddress.getCommerceAddressId(),
 				_commerceChannel.getCommerceChannelId(), true, 0,
 				CommerceChannelAccountEntryRelConstants.TYPE_BILLING_ADDRESS);
-
 		_commerceChannelAccountEntryRelLocalService.
 			addCommerceChannelAccountEntryRel(
 				_user.getUserId(), _accountEntry.getAccountEntryId(),
 				Address.class.getName(), commerceAddress.getCommerceAddressId(),
 				_commerceChannel.getCommerceChannelId(), true, 0,
 				CommerceChannelAccountEntryRelConstants.TYPE_SHIPPING_ADDRESS);
-
 		_commerceChannelAccountEntryRelLocalService.
 			addCommerceChannelAccountEntryRel(
 				_user.getUserId(), _accountEntry.getAccountEntryId(),
@@ -203,13 +199,6 @@ public class CommerceOrderModelListenerTest {
 				_commerceChannel.getCommerceChannelId(), true, 0,
 				CommerceChannelAccountEntryRelConstants.TYPE_PAYMENT);
 
-		_commerceShippingOptionAccountEntryRelService.
-			addCommerceShippingOptionAccountEntryRel(
-				_accountEntry.getAccountEntryId(),
-				_commerceChannel.getCommerceChannelId(),
-				_commerceShippingMethod.getEngineKey(),
-				_commerceShippingFixedOption.getKey());
-
 		_commerceChannelAccountEntryRelLocalService.
 			addCommerceChannelAccountEntryRel(
 				_user.getUserId(), _accountEntry.getAccountEntryId(),
@@ -217,7 +206,6 @@ public class CommerceOrderModelListenerTest {
 				_commerceDeliveryTerm.getCommerceTermEntryId(),
 				_commerceChannel.getCommerceChannelId(), true, 0,
 				CommerceChannelAccountEntryRelConstants.TYPE_DELIVERY_TERM);
-
 		_commerceChannelAccountEntryRelLocalService.
 			addCommerceChannelAccountEntryRel(
 				_user.getUserId(), _accountEntry.getAccountEntryId(),
@@ -225,6 +213,13 @@ public class CommerceOrderModelListenerTest {
 				_commercePaymentTerm.getCommerceTermEntryId(),
 				_commerceChannel.getCommerceChannelId(), true, 0,
 				CommerceChannelAccountEntryRelConstants.TYPE_PAYMENT_TERM);
+
+		_commerceShippingOptionAccountEntryRelService.
+			addCommerceShippingOptionAccountEntryRel(
+				_accountEntry.getAccountEntryId(),
+				_commerceChannel.getCommerceChannelId(),
+				_commerceShippingMethod.getEngineKey(),
+				_commerceShippingFixedOption.getKey());
 
 		CommerceOrder commerceOrder = CommerceTestUtil.addB2BCommerceOrder(
 			_group.getGroupId(), _user.getUserId(),
