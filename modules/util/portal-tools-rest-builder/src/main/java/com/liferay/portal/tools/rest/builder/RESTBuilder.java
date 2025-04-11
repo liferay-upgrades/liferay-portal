@@ -699,55 +699,21 @@ public class RESTBuilder {
 	private void _createClientPaginationFile(Map<String, Object> context)
 		throws Exception {
 
-		File file = new File(
-			StringBundler.concat(
-				_configYAML.getClientDir(), "/",
-				StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'),
-				"/client/pagination/Pagination.java"));
-
-		_files.add(file);
-
-		FileUtil.write(
-			file,
-			FreeMarkerUtil.processTemplate(
-				_copyrightFile, FileUtil.getCopyrightYear(file),
-				"client_pagination", context));
+		_createClientFile(
+			context, "", "client_pagination", "pagination", "Pagination");
 	}
 
 	private void _createClientPermissionFile(Map<String, Object> context)
 		throws Exception {
 
-		File file = new File(
-			StringBundler.concat(
-				_configYAML.getClientDir(), "/",
-				StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'),
-				"/client/permission/Permission.java"));
-
-		_files.add(file);
-
-		FileUtil.write(
-			file,
-			FreeMarkerUtil.processTemplate(
-				_copyrightFile, FileUtil.getCopyrightYear(file),
-				"client_permission", context));
+		_createClientFile(
+			context, "", "client_permission", "permission", "Permission");
 	}
 
 	private void _createClientProblemFile(Map<String, Object> context)
 		throws Exception {
 
-		File file = new File(
-			StringBundler.concat(
-				_configYAML.getClientDir(), "/",
-				StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'),
-				"/client/problem/Problem.java"));
-
-		_files.add(file);
-
-		FileUtil.write(
-			file,
-			FreeMarkerUtil.processTemplate(
-				_copyrightFile, FileUtil.getCopyrightYear(file),
-				"client_problem", context));
+		_createClientFile(context, "", "client_problem", "problem", "Problem");
 	}
 
 	private void _createClientResourceFile(
@@ -755,20 +721,9 @@ public class RESTBuilder {
 			String schemaName)
 		throws Exception {
 
-		File file = new File(
-			StringBundler.concat(
-				_configYAML.getClientDir(), "/",
-				StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'),
-				"/client/resource/", escapedVersion, "/", schemaName,
-				"Resource.java"));
-
-		_files.add(file);
-
-		FileUtil.write(
-			file,
-			FreeMarkerUtil.processTemplate(
-				_copyrightFile, FileUtil.getCopyrightYear(file),
-				"client_resource", context));
+		_createClientFile(
+			context, escapedVersion, "client_resource", "resource",
+			schemaName + "Resource");
 	}
 
 	private void _createClientSerDesFile(
@@ -776,38 +731,17 @@ public class RESTBuilder {
 			String schemaName)
 		throws Exception {
 
-		File file = new File(
-			StringBundler.concat(
-				_configYAML.getClientDir(), "/",
-				StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'),
-				"/client/serdes/", escapedVersion, "/", schemaName,
-				"SerDes.java"));
-
-		_files.add(file);
-
-		FileUtil.write(
-			file,
-			FreeMarkerUtil.processTemplate(
-				_copyrightFile, FileUtil.getCopyrightYear(file),
-				"client_serdes", context));
+		_createClientFile(
+			context, escapedVersion, "client_serdes", "serdes",
+			schemaName + "SerDes");
 	}
 
 	private void _createClientUnsafeSupplierFile(Map<String, Object> context)
 		throws Exception {
 
-		File file = new File(
-			StringBundler.concat(
-				_configYAML.getClientDir(), "/",
-				StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'),
-				"/client/function/UnsafeSupplier.java"));
-
-		_files.add(file);
-
-		FileUtil.write(
-			file,
-			FreeMarkerUtil.processTemplate(
-				_copyrightFile, FileUtil.getCopyrightYear(file),
-				"client_unsafe_supplier", context));
+		_createClientFile(
+			context, "", "client_unsafe_supplier", "function",
+			"UnsafeSupplier");
 	}
 
 	private void _createDTOActionMetadataProviderFile(
