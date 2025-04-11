@@ -8,8 +8,6 @@
 <%@ include file="/init.jsp" %>
 
 <%
-AccountEntryAddressDisplayContext accountEntryAddressDisplayContext = (AccountEntryAddressDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
-
 AddressDisplay addressDisplay = (AddressDisplay)request.getAttribute(AccountWebKeys.ADDRESS_DISPLAY);
 
 Address address = AddressLocalServiceUtil.fetchAddress(addressDisplay.getAddressId());
@@ -85,6 +83,10 @@ renderResponse.setTitle((addressDisplay.getAddressId() == 0) ? LanguageUtil.get(
 			%>
 
 		</aui:select>
+
+		<%
+		AccountEntryAddressDisplayContext accountEntryAddressDisplayContext = (AccountEntryAddressDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
+		%>
 
 		<div>
 			<react:component
