@@ -173,9 +173,16 @@ public class LiferayOAuth2ClientConfiguration {
 				externalReferenceCode + ".oauth2.token.uri", "/o/oauth2/token");
 
 			if (!tokenURI.contains("://")) {
-				tokenURI =
-					_lxcDXPServerProtocol + "://" + _lxcDXPMainDomain +
-						tokenURI;
+				tokenURI = new StringBuilder(
+				).append(
+					_lxcDXPServerProtocol
+				).append(
+					"://"
+				).append(
+					_lxcDXPMainDomain
+				).append(
+					tokenURI
+				).toString();
 			}
 
 			ClientRegistration clientRegistration =

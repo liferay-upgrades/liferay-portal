@@ -120,8 +120,16 @@ public class SampleCommandLineRunner
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
-				"There are " + messageBoardThreads.size() +
-					" message board threads in the Guest site at " + url);
+				new StringBuilder(
+				).append(
+					"There are "
+				).append(
+					messageBoardThreads.size()
+				).append(
+					" message board threads in the Guest site at "
+				).append(
+					url
+				));
 		}
 
 		for (MessageBoardThread messageBoardThread : messageBoardThreads) {
