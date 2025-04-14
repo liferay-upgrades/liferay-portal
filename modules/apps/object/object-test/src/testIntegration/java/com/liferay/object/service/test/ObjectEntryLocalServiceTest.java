@@ -768,7 +768,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"numberOfBooksWritten", "2147483648"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ExceedsIntegerSize.class,
 			"Object entry value exceeds integer field allowed size",
@@ -780,7 +779,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"numberOfBooksWritten", "-2147483649"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ExceedsLongMaxSize.class,
 			"Object entry value exceeds maximum long field allowed size",
@@ -792,7 +790,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"listTypeEntryKeyRequired", "listTypeEntryKey1"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ExceedsLongMinSize.class,
 			"Object entry value falls below minimum long field allowed size",
@@ -804,7 +801,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"listTypeEntryKeyRequired", "listTypeEntryKey1"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ExceedsLongSize.class,
 			"Object entry value exceeds long field allowed size",
@@ -816,7 +812,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"listTypeEntryKeyRequired", "listTypeEntryKey1"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ExceedsLongSize.class,
 			"Object entry value exceeds long field allowed size",
@@ -828,7 +823,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"listTypeEntryKeyRequired", "listTypeEntryKey1"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ExceedsTextMaxLength.class,
 			"Object entry value exceeds the maximum length of 280 characters " +
@@ -841,7 +835,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"listTypeEntryKeyRequired", "listTypeEntryKey1"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ExceedsTextMaxLength.class,
 			"Object entry value exceeds the maximum length of 65000 " +
@@ -854,7 +847,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"script", RandomTestUtil.randomString(65001)
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.InvalidFileExtension.class,
 			"The file extension \"txt\" is invalid for object field \"upload\"",
@@ -883,7 +875,6 @@ public class ObjectEntryLocalServiceTest {
 						).getFileEntryId()
 					).build());
 			});
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ListTypeEntry.class,
 			"Object field name \"listTypeEntryKeyRequired\" is not mapped to " +
@@ -894,7 +885,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"listTypeEntryKeyRequired", RandomTestUtil.randomString()
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.ListTypeEntry.class,
 			"Object field name \"multipleListTypeEntriesKey\" is not mapped " +
@@ -910,7 +900,6 @@ public class ObjectEntryLocalServiceTest {
 						"multipleListTypeEntryKey1",
 						RandomTestUtil.randomString())
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.Required.class,
 			"No value was provided for required object field " +
@@ -921,7 +910,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"listTypeEntryKeyRequired", "listTypeEntryKey1"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.Required.class,
 			"No value was provided for required object field " +
@@ -932,7 +920,6 @@ public class ObjectEntryLocalServiceTest {
 				).put(
 					"firstName", "Judas"
 				).build()));
-
 		AssertUtils.assertFailure(
 			ObjectEntryValuesException.UniqueValueConstraintViolation.class,
 			"Unique value constraint violation for " +

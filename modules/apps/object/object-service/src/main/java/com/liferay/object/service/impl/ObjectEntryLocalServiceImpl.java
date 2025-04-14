@@ -487,8 +487,7 @@ public class ObjectEntryLocalServiceImpl
 			_getExtensionDynamicObjectDefinitionTable(
 				objectDefinition.getObjectDefinitionId());
 
-		int count = _count(
-			dynamicObjectDefinitionTable, primaryKey);
+		int count = _count(dynamicObjectDefinitionTable, primaryKey);
 
 		String defaultLanguageId = _language.getLanguageId(
 			_portal.getSiteDefaultLocale(
@@ -1563,8 +1562,7 @@ public class ObjectEntryLocalServiceImpl
 		DynamicObjectDefinitionTable dynamicObjectDefinitionTable =
 			_getExtensionDynamicObjectDefinitionTable(objectDefinitionId);
 
-		int count = _count(
-			dynamicObjectDefinitionTable, primaryKey);
+		int count = _count(dynamicObjectDefinitionTable, primaryKey);
 
 		String defaultLanguageId = _language.getLanguageId(
 			_portal.getSiteDefaultLocale(
