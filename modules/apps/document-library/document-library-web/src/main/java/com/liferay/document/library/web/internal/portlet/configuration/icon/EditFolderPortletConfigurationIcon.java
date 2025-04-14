@@ -148,9 +148,9 @@ public class EditFolderPortletConfigurationIcon
 						WebKeys.THEME_DISPLAY);
 
 				boolean hasAdvancedUpdatePermission = _hasPermission(
-					folderId, ActionKeys.ADVANCED_UPDATE, themeDisplay);
+					ActionKeys.ADVANCED_UPDATE, folderId, themeDisplay);
 				boolean hasUpdatePermission = _hasPermission(
-					folderId, ActionKeys.UPDATE, themeDisplay);
+					ActionKeys.UPDATE, folderId, themeDisplay);
 
 				if (hasAdvancedUpdatePermission || hasUpdatePermission) {
 					if ((folderId ==
@@ -168,7 +168,7 @@ public class EditFolderPortletConfigurationIcon
 	}
 
 	private boolean _hasPermission(
-			long folderId, String actionId, ThemeDisplay themeDisplay)
+			String actionId, long folderId, ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		return ModelResourcePermissionUtil.contains(
