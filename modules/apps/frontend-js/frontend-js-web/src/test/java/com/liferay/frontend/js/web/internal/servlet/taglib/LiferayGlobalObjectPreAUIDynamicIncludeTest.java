@@ -115,15 +115,6 @@ public class LiferayGlobalObjectPreAUIDynamicIncludeTest {
 			StringUtil.trim(mockHttpServletResponse.getContentAsString()));
 	}
 
-	private String _read(String name) throws Exception {
-		try (InputStream inputStream =
-				LiferayGlobalObjectPreAUIDynamicIncludeTest.class.
-					getResourceAsStream("dependencies/" + name)) {
-
-			return StringUtil.read(inputStream);
-		}
-	}
-
 	private AuthToken _mockAuthToken() {
 		AuthToken authToken = Mockito.mock(AuthToken.class);
 
@@ -499,6 +490,15 @@ public class LiferayGlobalObjectPreAUIDynamicIncludeTest {
 		).thenReturn(
 			new Date(109, 3, 23)
 		);
+	}
+
+	private String _read(String name) throws Exception {
+		try (InputStream inputStream =
+				LiferayGlobalObjectPreAUIDynamicIncludeTest.class.
+					getResourceAsStream("dependencies/" + name)) {
+
+			return StringUtil.read(inputStream);
+		}
 	}
 
 }

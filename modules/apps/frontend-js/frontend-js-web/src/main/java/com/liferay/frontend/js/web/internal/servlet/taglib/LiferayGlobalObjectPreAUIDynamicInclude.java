@@ -129,7 +129,8 @@ public class LiferayGlobalObjectPreAUIDynamicInclude
 
 		printWriter.println(
 			StringUtil.replace(
-				_TPL_LIFERAY_JS, new String[] {"[$DEFINITION$]", "[$DEV_MODE$]"},
+				_TPL_LIFERAY_JS,
+				new String[] {"[$DEFINITION$]", "[$DEV_MODE$]"},
 				new Object[] {sb, requestURL.startsWith("http://localhost")}));
 
 		printWriter.println("</script>");
@@ -439,7 +440,8 @@ public class LiferayGlobalObjectPreAUIDynamicInclude
 
 		sb.append(
 			StringUtil.replace(
-				_TPL_LANGUAGE_JS, new String[] {"[$AVAILABLE$]", "[$DIRECTION$]"},
+				_TPL_LANGUAGE_JS,
+				new String[] {"[$AVAILABLE$]", "[$DIRECTION$]"},
 				new Object[] {availableSB, directionSB}));
 		sb.append(StringPool.NEW_LINE);
 	}
@@ -722,9 +724,9 @@ public class LiferayGlobalObjectPreAUIDynamicInclude
 		CharPool.DASH, CharPool.FORWARD_SLASH, CharPool.PERIOD
 	};
 
-	private static final String _TPL_LIFERAY_JS;
-
 	private static final String _TPL_LANGUAGE_JS;
+
+	private static final String _TPL_LIFERAY_JS;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		LiferayGlobalObjectPreAUIDynamicInclude.class);
