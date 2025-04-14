@@ -390,9 +390,7 @@ public class LiferayGlobalObjectPreAUIDynamicInclude
 			sb.append("</span>',\ntype: 'warning'\n},\n");
 		}
 
-		sb.append("],\n");
-
-		sb.append("},\n");
+		sb.append("],\n},\n");
 	}
 
 	private void _renderLiferayFeatureFlags(
@@ -526,7 +524,6 @@ public class LiferayGlobalObjectPreAUIDynamicInclude
 				_portal.getLayoutRelativeURL(layout, themeDisplay));
 			_renderMethod(
 				"getLayoutURL", sb, _portal.getLayoutURL(layout, themeDisplay));
-
 			_renderMethod("getParentLayoutId", sb, layout.getParentLayoutId());
 			_renderMethod("isControlPanel", sb, layout.isTypeControlPanel());
 			_renderMethod("isPrivateLayout", sb, layout.isPrivateLayout());
@@ -569,7 +566,6 @@ public class LiferayGlobalObjectPreAUIDynamicInclude
 		_renderMethod("getParentGroupId", sb, themeDisplay.getSiteGroupId());
 		_renderMethod("getPathContext", sb, themeDisplay.getPathContext());
 		_renderMethod("getPathImage", sb, themeDisplay.getPathImage());
-
 		_renderMethod(
 			"getPathJavaScript", sb, themeDisplay.getPathJavaScript());
 		_renderMethod("getPathMain", sb, themeDisplay.getPathMain());
@@ -636,7 +632,6 @@ public class LiferayGlobalObjectPreAUIDynamicInclude
 			"isAddSessionIdToURL", sb, themeDisplay.isAddSessionIdToURL());
 		_renderMethod("isImpersonated", sb, themeDisplay.isImpersonated());
 		_renderMethod("isSignedIn", sb, themeDisplay.isSignedIn());
-
 		_renderMethod(
 			"isStagedPortlet", sb,
 			Validator.isNotNull(themeDisplay.getPpid()) ?
