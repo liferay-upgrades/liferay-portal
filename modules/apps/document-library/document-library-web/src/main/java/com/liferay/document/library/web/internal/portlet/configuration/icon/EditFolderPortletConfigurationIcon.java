@@ -168,12 +168,12 @@ public class EditFolderPortletConfigurationIcon
 	}
 
 	private boolean _hasPermission(
-			long folderId, String actionKey, ThemeDisplay themeDisplay)
+			long folderId, String actionId, ThemeDisplay themeDisplay)
 		throws PortalException {
 
 		return ModelResourcePermissionUtil.contains(
 			_folderModelResourcePermission, themeDisplay.getPermissionChecker(),
-			themeDisplay.getScopeGroupId(), folderId, actionKey);
+			themeDisplay.getScopeGroupId(), folderId, actionId);
 	}
 
 	private boolean _isDLWorkflowEnabled() {
