@@ -54,7 +54,7 @@ jobs:
 
                         helm push "${file_name}" "oci://${GAR_REPOSITORY}"
                     done
-                working-directory: ./cloud/helm/
+                working-directory: ./cloud/helm
 on:
     push:
         branches:
