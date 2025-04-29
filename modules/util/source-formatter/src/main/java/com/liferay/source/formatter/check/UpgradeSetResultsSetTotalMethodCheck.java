@@ -141,9 +141,7 @@ public class UpgradeSetResultsSetTotalMethodCheck extends BaseUpgradeCheck {
 				content,
 				firstMethodCall + StringPool.SEMICOLON + StringPool.NEW_LINE);
 
-			parameters.add(
-				"() -> " + JavaSourceUtil.getParameters(setResultsMethodCall));
-			parameters.add(JavaSourceUtil.getParameters(setTotalMethodCall));
+			parameters.add(JavaSourceUtil.getParameters(setResultsMethodCall));
 		}
 		else if ((setResultsMethodCall == null) &&
 				 (setTotalMethodCall != null)) {
