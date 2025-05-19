@@ -3280,6 +3280,48 @@
 	},
 	{
 		"classNames": [
+			"PortletSharedSearchSettings"
+		],
+		"from": "getParameter71",
+		"issueKey": "LPD-31994",
+		"to": "getParameter"
+	},
+	{
+		"classNames": [
+			"PortletSharedSearchSettings"
+		],
+		"from": "getParameterOptional",
+		"issueKey": "LPD-31994",
+		"to": "getParameter"
+	},
+	{
+		"classNames": [
+			"PortletSharedSearchSettings"
+		],
+		"from": "getPortletPreferences71",
+		"issueKey": "LPD-31994",
+		"to": "getPortletPreferences"
+	},
+	{
+		"classNames": [
+			"PortletSharedSearchSettings"
+		],
+		"from": "getPortletPreferencesOptional",
+		"issueKey": "LPD-31994",
+		"to": "getPortletPreferences"
+	},
+	{
+		"from": "regex:(Optional\\<(?<typeName>(String)))\\>[\\s]+(?<variableName>\\w+)[\\s]+=[\\s]+(?<classInstanceName>portletSharedSearchSettings)\\.(?<methodName>(getParameter))(Optional|71)?",
+		"issueKey": "LPD-31994",
+		"to": "${typeName} ${variableName} = ${classInstanceName}.${methodName}"
+	},
+	{
+		"from": "regex:(Optional\\<(?<typeName>(PortletPreferences))\\>[\\s]+(?<variableName>\\w+)[\\s]+=[\\s]+(?<classInstanceName>portletSharedSearchSettings)\\.(?<methodName>(getPortletPreferences))(Optional|71)?)",
+		"issueKey": "LPD-31994",
+		"to": "${typeName} ${variableName} = ${classInstanceName}.${methodName}"
+	},
+	{
+		"classNames": [
 			"Group",
 			"LayoutSet"
 		],
