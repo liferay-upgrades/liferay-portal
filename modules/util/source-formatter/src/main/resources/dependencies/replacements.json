@@ -4222,6 +4222,24 @@
 		"to": "updateCommercePriceList(param#0#, CommerceCurrencyLocalServiceUtil.fetchCommerceCurrency(param#1#).getCode(), true, param#2#, param#3#, param#4#, param#5#, param#6#, param#7#, param#8#, param#9#, param#10#, param#11#, param#12#, param#13#, param#14#, param#15#, param#16#, param#17#, param#18#)"
 	},
 	{
+		"from": "regex:new Liferay\\.Notification(?<open>\\(\\{)(?<identationToParam>\\s*)(?<paramBody>(.*\\s*)*)(?<close>\\}\\))(\\.render\\(.*\\));",
+		"issueKey": "LPD-44043",
+		"to": "Liferay.Util.openToast${open}${identationToParam}${paramBody}\trender: true,\n${close};",
+		"validExtensions": [
+			"jsp",
+			"jspf"
+		]
+	},
+	{
+		"from": "regex:new Liferay\\.Notification(?<open>\\(\\{)(?<identationToParam>\\s*)(?<paramBody>(.*\\s*)*)(?<close>\\}\\));",
+		"issueKey": "LPD-44043",
+		"to": "Liferay.Util.openToast${open}${identationToParam}${paramBody}${close};",
+		"validExtensions": [
+			"jsp",
+			"jspf"
+		]
+	},
+	{
 		"classNames": [
 			"DDMTemplateLocalService",
 			"DDMTemplateLocalServiceUtil"
