@@ -111,6 +111,11 @@
 		]
 	},
 	{
+		"from": "regex:(?<autoBatch>AutoBatchPreparedStatementUtil\\.autoBatch\\(\\s*)(?<connection>connection).prepareStatement\\((?<message>\".*\")\\)\\)",
+		"issueKey": "LPD-8010",
+		"to": "${autoBatch}${connection}, ${message})"
+	},
+	{
 		"classNames": [
 			"HttpServletRequest"
 		],
