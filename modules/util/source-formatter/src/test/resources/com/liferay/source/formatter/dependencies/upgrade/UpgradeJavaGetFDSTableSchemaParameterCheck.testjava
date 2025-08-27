@@ -12,11 +12,11 @@ public class UpgradeJavaGetFDSTableSchemaParameterCheck extends BaseTableFDSView
 		FDSTableSchemaBuilder fDSTableSchemaBuilder =
 			_fDSTableSchemaBuilderFactory.create();
 
-		FDSTableSchemaField invoiceIdField = fDSTableSchemaBuilder.add(
-			"invoiceId", "invoice-id-field");
+		FDSTableSchemaField invoiceIdFDSTableSchemaField =
+			fDSTableSchemaBuilder.add("invoiceId", "invoice-id-field");
 
-		invoiceIdField.setContentRenderer("link");
-		invoiceIdField.setSortable(true);
+		invoiceIdFDSTableSchemaField.setContentRenderer("link");
+		invoiceIdFDSTableSchemaField.setSortable(true);
 
 		fDSTableSchemaBuilder.add(
 			"createdBy", "invoice-created-by");
@@ -27,10 +27,10 @@ public class UpgradeJavaGetFDSTableSchemaParameterCheck extends BaseTableFDSView
 		fDSTableSchemaBuilder.add(
 			"invoiceTotal", "invoice-total");
 
-		FDSTableSchemaField statusField = fDSTableSchemaBuilder.add(
-			"status", "invoice-status");
+		FDSTableSchemaField statusFDSTableSchemaField =
+			fDSTableSchemaBuilder.add("status", "invoice-status");
 
-		statusField.setContentRenderer("label");
+		statusFDSTableSchemaField.setContentRenderer("label");
 
 		return fDSTableSchemaBuilder.build();
 	}
