@@ -4888,6 +4888,11 @@
 		"to": "getSitemap(param#0#, param#1#, param#2#)"
 	},
 	{
+		"from": "PropsKeys.AUTO_DEPLOY_TOMCAT_DEST_DIR",
+		"issueKey": "LPD-61572",
+		"to": "\"auto.deploy.dest.dir\""
+	},
+	{
 		"from": "CookieKeys.COMMERCE_CONTINUE_AS_GUEST",
 		"issueKey": "LPS-159679",
 		"newImports": [
