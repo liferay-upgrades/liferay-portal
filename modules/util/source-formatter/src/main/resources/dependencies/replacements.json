@@ -4932,6 +4932,14 @@
 	},
 	{
 		"classNames": [
+			"CompanyThreadLocal"
+		],
+		"from": "setWithSafeCloseable",
+		"issueKey": "LPD-58435",
+		"to": "setCompanyIdWithSafeCloseable"
+	},
+	{
+		"classNames": [
 			"SitemapManager"
 		],
 		"from": "getSiteMapManager(long paramName, boolean paramName, ThemeDisplay paramName)",
