@@ -4699,7 +4699,8 @@
 	{
 		"classNames": [
 			"JournalArticleLocalService",
-			"JournalArticleLocalServiceUtil"
+			"JournalArticleLocalServiceUtil",
+			"JournalArticleLocalServiceWrapper"
 		],
 		"from": "addArticle(long paramName, long paramName, long paramName, long paramName, long paramName, String paramName, boolean paramName, double paramName, Map<Locale, String> paramName, Map<Locale, String> paramName, Map<Locale, String> paramName, String paramName, String paramName, String paramName, String paramName, int paramName, int paramName, int paramName, int paramName, int paramName, int paramName, int paramName, int paramName, int paramName, int paramName, boolean paramName, int paramName, int paramName, int paramName, int paramName, int paramName, boolean paramName, boolean paramName, boolean paramName, String paramName, File paramName, Map<String, byte[]> paramName, String paramName, ServiceContext paramName)",
 		"issueKey": "LPD-52326",
