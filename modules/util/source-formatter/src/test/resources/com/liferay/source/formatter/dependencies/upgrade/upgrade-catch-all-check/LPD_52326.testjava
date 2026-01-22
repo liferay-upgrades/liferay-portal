@@ -61,6 +61,17 @@ public class LPD_52326 {
 			reviewDateHour, reviewDateMinute, neverReview, indexable,
 			smallImage, smallImageURL, smallFile, images, articleURL,
 			serviceContext);
+		_journalArticleLocalServiceWrapper.addArticle(
+			userId, groupId, folderId, classNameId, classPK, articleId,
+			autoArticleId, version, titleMap, descriptionMap, friendlyURLMap,
+			content, ddmStructureKey, ddmTemplateKey, layoutUuid,
+			displayDateMonth, displayDateDay, displayDateYear, displayDateHour,
+			displayDateMinute, expirationDateMonth, expirationDateDay,
+			expirationDateYear, expirationDateHour, expirationDateMinute,
+			neverExpire, reviewDateMonth, reviewDateDay, reviewDateYear,
+			reviewDateHour, reviewDateMinute, neverReview, indexable,
+			smallImage, smallImageURL, smallFile, images, articleURL,
+			serviceContext);
 
 		JournalArticleLocalServiceUtil.addArticle(
 			123, groupId, folderId, classNameId, classPK, articleId,
@@ -382,6 +393,10 @@ public class LPD_52326 {
 
 	@Reference
 	private JournalArticleLocalService _journalArticleLocalService;
+
+	@Reference
+	private JournalArticleLocalServiceWrapper
+		_journalArticleLocalServiceWrapper;
 
 	@Reference
 	private JournalArticleService _journalArticleService;
