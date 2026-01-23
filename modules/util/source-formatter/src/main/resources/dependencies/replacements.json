@@ -4979,6 +4979,19 @@
 	},
 	{
 		"classNames": [
+			"MailMessage"
+		],
+		"exception": "IOException e",
+		"from": "addFileAttachment(File paramName, String paramName)",
+		"handler": "throw new RuntimeExceptio(e);",
+		"issueKey": "LPD-61575",
+		"newImports": [
+			"java.nio.file.Files"
+		],
+		"to": "addFileAttachment(param#1#, Files.newInputStream(param#0#.toPath()))"
+	},
+	{
+		"classNames": [
 			"JournalArticleLocalService",
 			"JournalArticleLocalServiceUtil",
 			"JournalArticleService",
