@@ -729,7 +729,8 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 
 		return _formatParameters(
 			methodCall, newContent, parameterNames, to,
-			newContent.indexOf(javaMethodContent) + matcher.start());
+			newContent.indexOf(javaMethodContent) + matcher.start(),
+			jsonObject);
 	}
 
 	private String _formatMethodSignature(
@@ -767,7 +768,7 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 
 	private String _formatParameters(
 		String methodCall, String newContent, List<String> parameterNames,
-		String to, int index) {
+		String to, int index, JSONObject jsonObject) {
 
 		String newMethodCall = to.substring(
 			0, to.indexOf(CharPool.OPEN_PARENTHESIS) + 1);
@@ -787,6 +788,26 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 			to, JavaSourceUtil.getMethodCall(to, 0));
 
 		newMethodCall = newMethodCall + removedFirstMethodCall;
+
+		String exception = jsonObject.getString("exception");
+		String handler = jsonObject.getString("handler");
+
+		if (!exception.isEmpty() && !handler.isEmpty()) {
+			int newLineIndex = newContent.lastIndexOf("\n", index) + 1;
+
+			String indentation = "";
+
+			if (newLineIndex < index) {
+				indentation = newContent.substring(newLineIndex, index);
+			}
+
+			newMethodCall = StringBundler.concat(
+				"try {\n", indentation, "\t", newMethodCall, ";\n", indentation,
+				"} catch (", exception, ") {\n", indentation, "\t", handler,
+				"\n", indentation, "}");
+
+			methodCall = methodCall + ';';
+		}
 
 		return StringUtil.replaceFirst(
 			newContent, methodCall, newMethodCall, index);
