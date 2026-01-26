@@ -5371,6 +5371,14 @@
 		"to": "DDMUtil.getFields(param#0#, ServiceContextThreadLocal.getServiceContext())"
 	},
 	{
+		"classNames": [
+			"PropsKeys"
+		],
+		"from": "AUTO_DEPLOY_TOMCAT_DEST_DIR",
+		"hasMessage": true,
+		"issueKey": "LPD-65815"
+	},
+	{
 		"from": "PropsValues.FEATURE_FLAGS_JSON",
 		"issueKey": "LPD-66289",
 		"newImports": [
@@ -5378,14 +5386,6 @@
 			"com.liferay.portal.kernel.util.PropsUtil"
 		],
 		"to": "String.valueOf(JSONFactoryUtil.createJSONObject(PropsUtil.getProperties(\"feature.flag.\", true)))"
-	},
-	{
-		"classNames": [
-			"PropsKeys"
-		],
-		"from": "AUTO_DEPLOY_TOMCAT_DEST_DIR",
-		"hasMessage": true,
-		"issueKey": "LPD-65815"
 	},
 	{
 		"from": "PropsFiles.CAPTCHA",
