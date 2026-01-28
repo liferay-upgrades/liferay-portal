@@ -2454,6 +2454,39 @@
 	},
 	{
 		"classNames": [
+			"GroupURLProvider"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-27748",
+		"methodsToFormat": [
+			{
+				"from": "regex:@Override\\n\\tpublic\\s*String\\s*getDisplayURL\\(\\)\\s*\\{[\\s\\S]*?}\\n\\n\\t?",
+				"to": ""
+			},
+			{
+				"from": "regex:@Override\\n\\t(?<methodSignature>public String getGroupAdministrationURL)",
+				"to": "${methodSignature}"
+			},
+			{
+				"from": "regex:@Override\\n\\t(?<methodSignature>public String getGroupLayoutsURL)",
+				"to": "${methodSignature}"
+			},
+			{
+				"from": "regex:@Override\\n\\t(?<methodSignature>public String getGroupURL)",
+				"to": "${methodSignature}"
+			},
+			{
+				"from": "regex:@Override\\n\\tpublic\\s*int\\s*getLayoutsCount\\([\\s\\S]*?\\)\\s*\\{[\\s\\S]*?}\\n\\n\\t?",
+				"to": ""
+			},
+			{
+				"from": "regex:@Override\\n\\t(?<methodSignature>public String getLiveGroupURL)",
+				"to": "${methodSignature}"
+			}
+		]
+	},
+	{
+		"classNames": [
 			"IndexerPostProcessor"
 		],
 		"classStructurePattern": true,
