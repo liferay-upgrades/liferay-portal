@@ -4498,6 +4498,19 @@
 		]
 	},
 	{
+		"classNames": [
+			"CommerceOrderStatus"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-48534",
+		"methodsToFormat": [
+			{
+				"from": "@Override\n\tpublic CommerceOrder doTransition(CommerceOrder commerceOrder, long userId)",
+				"to": "@Override\n\tpublic CommerceOrder doTransition(\n\t\t\tCommerceOrder commerceOrder, long userId, boolean secure)"
+			}
+		]
+	},
+	{
 		"from": "regex:(?<utilName>CPAttachmentFileEntryServiceUtil|CPAttachmentFileEntryLocalServiceUtil)\\.fetchByExternalReferenceCode",
 		"issueKey": "LPD-48708",
 		"to": "${utilName}.fetchCPAttachmentFileEntryByExternalReferenceCode",
