@@ -15,6 +15,40 @@
 	},
 	{
 		"classNames": [
+			"UpgradeStepRegistrator"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-7742",
+		"methodsToFormat": [
+			{
+				"from": "regex:try\\s+\\{[\\s\\S]*?new\\s*BaseUpgradeServiceModuleRelease\\(\\)\\s*\\{(?<anonymousClassContent>[\\s\\S]*?\\})[\\s]*\\}\\;[\\s\\S]*?catch\\s+\\(UpgradeException\\s+ue\\)\\s*\\{[\\s\\S]*?\\}",
+				"to": "registry.registerReleaseCreationUpgradeSteps(\n\t\t\tnew ReleaseRenamingUpgradeStep(${anonymousClassContent}"
+			},
+			{
+				"from": "regex:(?<=new\\sReleaseRenamingUpgradeStep\\()(?<anonymousClassContent>[\\s\\S]*?)(?<=\\}|\\()[\\s]*?@Override\\s+protected\\s+String\\s+getNewBundleSymbolicName[\\s\\S]*?return\\s+\"(?<newServletContextNamePart1>[^\\\"]*)\\\"[^\\;]*?\\\"(?<newServletContextNamePart2>[^\\\"]*)\\\"\\;[\\s]*?\\}",
+				"to": "\n\t\t\t\t\"${newServletContextNamePart1}${newServletContextNamePart2}\",${anonymousClassContent}"
+			},
+			{
+				"from": "regex:(?<=new\\sReleaseRenamingUpgradeStep\\()(?<anonymousClassContent>[\\s\\S]*?)(?<=\\}|\\()[\\s]*?@Override\\s+protected\\s+String\\s+getNewBundleSymbolicName[\\s\\S]*?return\\s+\"(?<newServletContextName>[^\\\"]*)\\\"\\;[\\s]*?\\}",
+				"to": "\n\t\t\t\t\"${newServletContextName}\",${anonymousClassContent}"
+			},
+			{
+				"from": "regex:(?<=new\\sReleaseRenamingUpgradeStep\\()(?<methodsParameters>[\\s\\S]*?\",)(?<anonymousClassContent>[\\s\\S]*?)[\\s]*?@Override\\s+protected\\s+String\\s+getOldBundleSymbolicName[\\s\\S]*?return\\s+\"(?<releaseLocalService>[^\\\"]*)[\\s\\S]*?\\\"\\;[\\s]*?\\}",
+				"to": "${methodsParameters}\n\t\t\t\t\"${releaseLocalService}\", _releaseLocalService));"
+			},
+			{
+				"from": "regex:(?<=_releaseLocalService\\)\\)\\;)[\\s\\S]*?@Override\\s+protected\\s+String\\s+getNamespace\\(\\)\\s+\\{[\\s\\S]*?\\}[\\s]*\\}",
+				"to": ""
+			}
+		],
+		"newImports": [
+			"com.liferay.portal.kernel.service.ReleaseLocalService",
+			"com.liferay.portal.upgrade.release.ReleaseRenamingUpgradeStep"
+		],
+		"newReference": "ReleaseLocalService _releaseLocalService"
+	},
+	{
+		"classNames": [
 			"AccountGroupRelLocalService",
 			"AccountGroupRelLocalServiceUtil",
 			"AccountGroupRelService",
