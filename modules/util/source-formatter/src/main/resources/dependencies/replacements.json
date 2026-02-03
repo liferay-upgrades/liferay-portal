@@ -242,6 +242,15 @@
 		]
 	},
 	{
+		"from": "regex:try\\s*\\{[\\s\\S]*?new\\s*ReleaseRenamingUpgradeStep\\(\\)[\\s\\S]*?getNewBundleSymbolicName\\(\\)\\s*\\{\\s*return\\s*\"(?<param0>[^\"]*)\"[\\s\\S]*?\"(?<param1>[^\"]*)\"[\\s\\S]*?\"(?<param2>[^\"]*)[\\s\\S]*\\t\\t\\}",
+		"issueKey": "LPD-11224",
+		"newImports": [
+			"com.liferay.portal.kernel.service.ReleaseLocalService"
+		],
+		"newReference": "ReleaseLocalService _releaseLocalService",
+		"to": "ReleaseRenamingUpgradeStep upgradeServiceModuleRelease =\n\t\t\tnew ReleaseRenamingUpgradeStep(\n\t\t\t\t\"${param0}\" + \"${param1}\",\n\t\t\t\t\"${param2}\", _releaseLocalService);\n\n\t\treturn null;"
+	},
+	{
 		"from": "new CalendarBookingStartTimeComparator()",
 		"issueKey": "LPD-25955",
 		"skipParametersValidation": true,
