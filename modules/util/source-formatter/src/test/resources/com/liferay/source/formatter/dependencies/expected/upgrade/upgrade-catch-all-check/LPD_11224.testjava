@@ -1,0 +1,30 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.source.formatter.dependencies.upgrade;
+
+import com.liferay.portal.kernel.service.ReleaseLocalService;
+import com.liferay.portal.upgrade.release.ReleaseRenamingUpgradeStep;
+
+import org.osgi.service.component.annotations.Reference;
+
+/**
+ * @author Lucas Ferruccio
+ */
+public class LPD_11224 {
+
+	public void method() {
+		ReleaseRenamingUpgradeStep upgradeServiceModuleRelease =
+			new ReleaseRenamingUpgradeStep(
+				"com.liferay.osb.www.marketing.ev" + "ents.service",
+				"osb-www-marketing-events-portlet", _releaseLocalService);
+
+		return null;
+	}
+
+	@Reference
+	private ReleaseLocalService _releaseLocalService;
+
+}
