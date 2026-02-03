@@ -1348,6 +1348,7 @@ com.liferay.portal.theme.ThemeCompanyLimit=com.liferay.portal.kernel.theme.Theme
 com.liferay.portal.theme.ThemeDisplay=com.liferay.portal.kernel.theme.ThemeDisplay
 com.liferay.portal.theme.ThemeGroupId=com.liferay.portal.kernel.theme.ThemeGroupId
 com.liferay.portal.theme.ThemeGroupLimit=com.liferay.portal.kernel.theme.ThemeGroupLimit
+com.liferay.portal.upgrade.release.BaseUpgradeServiceModuleRelease=com.liferay.portal.upgrade.release.ReleaseRenamingUpgradeStep
 com.liferay.portal.upload.LiferayFileItem=com.liferay.portal.kernel.upload.FileItem
 com.liferay.portal.util.CookieUtil=com.liferay.portal.kernel.util.CookieUtil
 com.liferay.portal.util.CustomJspRegistry=com.liferay.portal.kernel.util.CustomJspRegistry
