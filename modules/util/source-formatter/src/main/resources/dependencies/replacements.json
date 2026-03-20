@@ -5985,6 +5985,42 @@
 		"issueKey": "LPD-82354"
 	},
 	{
+		"classNames": [
+			"PortletSharedSearchResponse"
+		],
+		"from": "getKeywordsOptional",
+		"issueKey": "LPD-82872",
+		"to": "getKeywords"
+	},
+	{
+		"classNames": [
+			"portletSharedSearchSettings"
+		],
+		"from": "getParameterOptional",
+		"issueKey": "LPD-82872",
+		"to": "getParameter"
+	},
+	{
+		"from": "regex:(?<paramName>\\w+)Optional.orElse\\(StringPool.BLANK\\)",
+		"issueKey": "LPD-82872",
+		"to": "${paramName}"
+	},
+	{
+		"from": "regex:(?<paramName>\\w+)Optional(?<method>\\s*?=\\s*?portletSharedSearch(Response|Settings))",
+		"issueKey": "LPD-82872",
+		"to": "${paramName}${method}"
+	},
+	{
+		"from": "regex:Optional.ofNullable\\(\\s*?(?<paramCall>_portletSharedRequestHelper.getParameter\\(\\s*?name, _renderRequest\\))\\);",
+		"issueKey": "LPD-82872",
+		"to": "${paramCall};"
+	},
+	{
+		"from": "regex:Optional<(?<paramType>\\S+)>\\s*?(?<prefixParam>\\w*)?(?<paramName>keywords|parameterValue)(Optional)?",
+		"issueKey": "LPD-82872",
+		"to": "${paramType} ${prefixParam}${paramName}"
+	},
+	{
 		"from": "regex:(?<varName>\\w*?FileEntryType)\\.getDDMStructures\\(\\)",
 		"issueKey": "LPD-84010",
 		"newImports": [
