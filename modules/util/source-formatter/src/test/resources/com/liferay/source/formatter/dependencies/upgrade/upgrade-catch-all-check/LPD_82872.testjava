@@ -1,0 +1,46 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.source.formatter.dependencies.upgrade;
+
+/**
+ * @author Lucas Ferruccio
+ */
+public class LPD_82872 {
+
+	public void method(
+		PortletSharedSearchResponse portletSharedSearchResponse,
+		PortletSharedSearchSettings portletSharedSearchSettings,
+		RenderRequest renderRequest) {
+
+		Optional<String> parameterValueOptional =
+			portletSharedSearchSettings.getParameterOptional(
+				"similar.results.all.classes");
+		_keywordsOptional = portletSharedSearchResponse.getKeywordsOptional();
+		_parameterValueOptional =
+			portletSharedSearchSettings.getParameterOptional(
+				"similar.results.all.classes");
+
+		Optional<String> keywordsOptional =
+			portletSharedSearchResponse.getKeywordsOptional();
+
+		renderRequest.setAttribute(
+			"keywords", keywordsOptional.orElse(StringPool.BLANK));
+
+		renderRequest.setAttribute(
+			"keywords",
+			portletSharedSearchResponse.getKeywordsOptional(
+			).orElse(
+				StringPool.BLANK
+			));
+
+		Optional.ofNullable(
+			_portletSharedRequestHelper.getParameter(name, _renderRequest));
+	}
+
+	private Optional<String> _keywordsOptional;
+	private Optional<String[]> _parameterValueOptional;
+
+}
