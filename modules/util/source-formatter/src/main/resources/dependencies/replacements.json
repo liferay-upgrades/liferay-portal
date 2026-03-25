@@ -4740,6 +4740,23 @@
 	},
 	{
 		"classNames": [
+			"UpgradeStepRegistrator"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-48413",
+		"methodsToFormat": [
+			{
+				"from": "regex:try\\s*?\\{[\\s\\S]*?getNewBundleSymbolicName\\(\\)\\s*?\\{\\s*?return\\s*?\"(?<fromSchemaVersionString>\\S*?)\"[\\s\\S]*?getOldBundleSymbolicName\\(\\)\\s*?\\{\\s*?return\\s*?\"(?<toSchemaVersionString>\\S*?)\"[\\s\\S]*?catch[\\s\\S]*?\\}",
+				"to": "registry.registerReleaseCreationUpgradeSteps(new ReleaseRenamingUpgradeStep(\"${fromSchemaVersionString}\", \"${toSchemaVersionString}\", _releaseLocalService));"
+			}
+		],
+		"newImports": [
+			"com.liferay.portal.kernel.service.ReleaseLocalService"
+		],
+		"newReference": "ReleaseLocalService _releaseLocalService"
+	},
+	{
+		"classNames": [
 			"CommerceLowStockActivity"
 		],
 		"classStructurePattern": true,
