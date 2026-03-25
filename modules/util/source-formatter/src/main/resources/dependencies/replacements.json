@@ -4148,6 +4148,14 @@
 		]
 	},
 	{
+		"from": "mimeTypesUtil.isWebImage",
+		"hasMessage": true,
+		"issueKey": "LPD-40678",
+		"validExtensions": [
+			"ftl"
+		]
+	},
+	{
 		"classNames": [
 			"LayoutLocalService",
 			"LayoutLocalServiceUtil",
