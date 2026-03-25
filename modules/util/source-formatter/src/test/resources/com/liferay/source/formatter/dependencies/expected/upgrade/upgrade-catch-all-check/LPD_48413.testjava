@@ -1,0 +1,31 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.source.formatter.dependencies.upgrade;
+
+import com.liferay.portal.kernel.service.ReleaseLocalService;
+
+import org.osgi.service.component.annotations.Reference;
+
+/**
+ * @author Lucas Ferruccio
+ */
+public class LPD_48413 implements UpgradeStepRegistrator {
+
+	@Override
+	public void register(Registry registry) {
+		registry.registerReleaseCreationUpgradeSteps(new ReleaseRenamingUpgradeStep("com.customer.commerce.invoice.management.service", "customer-commerce-invoice-service", _releaseLocalService));
+
+		registry.registerInitialization();
+
+		registry.register("0.0.1", "1.0.0", new DummyUpgradeStep());
+		registry.register("1.0.0", "1.0.1", new DummyUpgradeStep());
+		registry.register("1.0.1", "1.0.2", new UpgradeSchema());
+	}
+
+	@Reference
+	private ReleaseLocalService _releaseLocalService;
+
+}
