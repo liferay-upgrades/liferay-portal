@@ -5994,6 +5994,19 @@
 	},
 	{
 		"classNames": [
+			"CommerceOrderItemLocalServiceWrapper"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-84225",
+		"methodsToFormat": [
+			{
+				"from": "CommerceOrderItem fetchCommerceOrderItemByBookedQuantityId",
+				"to": "CommerceOrderItem\n\t\tfetchCommerceOrderItemByCommerceInventoryBookedQuantityId"
+			}
+		]
+	},
+	{
+		"classNames": [
 			"PhoneLocalService",
 			"PhoneLocalServiceUtil",
 			"PhoneService",
