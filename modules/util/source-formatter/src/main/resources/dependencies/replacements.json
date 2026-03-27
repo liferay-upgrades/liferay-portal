@@ -5789,6 +5789,11 @@
 		"issueKey": "LPD-82354"
 	},
 	{
+		"from": "regex:\\(\\s*new\\s+Boolean\\s*\\(\\s*(?<paramName>[\\s\\S]*?)\\s*\\)\\.toString\\(\\)\\s*\\)",
+		"issueKey": "LPD-83995",
+		"to": "(Boolean.valueOf(${paramName}).toString())"
+	},
+	{
 		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
 		"issueKey": "LPS-153962",
 		"newImports": [
