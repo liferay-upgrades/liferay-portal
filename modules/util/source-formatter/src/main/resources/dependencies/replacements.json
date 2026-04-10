@@ -5789,6 +5789,15 @@
 		"issueKey": "LPD-82354"
 	},
 	{
+		"classNames": [
+			"ListTypeLocalService",
+			"ListTypeLocalServiceUtil"
+		],
+		"from": "getListType(String paramName, String paramName)",
+		"issueKey": "LPD-85858",
+		"to": "getListType(0, param#0#, param#1#)"
+	},
+	{
 		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
 		"issueKey": "LPS-153962",
 		"newImports": [
