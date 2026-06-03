@@ -5829,6 +5829,18 @@
 		"issueKey": "LPD-82354"
 	},
 	{
+		"from": "CustomFieldsUtil.hasVisibleCustomFields",
+		"issueKey": "LPD-85980",
+		"newImports": [
+			"com.liferay.expando.util.ExpandoAttributesUtil"
+		],
+		"to": "ExpandoAttributesUtil.hasVisibleAttributes",
+		"validExtensions": [
+			"java",
+			"jsp"
+		]
+	},
+	{
 		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
 		"issueKey": "LPS-153962",
 		"newImports": [
