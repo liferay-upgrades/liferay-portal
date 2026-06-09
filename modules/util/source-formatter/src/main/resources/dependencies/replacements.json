@@ -5204,6 +5204,22 @@
 	},
 	{
 		"classNames": [
+			"BaseCTDisplayRenderer"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-58414",
+		"methodsToFormat": [
+			{
+				"from": "regex:@Override\\n\\tpublic String getContent\\(\\n\\t\\t\\t\\w+ \\w+,\\n\\t\\t\\t\\w+ \\w+, Locale \\w+, (?<genericType>\\w+) \\w+\\)\\n\\t\\tthrows Exception",
+				"to": "@Override\n\tpublic String renderPreview(DisplayContext<${genericType}> displayContext)\n\t\tthrows Exception"
+			}
+		],
+		"newImports": [
+			"com.liferay.change.tracking.spi.display.context.DisplayContext"
+		]
+	},
+	{
+		"classNames": [
 			"LayoutCopyHelper"
 		],
 		"from": "copyLayout",
