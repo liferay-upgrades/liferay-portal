@@ -377,6 +377,10 @@
 			<category name="Styling" />
 			<description name="Finds missing and unnecessary whitespace." />
 		</check>
+		<check name="UpgradeGradlePetraModelAdapterCheck">
+			<category name="Upgrade" />
+			<description name="Removes the `com.liferay.petra.model.adapter` dependency from `build.gradle` since it is already bundled within the fat JAR." />
+		</check>
 
 		<!-- Module Source Checks -->
 

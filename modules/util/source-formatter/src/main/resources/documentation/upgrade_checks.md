@@ -17,6 +17,7 @@ UpgradeCatchAllJavaLongLinesCheck | .bnd, .ftl, .gradle, .java, .json, .jsp, .js
 UpgradeCatchAllJavaTermOrderCheck | .bnd, .ftl, .gradle, .java, .json, .jsp, .jspf, .scss, or .vm | Sorts javaterms in `LPD_XXXXX.java` and `LPS_XXXXX.java` files. |
 UpgradeDeprecatedAPICheck | .java | Finds calls to deprecated classes, constructors, fields or methods after an upgrade. |
 UpgradeGradleIncludeResourceCheck | .bnd, .ftl, .gradle, .java, .json, .jsp, .jspf, .scss, or .vm | Replaces with `compileInclude` the configuration attribute for dependencies in `build.gradle` that are listed at `Include-Resource` property at `bnd.bnd` associated file. |
+UpgradeGradlePetraModelAdapterCheck | .gradle | Removes the `com.liferay.petra.model.adapter` dependency from `build.gradle` since it is already bundled within the fat JAR. |
 UpgradeImportsCheck | .bnd, .ftl, .gradle, .java, .json, .jsp, .jspf, .scss, or .vm | Replaces deprecated package references with updated values from `imports.txt` and handles class renaming by updating variable declarations and references when a package change involves a class name change. |
 UpgradeJSPFieldSetGroupCheck | .bnd, .ftl, .gradle, .java, .json, .jsp, .jspf, .scss, or .vm | Run code to remove 'fieldset-group' tag. |
 UpgradeJavaAssetEntryAssetCategoriesCheck | .bnd, .ftl, .gradle, .java, .json, .jsp, .jspf, .scss, or .vm | Replaces methods referring to class `AssetEntryAssetCategory` in class `AssetCategoryLocalService` with equivalent methods in class `AssetEntryAssetCategoryRelLocalService`. |

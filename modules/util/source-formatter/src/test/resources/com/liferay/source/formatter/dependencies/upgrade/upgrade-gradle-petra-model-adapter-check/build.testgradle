@@ -1,0 +1,4 @@
+dependencies {
+	compileOnly group: "com.liferay", name: "com.liferay.petra.model.adapter"
+	compileOnly group: "com.liferay.portal", name: "release.dxp.api", version: "2025.q4.8"
+}

@@ -62,6 +62,13 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testUpgradeGradlePetraModelAdapterCheck() throws Exception {
+		test(
+			"upgrade/upgrade-gradle-petra-model-adapter-" +
+				"check/build.testgradle");
+	}
+
+	@Test
 	public void testUpgradeImportsCheck() throws Exception {
 		test("upgrade/UpgradeImportsCheck.testftl");
 		test("upgrade/UpgradeImportsCheck.testjava");

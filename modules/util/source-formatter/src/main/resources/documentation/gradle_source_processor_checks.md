@@ -28,3 +28,4 @@ GradleTestDependencyVersionCheck | [Bug Prevention](bug_prevention_checks.md#bug
 GradleTestUtilDeployDirCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks for incorrect use of `deployDir`. |
 [GradleUpgradeReleaseDXPCheck](check/gradle_upgrade_release_dxp_check.md#gradleupgradereleasedxpcheck) | [Upgrade](upgrade_checks.md#upgrade-checks) | Remove and replaced dependencies in `build.gradle` that are already in `release.dxp.api` with `released.dxp.api` dependency. |
 GradleWhitespaceCheck | [Styling](styling_checks.md#styling-checks) | Finds missing and unnecessary whitespace. |
+UpgradeGradlePetraModelAdapterCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Removes the `com.liferay.petra.model.adapter` dependency from `build.gradle` since it is already bundled within the fat JAR. |
