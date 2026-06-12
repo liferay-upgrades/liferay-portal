@@ -3459,6 +3459,22 @@
 	},
 	{
 		"classNames": [
+			"DDMFormJSONDeserializer"
+		],
+		"from": "deserialize(String paramName)",
+		"hasMessage": true,
+		"issueKey": "LPD-30556"
+	},
+	{
+		"classNames": [
+			"DDMFormJSONSerializer"
+		],
+		"from": "serialize(DDMForm paramName)",
+		"hasMessage": true,
+		"issueKey": "LPD-30556"
+	},
+	{
+		"classNames": [
 			"JournalArticle"
 		],
 		"from": "setDDMStructureKey(String paramName)",
