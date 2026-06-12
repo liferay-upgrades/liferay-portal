@@ -3137,6 +3137,14 @@
 		"to": "addCompany(param#0#, param#1#, param#2#, param#3#, param#4#, param#5#, true, param#6#, param#7#, param#8#, param#9#, param#10#, param#11#)"
 	},
 	{
+		"classNames": [
+			"DDMFormViewFormInstanceRecordsDisplayContext"
+		],
+		"from": "getDDMFormValues(DDMFormInstanceRecord paramName)",
+		"hasMessage": true,
+		"issueKey": "LPD-28870"
+	},
+	{
 		"from": "new CommerceCatalogCreateDateComparator()",
 		"issueKey": "LPD-29234",
 		"skipParametersValidation": true,
