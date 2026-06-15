@@ -24,6 +24,7 @@ import com.liferay.source.formatter.parser.JavaClassParser;
 import com.liferay.source.formatter.parser.JavaMethod;
 import com.liferay.source.formatter.parser.JavaTerm;
 import com.liferay.source.formatter.parser.JavaVariable;
+import com.liferay.source.formatter.parser.ParseException;
 
 import java.io.File;
 
@@ -648,7 +649,14 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 
 		String newContent = content;
 
-		JavaClass javaClass = JavaClassParser.parseJavaClass(fileName, content);
+		JavaClass javaClass;
+
+		try {
+			javaClass = JavaClassParser.parseJavaClass(fileName, content);
+		}
+		catch (ParseException parseException) {
+			return newContent;
+		}
 
 		if (!jsonObject.getBoolean("classStructurePattern") &&
 			!jsonObject.has("removeImplements")) {

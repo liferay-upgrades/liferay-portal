@@ -11,6 +11,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.source.formatter.JSPImportsFormatter;
 import com.liferay.source.formatter.parser.JavaClass;
 import com.liferay.source.formatter.parser.JavaClassParser;
+import com.liferay.source.formatter.parser.ParseException;
 import com.liferay.source.formatter.util.SourceFormatterUtil;
 
 import java.io.InputStream;
@@ -79,10 +80,15 @@ public class UpgradeImportsCheck extends BaseFileCheck {
 		List<String> importNames = new ArrayList<>();
 
 		if (fileName.endsWith(".java")) {
-			JavaClass javaClass = JavaClassParser.parseJavaClass(
-				fileName, content);
+			try {
+				JavaClass javaClass = JavaClassParser.parseJavaClass(
+					fileName, content);
 
-			importNames = javaClass.getImportNames();
+				importNames = javaClass.getImportNames();
+			}
+			catch (ParseException parseException) {
+				return importNames;
+			}
 		}
 		else if (fileName.endsWith(".jsp")) {
 			importNames = JSPImportsFormatter.getImportNames(content);
@@ -146,9 +152,14 @@ public class UpgradeImportsCheck extends BaseFileCheck {
 		String newContent = content;
 
 		if (fileName.endsWith(".java")) {
-			javaClass = JavaClassParser.parseJavaClass(fileName, content);
+			try {
+				javaClass = JavaClassParser.parseJavaClass(fileName, content);
 
-			newContent = javaClass.getContent();
+				newContent = javaClass.getContent();
+			}
+			catch (ParseException parseException) {
+				return content;
+			}
 		}
 
 		for (Map.Entry<String, String> entry : variablesMap.entrySet()) {

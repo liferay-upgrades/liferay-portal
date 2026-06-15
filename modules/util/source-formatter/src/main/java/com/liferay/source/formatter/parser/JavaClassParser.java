@@ -284,6 +284,17 @@ public class JavaClassParser {
 			if (lastChildDetailAST.getType() == TokenTypes.SLIST) {
 				lastChildDetailAST = lastChildDetailAST.getLastChild();
 
+				if (lastChildDetailAST == null) {
+					return null;
+				}
+
+				if (lastChildDetailAST.getType() ==
+						TokenTypes.SINGLE_LINE_COMMENT) {
+
+					lastChildDetailAST =
+						lastChildDetailAST.getPreviousSibling();
+				}
+
 				if ((lastChildDetailAST == null) ||
 					(lastChildDetailAST.getType() != TokenTypes.RCURLY)) {
 
