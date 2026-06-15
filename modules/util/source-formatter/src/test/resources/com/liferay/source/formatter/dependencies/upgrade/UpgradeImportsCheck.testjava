@@ -73,6 +73,10 @@ public class UpgradeImportsCheck extends BaseTableClayDataSetDisplayView {
 		groupPermission.check(null, null, null);
 	}
 
+	public void methodWithTrailingComment() {
+		PortalUtil.getPortalURL(null, null, false);
+	} // trailing comment
+
 	@Reference
 	private GroupPermission _testGroupPermission;
 

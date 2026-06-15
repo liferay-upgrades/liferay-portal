@@ -75,6 +75,10 @@ public class UpgradeImportsCheck extends BaseTableFDSView {
 		GroupPermissionUtil.check(null, null, null);
 	}
 
+	public void methodWithTrailingComment() {
+		PortalUtil.getPortalURL(null, null, false);
+	} // trailing comment
+
 	@Reference
 	private FDSTableSchemaBuilderFactory _fDSTableSchemaBuilderFactory;
 
