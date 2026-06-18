@@ -25,7 +25,7 @@ UpgradeJavaGetLayoutDisplayPageObjectProviderCheck | [Upgrade](upgrade_checks.md
 UpgradeJavaGetLayoutDisplayPageProviderCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replace getLayoutDisplayPageProvider by getLayoutDisplayPageProviderByClassName. |
 UpgradeJavaLocalServiceImplCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Add Component annotation to `*LocalServiceImpl.java` file. |
 UpgradeJavaPortletIdMethodCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replace the 'document.get(Field.PORTLET_ID)' by the new interface 'PortletProviderUtil.getPortletId'. |
-UpgradeJavaPortletSharedSearchSettingsCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replaces the Optional return type of the methods `getParameterValues` and `getPortletPreferences` of `PortletSharedSearchSettings` class. |
+UpgradeJavaPortletSharedSearchSettingsCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replaces the Optional return type of the methods `getParameterValues` and `getPortletPreferences` of `PortletSharedSearchResponse` and `PortletSharedSearchSettings` classes. |
 UpgradeJavaProductDTOConverterReferenceCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Updates references of `ProductDTOConverter` to `DTOConverter` |
 UpgradeJavaSchedulerEntryImplConstructorCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replace constructors that use the empty constructor of the SchedulerEntryImpl class. |
 UpgradeJavaScreenContributorClassCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replace class `PortalSettingsConfigurationScreenContributor` by `ConfigurationScreenWrapper` and create an inner class. |
