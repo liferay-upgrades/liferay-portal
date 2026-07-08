@@ -23,6 +23,8 @@ public interface MigrationStatus {
 
 	public static final int PHASE_IDLE = 0;
 
+	public static final int PHASE_INDEX_CREATION = 5;
+
 	public static final int PHASE_SCHEMA_CREATION = 3;
 
 	public long getElapsedTime();
