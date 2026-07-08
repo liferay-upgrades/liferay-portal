@@ -30,7 +30,7 @@ const Pager: React.FC<PagerProps> = ({
 	return (
 		<ClayPaginationBarWithBasicItems
 			active={activePage}
-			delta={delta}
+			activeDelta={delta}
 			deltas={DELTAS}
 			ellipsisBuffer={3}
 			onActiveChange={onActiveChange}
