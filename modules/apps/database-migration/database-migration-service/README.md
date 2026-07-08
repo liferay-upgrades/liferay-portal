@@ -45,6 +45,15 @@ empty PostgreSQL database.
    skipped rather than aborting the whole table — the migration continues to
    the next row. Successful rows are committed in batches.
 
+1. **Create indexes** (`SchemaCreator#createIndexes`). Once the data is loaded,
+   each source table's secondary indexes are read from JDBC metadata and
+   recreated on the target with `CREATE [UNIQUE] INDEX`. The primary-key index
+   is skipped because it is already created with the table. Indexes are built
+   after the copy so index maintenance does not slow the bulk inserts. Each
+   index keeps its source name, and a failure to create any single index (for
+   example, a name collision on PostgreSQL's schema-wide index namespace) is
+   logged and skipped rather than aborting the run.
+
 The data-copy and type-conversion logic is adapted from Liferay's
 `portal-tools-db-migration-importer` (`DBCopyTablesProcess`), extended to no
 longer skip custom tables or abort on extra source columns.
@@ -72,7 +81,8 @@ has no primary key, the suggestion falls back to a template with a
   Start each migration from a clean, empty database.
 - Tables are copied in metadata order. Databases with strict foreign-key
   constraints may need the constraints deferred or a load order adjustment.
-- Secondary indexes are not recreated; primary keys are. The target reproduces
-  the source's columns and primary keys only.
+- Primary keys and secondary indexes are recreated on the target; foreign
+  keys and other constraints (checks, defaults, triggers) are not. The target
+  reproduces the source's columns, primary keys, and indexes only.
 - The relevant JDBC driver for the source database must be available on the
   application server.

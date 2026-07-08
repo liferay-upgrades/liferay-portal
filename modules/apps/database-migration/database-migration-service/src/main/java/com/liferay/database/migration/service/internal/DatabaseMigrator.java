@@ -90,6 +90,9 @@ public class DatabaseMigrator {
 				sourceDataSource, targetDataSource, tableNames,
 				migrationStatusImpl);
 
+			_createIndexes(
+				sourceDataSource, targetDataSource, migrationStatusImpl);
+
 			_buildSchemaComparison(
 				sourceDataSource, targetDataSource, tableNames,
 				migrationStatusImpl);
@@ -242,6 +245,27 @@ public class DatabaseMigrator {
 			copied++;
 
 			migrationStatusImpl.setProgress((copied * 100) / tableNames.size());
+		}
+	}
+
+	private void _createIndexes(
+			DataSource sourceDataSource, DataSource targetDataSource,
+			MigrationStatusImpl migrationStatusImpl)
+		throws Exception {
+
+		migrationStatusImpl.setMessage("Creating indexes");
+
+		SchemaCreator schemaCreator = new SchemaCreator(
+			sourceDataSource, targetDataSource);
+
+		List<String> createdIndexNames = schemaCreator.createIndexes();
+
+		String message = "Created " + createdIndexNames.size() + " indexes";
+
+		migrationStatusImpl.setMessage(message);
+
+		if (_log.isInfoEnabled()) {
+			_log.info(message);
 		}
 	}
 

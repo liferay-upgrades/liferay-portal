@@ -6,6 +6,8 @@
 package com.liferay.database.migration.service.internal;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -18,6 +20,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.sql.DataSource;
 
@@ -42,27 +46,132 @@ public class SchemaCreator {
 			for (String tableName :
 					MigrationUtil.getTableNames(sourceConnection)) {
 
-				if (_createTable(
-						sourceConnection, targetConnection, tableName)) {
-
-					createdTableNames.add(tableName);
-				}
+				_createTable(
+					sourceConnection, targetConnection, tableName,
+					createdTableNames);
 			}
 		}
 
 		return createdTableNames;
 	}
 
-	private boolean _createTable(
+	public List<String> createIndexes() throws Exception {
+		List<String> createdIndexNames = new ArrayList<>();
+
+		try (Connection sourceConnection = _sourceDataSource.getConnection();
+			Connection targetConnection = _targetDataSource.getConnection()) {
+
+			for (String tableName :
+					MigrationUtil.getTableNames(sourceConnection)) {
+
+				_createIndexes(
+					sourceConnection, targetConnection, tableName,
+					createdIndexNames);
+			}
+		}
+
+		return createdIndexNames;
+	}
+
+	private void _createIndexes(
 			Connection sourceConnection, Connection targetConnection,
-			String tableName)
+			String tableName, List<String> createdIndexNames)
+		throws Exception {
+
+		List<String> primaryKeyColumnNames =
+			MigrationUtil.getPrimaryKeyColumnNames(sourceConnection, tableName);
+
+		Map<String, List<String>> indexColumnNames = new LinkedHashMap<>();
+		Map<String, Boolean> uniqueIndexes = new LinkedHashMap<>();
+
+		DB db = DBManagerUtil.getDB();
+
+		try (ResultSet resultSet = db.getIndexResultSet(
+				sourceConnection,
+				MigrationUtil.normalizeName(sourceConnection, tableName),
+				false)) {
+
+			while (resultSet.next()) {
+				if (resultSet.getShort("TYPE") ==
+						DatabaseMetaData.tableIndexStatistic) {
+
+					continue;
+				}
+
+				String indexName = resultSet.getString("INDEX_NAME");
+				String columnName = resultSet.getString("COLUMN_NAME");
+
+				if ((indexName == null) || (columnName == null)) {
+					continue;
+				}
+
+				List<String> columnNames = indexColumnNames.computeIfAbsent(
+					indexName, indexNameKey -> new ArrayList<>());
+
+				columnNames.add(columnName);
+
+				uniqueIndexes.put(
+					indexName, !resultSet.getBoolean("NON_UNIQUE"));
+			}
+		}
+
+		for (Map.Entry<String, List<String>> entry :
+				indexColumnNames.entrySet()) {
+
+			List<String> columnNames = entry.getValue();
+
+			if (_hasSameColumns(columnNames, primaryKeyColumnNames)) {
+				continue;
+			}
+
+			String indexName = entry.getKey();
+
+			StringBundler sb = new StringBundler(9);
+
+			sb.append("create ");
+
+			if (uniqueIndexes.get(indexName)) {
+				sb.append("unique ");
+			}
+
+			sb.append("index ");
+			sb.append(indexName);
+			sb.append(" on ");
+			sb.append(tableName);
+			sb.append(" (");
+			sb.append(String.join(", ", columnNames));
+			sb.append(")");
+
+			try {
+				_runSQL(targetConnection, sb.toString());
+
+				createdIndexNames.add(indexName);
+
+				if (_log.isInfoEnabled()) {
+					_log.info("Created index " + indexName);
+				}
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						StringBundler.concat(
+							"Unable to create index ", indexName, ": ",
+							exception.getMessage()));
+				}
+			}
+		}
+	}
+
+	private void _createTable(
+			Connection sourceConnection, Connection targetConnection,
+			String tableName, List<String> createdTableNames)
 		throws Exception {
 
 		Map<String, Integer> columnTypes = MigrationUtil.getColumnTypes(
 			sourceConnection, tableName);
 
 		if (columnTypes.isEmpty()) {
-			return false;
+			return;
 		}
 
 		Map<String, Integer> columnSizes = _getColumnSizes(
@@ -104,11 +213,11 @@ public class SchemaCreator {
 
 		_runSQL(targetConnection, sb.toString());
 
+		createdTableNames.add(tableName);
+
 		if (_log.isInfoEnabled()) {
 			_log.info("Created table " + tableName);
 		}
-
-		return true;
 	}
 
 	private Map<String, Integer> _getColumnSizes(
@@ -131,6 +240,20 @@ public class SchemaCreator {
 		}
 
 		return columnSizes;
+	}
+
+	private boolean _hasSameColumns(
+		List<String> indexColumnNames, List<String> primaryKeyColumnNames) {
+
+		if (indexColumnNames.size() != primaryKeyColumnNames.size()) {
+			return false;
+		}
+
+		Set<String> columnNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+
+		columnNames.addAll(indexColumnNames);
+
+		return columnNames.containsAll(primaryKeyColumnNames);
 	}
 
 	private void _runSQL(Connection connection, String sql) throws Exception {
