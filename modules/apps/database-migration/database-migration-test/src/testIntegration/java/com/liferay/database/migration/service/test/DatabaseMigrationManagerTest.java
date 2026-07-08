@@ -104,7 +104,7 @@ public class DatabaseMigrationManagerTest {
 		_setUpTargetSchema();
 		_insertSourceData();
 
-		_databaseMigrationManager.migrate(
+		_databaseMigrationManager.startMigration(
 			_sourceURL, _sourceUserName, _sourcePassword, _targetURL,
 			_targetUserName, _targetPassword);
 
