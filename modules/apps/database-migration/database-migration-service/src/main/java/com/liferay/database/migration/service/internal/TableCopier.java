@@ -10,6 +10,7 @@ import com.liferay.petra.io.unsync.UnsyncBufferedReader;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Base64;
@@ -107,7 +108,8 @@ public class TableCopier {
 			PreparedStatement selectPreparedStatement =
 				sourceConnection.prepareStatement(selectSQL);
 			PreparedStatement insertPreparedStatement =
-				targetConnection.prepareStatement(insertSQL)) {
+				AutoBatchPreparedStatementUtil.autoBatch(
+					targetConnection, insertSQL)) {
 
 			targetConnection.setAutoCommit(false);
 
@@ -129,7 +131,9 @@ public class TableCopier {
 								targetColumnTypes.get(columnName));
 						}
 
-						insertPreparedStatement.executeUpdate();
+						insertPreparedStatement.addBatch();
+
+						insertPreparedStatement.executeBatch();
 
 						targetConnection.releaseSavepoint(savepoint);
 
