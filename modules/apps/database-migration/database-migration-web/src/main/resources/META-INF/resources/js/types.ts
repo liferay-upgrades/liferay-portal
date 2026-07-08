@@ -5,11 +5,17 @@
 
 export const PHASE_COMPLETED = 6;
 
+export const PHASE_DATA_LOAD = 4;
+
 export const PHASE_DISCOVERY = 1;
 
 export const PHASE_ERROR = -1;
 
 export const PHASE_IDLE = 0;
+
+export const PHASE_INDEX_CREATION = 5;
+
+export const PHASE_SCHEMA_CREATION = 3;
 
 export interface TableRowCount {
 	rowCount: number;
