@@ -5,28 +5,44 @@
 
 package com.liferay.database.migration.web.internal.display.context;
 
-import com.liferay.database.migration.service.DatabaseMigrationManager;
-import com.liferay.database.migration.service.MigrationStatus;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+
+import jakarta.portlet.RenderResponse;
+import jakarta.portlet.ResourceURL;
+
+import java.util.Map;
 
 /**
  * @author Albert Gomes Cabral
  */
 public class DatabaseMigrationDisplayContext {
 
-	public DatabaseMigrationDisplayContext(
-		DatabaseMigrationManager databaseMigrationManager) {
-
-		_databaseMigrationManager = databaseMigrationManager;
+	public DatabaseMigrationDisplayContext(RenderResponse renderResponse) {
+		_renderResponse = renderResponse;
 	}
 
-	public MigrationStatus getMigrationStatus() {
-		return _databaseMigrationManager.getMigrationStatus();
+	public Map<String, Object> getReactData() {
+		return HashMapBuilder.<String, Object>put(
+			"namespace", _renderResponse.getNamespace()
+		).put(
+			"schemaComparisonURL",
+			_createResourceURL("/database_migration/get_schema_comparison")
+		).put(
+			"startMigrationURL",
+			_createResourceURL("/database_migration/start_migration")
+		).put(
+			"statusURL", _createResourceURL("/database_migration/get_status")
+		).build();
 	}
 
-	public boolean isMigrationRunning() {
-		return _databaseMigrationManager.isMigrationRunning();
+	private String _createResourceURL(String resourceID) {
+		ResourceURL resourceURL = _renderResponse.createResourceURL();
+
+		resourceURL.setResourceID(resourceID);
+
+		return resourceURL.toString();
 	}
 
-	private final DatabaseMigrationManager _databaseMigrationManager;
+	private final RenderResponse _renderResponse;
 
 }
