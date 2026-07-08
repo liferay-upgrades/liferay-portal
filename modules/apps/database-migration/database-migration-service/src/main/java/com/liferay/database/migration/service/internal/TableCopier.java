@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -113,7 +114,8 @@ public class TableCopier {
 
 			targetConnection.setAutoCommit(false);
 
-			selectPreparedStatement.setFetchSize(_FETCH_SIZE);
+			selectPreparedStatement.setFetchSize(
+				_getFetchSize(sourceConnection));
 
 			try (ResultSet resultSet = selectPreparedStatement.executeQuery()) {
 				long uncommittedCount = 0;
@@ -414,6 +416,21 @@ public class TableCopier {
 		}
 
 		_setColumn(index, preparedStatement, targetType, valueString);
+	}
+
+	private int _getFetchSize(Connection connection) throws Exception {
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		String databaseProductName = StringUtil.toLowerCase(
+			GetterUtil.getString(databaseMetaData.getDatabaseProductName()));
+
+		if (databaseProductName.contains("mariadb") ||
+			databaseProductName.contains("mysql")) {
+
+			return Integer.MIN_VALUE;
+		}
+
+		return _FETCH_SIZE;
 	}
 
 	private String _getSanitizedString(String value) {
