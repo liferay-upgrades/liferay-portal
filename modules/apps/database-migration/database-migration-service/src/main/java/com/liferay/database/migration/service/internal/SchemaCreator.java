@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -55,14 +56,17 @@ public class SchemaCreator {
 		return createdTableNames;
 	}
 
-	public List<String> createIndexes() throws Exception {
+	public List<String> createIndexes(
+			List<String> tableNames, Consumer<String> tableNameConsumer)
+		throws Exception {
+
 		List<String> createdIndexNames = new ArrayList<>();
 
 		try (Connection sourceConnection = _sourceDataSource.getConnection();
 			Connection targetConnection = _targetDataSource.getConnection()) {
 
-			for (String tableName :
-					MigrationUtil.getTableNames(sourceConnection)) {
+			for (String tableName : tableNames) {
+				tableNameConsumer.accept(tableName);
 
 				_createIndexes(
 					sourceConnection, targetConnection, tableName,

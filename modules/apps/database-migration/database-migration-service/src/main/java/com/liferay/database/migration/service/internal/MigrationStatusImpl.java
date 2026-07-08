@@ -76,6 +76,10 @@ public class MigrationStatusImpl implements MigrationStatus, Serializable {
 			return "Error";
 		}
 
+		if (_phase == PHASE_INDEX_CREATION) {
+			return "Creating Indexes";
+		}
+
 		if (_phase == PHASE_SCHEMA_CREATION) {
 			return "Creating Schema";
 		}

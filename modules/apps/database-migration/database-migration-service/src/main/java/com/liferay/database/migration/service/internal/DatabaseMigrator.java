@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
@@ -91,7 +92,8 @@ public class DatabaseMigrator {
 				migrationStatusImpl);
 
 			_createIndexes(
-				sourceDataSource, targetDataSource, migrationStatusImpl);
+				sourceDataSource, targetDataSource, tableNames,
+				migrationStatusImpl);
 
 			_buildSchemaComparison(
 				sourceDataSource, targetDataSource, tableNames,
@@ -250,15 +252,27 @@ public class DatabaseMigrator {
 
 	private void _createIndexes(
 			DataSource sourceDataSource, DataSource targetDataSource,
-			MigrationStatusImpl migrationStatusImpl)
+			List<String> tableNames, MigrationStatusImpl migrationStatusImpl)
 		throws Exception {
 
-		migrationStatusImpl.setMessage("Creating indexes");
+		migrationStatusImpl.setPhase(MigrationStatus.PHASE_INDEX_CREATION);
+		migrationStatusImpl.setProgress(0);
 
 		SchemaCreator schemaCreator = new SchemaCreator(
 			sourceDataSource, targetDataSource);
 
-		List<String> createdIndexNames = schemaCreator.createIndexes();
+		AtomicInteger completed = new AtomicInteger();
+
+		int total = Math.max(1, tableNames.size());
+
+		List<String> createdIndexNames = schemaCreator.createIndexes(
+			tableNames,
+			tableName -> {
+				migrationStatusImpl.setMessage(
+					"Creating indexes for " + tableName);
+				migrationStatusImpl.setProgress(
+					(completed.incrementAndGet() * 100) / total);
+			});
 
 		String message = "Created " + createdIndexNames.size() + " indexes";
 
