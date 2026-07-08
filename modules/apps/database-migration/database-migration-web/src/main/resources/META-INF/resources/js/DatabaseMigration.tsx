@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayTabs from '@clayui/tabs';
 import {fetch} from 'frontend-js-web';
@@ -12,7 +13,13 @@ import ErrorsTab from './ErrorsTab';
 import MigrationForm from './MigrationForm';
 import SchemaComparisonTab from './SchemaComparisonTab';
 import StatusTab from './StatusTab';
-import {PHASE_DISCOVERY, PHASE_IDLE, Props, Status} from './types';
+import {
+	PHASE_COMPLETED,
+	PHASE_DISCOVERY,
+	PHASE_IDLE,
+	Props,
+	Status,
+} from './types';
 
 const POLL_INTERVAL = 2000;
 
@@ -125,6 +132,17 @@ const DatabaseMigration: React.FC<Props> = ({
 
 			{dashboardVisible && status && (
 				<div className="mt-4">
+					{status.phase === PHASE_COMPLETED && (
+						<ClayAlert
+							displayType="success"
+							title={Liferay.Language.get('migration-complete')}
+						>
+							{Liferay.Language.get(
+								'stop-the-portal-and-restart-it-configured-against-the-target-postgresql-database-to-use-the-migrated-data'
+							)}
+						</ClayAlert>
+					)}
+
 					{!running && (
 						<div className="d-flex justify-content-end mb-3">
 							<ClayButton
