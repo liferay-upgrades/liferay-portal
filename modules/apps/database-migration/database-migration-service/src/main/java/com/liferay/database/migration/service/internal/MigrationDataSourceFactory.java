@@ -76,27 +76,4 @@ public class MigrationDataSourceFactory {
 			driverClassName, jdbcURL, userName, password, StringPool.BLANK);
 	}
 
-	public static boolean isValidSourceDatabase(String jdbcURL) {
-		if (jdbcURL == null) {
-			return false;
-		}
-
-		if (jdbcURL.contains("db2") || jdbcURL.contains("mariadb") ||
-			jdbcURL.contains("mysql") || jdbcURL.contains("oracle") ||
-			jdbcURL.contains("postgresql") || jdbcURL.contains("sqlserver")) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	public static boolean isValidTargetDatabase(String jdbcURL) {
-		if (jdbcURL == null) {
-			return false;
-		}
-
-		return jdbcURL.contains("postgresql");
-	}
-
 }
