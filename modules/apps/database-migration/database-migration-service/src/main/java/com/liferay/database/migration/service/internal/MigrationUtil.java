@@ -25,6 +25,29 @@ import java.util.TreeSet;
  */
 public class MigrationUtil {
 
+	public static Map<String, String> getColumnTypeNames(
+			Connection connection, String tableName)
+		throws Exception {
+
+		Map<String, String> columnTypeNames = new TreeMap<>(
+			String.CASE_INSENSITIVE_ORDER);
+
+		DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+		try (ResultSet resultSet = databaseMetaData.getColumns(
+				connection.getCatalog(), connection.getSchema(),
+				normalizeName(connection, tableName), null)) {
+
+			while (resultSet.next()) {
+				columnTypeNames.put(
+					resultSet.getString("COLUMN_NAME"),
+					resultSet.getString("TYPE_NAME"));
+			}
+		}
+
+		return columnTypeNames;
+	}
+
 	public static Map<String, Integer> getColumnTypes(
 			Connection connection, String tableName)
 		throws Exception {

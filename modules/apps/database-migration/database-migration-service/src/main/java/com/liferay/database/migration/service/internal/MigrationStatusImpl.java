@@ -7,10 +7,12 @@ package com.liferay.database.migration.service.internal;
 
 import com.liferay.database.migration.service.MigrationError;
 import com.liferay.database.migration.service.MigrationStatus;
+import com.liferay.database.migration.service.TableComparison;
 
 import java.io.Serial;
 import java.io.Serializable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -92,6 +94,11 @@ public class MigrationStatusImpl implements MigrationStatus, Serializable {
 	}
 
 	@Override
+	public List<TableComparison> getTableComparisons() {
+		return _tableComparisons;
+	}
+
+	@Override
 	public Map<String, Long> getTableRowCounts() {
 		return _tableRowCounts;
 	}
@@ -108,6 +115,10 @@ public class MigrationStatusImpl implements MigrationStatus, Serializable {
 		_progress = Math.min(100, Math.max(0, progress));
 	}
 
+	public void setTableComparisons(List<TableComparison> tableComparisons) {
+		_tableComparisons = tableComparisons;
+	}
+
 	@Serial
 	private static final long serialVersionUID = 2L;
 
@@ -117,6 +128,8 @@ public class MigrationStatusImpl implements MigrationStatus, Serializable {
 	private volatile int _phase;
 	private volatile int _progress;
 	private final long _startTime;
+	private volatile List<TableComparison> _tableComparisons =
+		Collections.emptyList();
 	private final Map<String, Long> _tableRowCounts = new ConcurrentHashMap<>();
 
 }

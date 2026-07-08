@@ -5,16 +5,23 @@
 
 package com.liferay.database.migration.service.internal;
 
+import com.liferay.database.migration.service.ColumnComparison;
 import com.liferay.database.migration.service.MigrationError;
 import com.liferay.database.migration.service.MigrationStatus;
+import com.liferay.database.migration.service.TableComparison;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 
 import java.sql.Connection;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
@@ -83,6 +90,10 @@ public class DatabaseMigrator {
 				sourceDataSource, targetDataSource, tableNames,
 				migrationStatusImpl);
 
+			_buildSchemaComparison(
+				sourceDataSource, targetDataSource, tableNames,
+				migrationStatusImpl);
+
 			migrationStatusImpl.setPhase(MigrationStatus.PHASE_COMPLETED);
 
 			List<MigrationError> migrationErrors =
@@ -108,6 +119,103 @@ public class DatabaseMigrator {
 		finally {
 			MigrationDataSourceFactory.destroy(sourceDataSource);
 			MigrationDataSourceFactory.destroy(targetDataSource);
+		}
+	}
+
+	private void _buildSchemaComparison(
+		DataSource sourceDataSource, DataSource targetDataSource,
+		List<String> tableNames, MigrationStatusImpl migrationStatusImpl) {
+
+		migrationStatusImpl.setMessage("Comparing source and target schemas");
+
+		try (Connection sourceConnection = sourceDataSource.getConnection();
+			Connection targetConnection = targetDataSource.getConnection()) {
+
+			Set<String> sourceTableNames = new TreeSet<>(
+				String.CASE_INSENSITIVE_ORDER);
+
+			sourceTableNames.addAll(tableNames);
+
+			Set<String> targetTableNames = MigrationUtil.getTableNames(
+				targetConnection);
+
+			Map<String, Long> skippedRowCounts = new TreeMap<>(
+				String.CASE_INSENSITIVE_ORDER);
+
+			for (MigrationError migrationError :
+					migrationStatusImpl.getMigrationErrors()) {
+
+				skippedRowCounts.merge(
+					migrationError.getTableName(), 1L, Long::sum);
+			}
+
+			Map<String, Long> tableRowCounts =
+				migrationStatusImpl.getTableRowCounts();
+
+			Set<String> allTableNames = new TreeSet<>(
+				String.CASE_INSENSITIVE_ORDER);
+
+			allTableNames.addAll(sourceTableNames);
+			allTableNames.addAll(targetTableNames);
+
+			List<TableComparison> tableComparisons = new ArrayList<>();
+
+			for (String tableName : allTableNames) {
+				boolean onSource = sourceTableNames.contains(tableName);
+				boolean onTarget = targetTableNames.contains(tableName);
+
+				Map<String, String> sourceColumnTypeNames =
+					Collections.emptyMap();
+
+				if (onSource) {
+					sourceColumnTypeNames = MigrationUtil.getColumnTypeNames(
+						sourceConnection, tableName);
+				}
+
+				Map<String, String> targetColumnTypeNames =
+					Collections.emptyMap();
+
+				if (onTarget) {
+					targetColumnTypeNames = MigrationUtil.getColumnTypeNames(
+						targetConnection, tableName);
+				}
+
+				Set<String> columnNames = new TreeSet<>(
+					String.CASE_INSENSITIVE_ORDER);
+
+				columnNames.addAll(sourceColumnTypeNames.keySet());
+				columnNames.addAll(targetColumnTypeNames.keySet());
+
+				List<ColumnComparison> columnComparisons = new ArrayList<>();
+
+				for (String columnName : columnNames) {
+					columnComparisons.add(
+						new ColumnComparisonImpl(
+							columnName, sourceColumnTypeNames.get(columnName),
+							targetColumnTypeNames.get(columnName)));
+				}
+
+				long targetRowCount = GetterUtil.getLong(
+					tableRowCounts.get(tableName));
+
+				long sourceRowCount = 0;
+
+				if (onSource) {
+					sourceRowCount =
+						targetRowCount +
+							GetterUtil.getLong(skippedRowCounts.get(tableName));
+				}
+
+				tableComparisons.add(
+					new TableComparisonImpl(
+						tableName, onSource, onTarget, sourceRowCount,
+						targetRowCount, columnComparisons));
+			}
+
+			migrationStatusImpl.setTableComparisons(tableComparisons);
+		}
+		catch (Exception exception) {
+			_log.error("Unable to build schema comparison", exception);
 		}
 	}
 
