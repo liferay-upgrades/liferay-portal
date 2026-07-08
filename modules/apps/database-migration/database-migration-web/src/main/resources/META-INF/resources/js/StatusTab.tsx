@@ -7,7 +7,15 @@ import ClayLabel from '@clayui/label';
 import React, {useState} from 'react';
 
 import Pager from './Pager';
-import {PHASE_COMPLETED, PHASE_ERROR, Status} from './types';
+import {
+	PHASE_COMPLETED,
+	PHASE_DATA_LOAD,
+	PHASE_DISCOVERY,
+	PHASE_ERROR,
+	PHASE_INDEX_CREATION,
+	PHASE_SCHEMA_CREATION,
+	Status,
+} from './types';
 
 interface StatusTabProps {
 	status: Status;
@@ -23,6 +31,34 @@ function getDisplayType(phase: number) {
 	}
 
 	return 'info';
+}
+
+function getPhaseLabel(phase: number): string {
+	if (phase === PHASE_DISCOVERY) {
+		return Liferay.Language.get('discovery');
+	}
+
+	if (phase === PHASE_SCHEMA_CREATION) {
+		return Liferay.Language.get('creating-schema');
+	}
+
+	if (phase === PHASE_DATA_LOAD) {
+		return Liferay.Language.get('copying-data');
+	}
+
+	if (phase === PHASE_INDEX_CREATION) {
+		return Liferay.Language.get('creating-indexes');
+	}
+
+	if (phase === PHASE_COMPLETED) {
+		return Liferay.Language.get('completed');
+	}
+
+	if (phase === PHASE_ERROR) {
+		return Liferay.Language.get('error');
+	}
+
+	return Liferay.Language.get('idle');
 }
 
 const StatusTab: React.FC<StatusTabProps> = ({status}) => {
@@ -44,7 +80,7 @@ const StatusTab: React.FC<StatusTabProps> = ({status}) => {
 				</h4>
 
 				<ClayLabel displayType={getDisplayType(status.phase)}>
-					{status.phaseLabel}
+					{getPhaseLabel(status.phase)}
 				</ClayLabel>
 			</div>
 
