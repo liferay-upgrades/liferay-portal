@@ -35,17 +35,6 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 	}
 
 	@Override
-	public void migrate(
-			String sourceJDBCURL, String sourceUserName, String sourcePassword,
-			String targetJDBCURL, String targetUserName, String targetPassword)
-		throws Exception {
-
-		_databaseMigrator.migrate(
-			sourceJDBCURL, sourceUserName, sourcePassword, targetJDBCURL,
-			targetUserName, targetPassword);
-	}
-
-	@Override
 	public void startMigration(
 		String sourceJDBCURL, String sourceUserName, String sourcePassword,
 		String targetJDBCURL, String targetUserName, String targetPassword) {
