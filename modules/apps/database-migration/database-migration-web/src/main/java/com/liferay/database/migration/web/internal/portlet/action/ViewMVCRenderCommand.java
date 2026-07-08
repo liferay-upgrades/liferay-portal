@@ -5,7 +5,6 @@
 
 package com.liferay.database.migration.web.internal.portlet.action;
 
-import com.liferay.database.migration.service.DatabaseMigrationManager;
 import com.liferay.database.migration.web.internal.constants.DatabaseMigrationPortletKeys;
 import com.liferay.database.migration.web.internal.display.context.DatabaseMigrationDisplayContext;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
@@ -14,7 +13,6 @@ import jakarta.portlet.RenderRequest;
 import jakarta.portlet.RenderResponse;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Albert Gomes Cabral
@@ -34,12 +32,9 @@ public class ViewMVCRenderCommand implements MVCRenderCommand {
 
 		renderRequest.setAttribute(
 			DatabaseMigrationDisplayContext.class.getName(),
-			new DatabaseMigrationDisplayContext(_databaseMigrationManager));
+			new DatabaseMigrationDisplayContext(renderResponse));
 
 		return "/view.jsp";
 	}
-
-	@Reference
-	private DatabaseMigrationManager _databaseMigrationManager;
 
 }
