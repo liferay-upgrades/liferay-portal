@@ -11,6 +11,7 @@ import com.liferay.database.migration.service.MigrationStatus;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -106,7 +107,10 @@ public class DatabaseMigrationManagerTest {
 
 		_databaseMigrationManager.startMigration(
 			_sourceURL, _sourceUserName, _sourcePassword, _targetURL,
-			_targetUserName, _targetPassword);
+			_targetUserName, _targetPassword, TestPropsValues.getCompanyId(),
+			TestPropsValues.getUserId(), "Test Migration");
+
+		_waitForMigrationToComplete();
 
 		_assertCustomTableMigrated();
 		_assertCustomColumnMigrated();
@@ -303,6 +307,23 @@ public class DatabaseMigrationManagerTest {
 			StringBundler.concat(
 				"create table ", _TABLE_PARTIAL,
 				" (entry_id bigint not null primary key, title varchar(75))"));
+	}
+
+	private void _waitForMigrationToComplete() throws Exception {
+		long endTime = System.currentTimeMillis() + 300000;
+
+		MigrationStatus migrationStatus =
+			_databaseMigrationManager.getMigrationStatus();
+
+		while ((migrationStatus.getPhase() !=
+					MigrationStatus.PHASE_COMPLETED) &&
+			   (migrationStatus.getPhase() != MigrationStatus.PHASE_ERROR) &&
+			   (System.currentTimeMillis() < endTime)) {
+
+			Thread.sleep(500);
+
+			migrationStatus = _databaseMigrationManager.getMigrationStatus();
+		}
 	}
 
 	private static final String _CLASS_NAME_DRIVER = "org.postgresql.Driver";
