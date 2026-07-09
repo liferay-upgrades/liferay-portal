@@ -323,7 +323,9 @@ public class TableCopier {
 			valueString = value.toString();
 		}
 		else if ((sourceType == Types.DOUBLE) || (sourceType == Types.FLOAT) ||
-				 (sourceType == Types.REAL)) {
+				 (sourceType == Types.REAL) ||
+				 (sourceType == MigrationUtil.ORACLE_TYPE_BINARY_DOUBLE) ||
+				 (sourceType == MigrationUtil.ORACLE_TYPE_BINARY_FLOAT)) {
 
 			double value = resultSet.getDouble(columnName);
 

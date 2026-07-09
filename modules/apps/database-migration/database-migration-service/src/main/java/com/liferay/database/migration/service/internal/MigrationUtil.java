@@ -168,7 +168,8 @@ public class MigrationUtil {
 		}
 
 		if ((sqlType == Types.DOUBLE) || (sqlType == Types.FLOAT) ||
-			(sqlType == Types.REAL)) {
+			(sqlType == Types.REAL) || (sqlType == ORACLE_TYPE_BINARY_DOUBLE) ||
+			(sqlType == ORACLE_TYPE_BINARY_FLOAT)) {
 
 			return "double precision";
 		}
@@ -189,6 +190,10 @@ public class MigrationUtil {
 
 		return "text";
 	}
+
+	protected static final int ORACLE_TYPE_BINARY_DOUBLE = 101;
+
+	protected static final int ORACLE_TYPE_BINARY_FLOAT = 100;
 
 	private static final int _MAX_VARCHAR_SIZE = 4000;
 
