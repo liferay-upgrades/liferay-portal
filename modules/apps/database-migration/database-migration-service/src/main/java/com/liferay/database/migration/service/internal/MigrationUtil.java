@@ -127,6 +127,12 @@ public class MigrationUtil {
 	}
 
 	public static String toPostgreSQLColumnType(int sqlType, int columnSize) {
+		if (((sqlType == Types.DECIMAL) || (sqlType == Types.NUMERIC)) &&
+			(columnSize == 1)) {
+
+			return "boolean";
+		}
+
 		if ((sqlType == Types.BIGINT) || (sqlType == Types.NUMERIC)) {
 			return "bigint";
 		}

@@ -86,3 +86,9 @@ has no primary key, the suggestion falls back to a template with a
   reproduces the source's columns, primary keys, and indexes only.
 - The relevant JDBC driver for the source database must be available on the
   application server.
+- Oracle has no boolean type, so Liferay stores booleans as `NUMBER(1)`. Since
+  a metadata-driven migration cannot otherwise tell a boolean apart from a
+  small number, any source `NUMERIC`/`DECIMAL` column with precision 1 is
+  mapped to a PostgreSQL `boolean` (and its `0`/`1` data converted
+  accordingly). This matches Liferay's schema, but a custom `NUMBER(1)` column
+  that actually stores values greater than 1 would be narrowed to a boolean.
