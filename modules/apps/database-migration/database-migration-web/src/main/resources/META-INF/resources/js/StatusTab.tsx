@@ -61,11 +61,34 @@ function getPhaseLabel(phase: number): string {
 	return Liferay.Language.get('idle');
 }
 
+function formatDuration(milliseconds: number): string {
+	const totalSeconds = Math.floor((milliseconds || 0) / 1000);
+
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+
+	const pad = (value: number) => String(value).padStart(2, '0');
+
+	if (hours > 0) {
+		return `${hours}:${pad(minutes)}:${pad(seconds)}`;
+	}
+
+	return `${minutes}:${pad(seconds)}`;
+}
+
 const StatusTab: React.FC<StatusTabProps> = ({status}) => {
 	const [page, setPage] = useState(1);
 	const [delta, setDelta] = useState(20);
 
 	const tableRowCounts = status.tableRowCounts || [];
+
+	const totalRowsCopied = tableRowCounts.reduce(
+		(total, tableRowCount) => total + tableRowCount.rowCount,
+		0
+	);
+
+	const indeterminate = status.running && status.progress === 0;
 
 	const visibleTableRowCounts = tableRowCounts.slice(
 		(page - 1) * delta,
@@ -89,15 +112,39 @@ const StatusTab: React.FC<StatusTabProps> = ({status}) => {
 					aria-valuemax={100}
 					aria-valuemin={0}
 					aria-valuenow={status.progress}
-					className="progress-bar"
+					className={
+						indeterminate
+							? 'progress-bar progress-bar-animated progress-bar-striped'
+							: 'progress-bar'
+					}
 					role="progressbar"
-					style={{width: `${status.progress}%`}}
+					style={{
+						width: indeterminate ? '100%' : `${status.progress}%`,
+					}}
 				>
-					{`${status.progress}%`}
+					{indeterminate ? '' : `${status.progress}%`}
 				</div>
 			</div>
 
-			<p className="mt-3 text-secondary">{status.message}</p>
+			<p className="mb-1 mt-3 text-secondary">{status.message}</p>
+
+			<div className="d-flex flex-wrap text-secondary">
+				<span className="mr-4">
+					{`${Liferay.Language.get('elapsed-time')}: ${formatDuration(
+						status.elapsedTime
+					)}`}
+				</span>
+
+				<span className="mr-4">
+					{`${Liferay.Language.get('tables')}: ${tableRowCounts.length}`}
+				</span>
+
+				<span>
+					{`${Liferay.Language.get(
+						'rows-copied'
+					)}: ${totalRowsCopied.toLocaleString()}`}
+				</span>
+			</div>
 
 			{!!tableRowCounts.length && (
 				<>
