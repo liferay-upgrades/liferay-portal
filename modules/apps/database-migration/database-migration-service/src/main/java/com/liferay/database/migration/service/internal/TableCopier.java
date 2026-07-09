@@ -221,6 +221,12 @@ public class TableCopier {
 				return;
 			}
 
+			if ((targetType == Types.BIT) || (targetType == Types.BOOLEAN)) {
+				preparedStatement.setBoolean(index, value != 0);
+
+				return;
+			}
+
 			valueString = String.valueOf(value);
 		}
 		else if ((sourceType == Types.BINARY) ||
