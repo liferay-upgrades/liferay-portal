@@ -1,0 +1,26 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.database.migration.service;
+
+/**
+ * @author Albert Gomes Cabral
+ */
+public interface DatabaseMigrationManager {
+
+	public MigrationStatus getMigrationStatus();
+
+	public boolean isMigrationRunning();
+
+	public void migrate(
+			String sourceJDBCURL, String sourceUserName, String sourcePassword,
+			String targetJDBCURL, String targetUserName, String targetPassword)
+		throws Exception;
+
+	public void startMigration(
+		String sourceJDBCURL, String sourceUserName, String sourcePassword,
+		String targetJDBCURL, String targetUserName, String targetPassword);
+
+}
