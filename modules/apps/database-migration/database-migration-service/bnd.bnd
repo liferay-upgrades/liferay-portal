@@ -1,0 +1,5 @@
+Bundle-Name: Liferay Database Migration Service
+Bundle-SymbolicName: com.liferay.database.migration.service
+Bundle-Version: 1.0.0
+DynamicImport-Package: *
+-dsannotations-options: inherit

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<suppressions>
+	<checkstyle>
+		<suppress checks="BatchableUpdateCheck" files="database-migration-service/src/main/java/com/liferay/database/migration/service/internal/TableCopier\.java" />
+	</checkstyle>
+</suppressions>
