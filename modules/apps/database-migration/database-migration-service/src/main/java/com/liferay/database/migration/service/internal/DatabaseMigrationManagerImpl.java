@@ -37,7 +37,8 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 	@Override
 	public void startMigration(
 		String sourceJDBCURL, String sourceUserName, String sourcePassword,
-		String targetJDBCURL, String targetUserName, String targetPassword) {
+		String targetJDBCURL, String targetUserName, String targetPassword,
+		long companyId, long userId, String migrationName) {
 
 		if (isMigrationRunning()) {
 			throw new IllegalStateException(
@@ -49,7 +50,8 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 				try {
 					_databaseMigrator.migrate(
 						sourceJDBCURL, sourceUserName, sourcePassword,
-						targetJDBCURL, targetUserName, targetPassword);
+						targetJDBCURL, targetUserName, targetPassword,
+						companyId, userId, migrationName);
 				}
 				catch (Exception exception) {
 					_log.error("Database migration failed", exception);

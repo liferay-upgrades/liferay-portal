@@ -64,7 +64,8 @@ public class DatabaseMigrator {
 
 	public void migrate(
 			String sourceJDBCURL, String sourceUserName, String sourcePassword,
-			String targetJDBCURL, String targetUserName, String targetPassword)
+			String targetJDBCURL, String targetUserName, String targetPassword,
+			long companyId, long userId, String migrationName)
 		throws Exception {
 
 		MigrationStatusImpl migrationStatusImpl = new MigrationStatusImpl(
@@ -112,10 +113,18 @@ public class DatabaseMigrator {
 
 			migrationStatusImpl.setMessage(message);
 			migrationStatusImpl.setProgress(100);
+
+			_migrationRunRecorder.record(
+				companyId, userId, migrationName, sourceJDBCURL, targetJDBCURL,
+				migrationStatusImpl);
 		}
 		catch (Exception exception) {
 			migrationStatusImpl.setPhase(MigrationStatus.PHASE_ERROR);
 			migrationStatusImpl.setMessage(exception.getMessage());
+
+			_migrationRunRecorder.record(
+				companyId, userId, migrationName, sourceJDBCURL, targetJDBCURL,
+				migrationStatusImpl);
 
 			_log.error("Database migration failed", exception);
 
@@ -327,6 +336,8 @@ public class DatabaseMigrator {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DatabaseMigrator.class);
 
+	private final MigrationRunRecorder _migrationRunRecorder =
+		new MigrationRunRecorder();
 	private final AtomicReference<MigrationStatus> _migrationStatus =
 		new AtomicReference<>();
 
