@@ -13,9 +13,11 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCResourceCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.portlet.ResourceRequest;
 import jakarta.portlet.ResourceResponse;
@@ -67,12 +69,18 @@ public class StartMigrationMVCResourceCommand extends BaseMVCResourceCommand {
 			error = "targetDatabaseMustBePostgreSQL";
 		}
 		else {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)resourceRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
 			try {
 				_databaseMigrationManager.startMigration(
 					sourceJDBCURL, sourceUserName,
 					ParamUtil.getString(resourceRequest, "sourcePassword"),
 					targetJDBCURL, targetUserName,
-					ParamUtil.getString(resourceRequest, "targetPassword"));
+					ParamUtil.getString(resourceRequest, "targetPassword"),
+					themeDisplay.getCompanyId(), themeDisplay.getUserId(),
+					ParamUtil.getString(resourceRequest, "migrationName"));
 			}
 			catch (IllegalStateException illegalStateException) {
 				if (_log.isDebugEnabled()) {
