@@ -41,6 +41,7 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 	startMigrationURL,
 }) => {
 	const [values, setValues] = useState({
+		migrationName: '',
 		sourceJDBCURL: '',
 		sourcePassword: '',
 		sourceUserName: '',
@@ -112,6 +113,15 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 				>
 					{getErrorMessage(errorCode)}
 				</ClayAlert>
+			)}
+
+			{renderField(
+				'migrationName',
+				Liferay.Language.get('migration-name'),
+				'text',
+				Liferay.Language.get(
+					'optional-a-name-is-generated-if-left-blank'
+				)
 			)}
 
 			<div className="row">
