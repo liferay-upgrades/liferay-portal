@@ -4,6 +4,7 @@
  */
 
 import ClayButton from '@clayui/button';
+import {ClayInput, ClayToggle} from '@clayui/form';
 import ClayLabel from '@clayui/label';
 import {fetch} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
@@ -44,6 +45,14 @@ function getStatus(tableComparison: TableComparison) {
 	};
 }
 
+function isDifference(tableComparison: TableComparison) {
+	return (
+		!tableComparison.onSource ||
+		!tableComparison.onTarget ||
+		tableComparison.sourceRowCount !== tableComparison.targetRowCount
+	);
+}
+
 const SchemaComparisonTab: React.FC<SchemaComparisonTabProps> = ({
 	phase,
 	schemaComparisonURL,
@@ -53,6 +62,8 @@ const SchemaComparisonTab: React.FC<SchemaComparisonTabProps> = ({
 	const [expanded, setExpanded] = useState<string[]>([]);
 	const [page, setPage] = useState(1);
 	const [delta, setDelta] = useState(20);
+	const [searchTerm, setSearchTerm] = useState('');
+	const [onlyDifferences, setOnlyDifferences] = useState(false);
 
 	useEffect(() => {
 		fetch(schemaComparisonURL)
@@ -73,7 +84,29 @@ const SchemaComparisonTab: React.FC<SchemaComparisonTabProps> = ({
 
 	const tableComparisons = schemaComparison.tableComparisons;
 
-	const visibleTableComparisons = tableComparisons.slice(
+	const differenceCount = tableComparisons.filter(isDifference).length;
+	const matchedCount = tableComparisons.length - differenceCount;
+
+	const filteredTableComparisons = tableComparisons.filter(
+		(tableComparison) => {
+			if (onlyDifferences && !isDifference(tableComparison)) {
+				return false;
+			}
+
+			if (
+				searchTerm &&
+				!tableComparison.tableName
+					.toLowerCase()
+					.includes(searchTerm.toLowerCase())
+			) {
+				return false;
+			}
+
+			return true;
+		}
+	);
+
+	const visibleTableComparisons = filteredTableComparisons.slice(
 		(page - 1) * delta,
 		(page - 1) * delta + delta
 	);
@@ -92,6 +125,49 @@ const SchemaComparisonTab: React.FC<SchemaComparisonTabProps> = ({
 					'compare-the-source-and-target-schemas-table-by-table'
 				)}
 			</p>
+
+			<div className="align-items-center d-flex flex-wrap mb-3">
+				<ClayLabel displayType="info">
+					{`${tableComparisons.length} ${Liferay.Language.get(
+						'tables'
+					)}`}
+				</ClayLabel>
+
+				<ClayLabel displayType="success">
+					{`${matchedCount} ${Liferay.Language.get('matched')}`}
+				</ClayLabel>
+
+				<ClayLabel
+					displayType={differenceCount ? 'warning' : 'secondary'}
+				>
+					{`${differenceCount} ${Liferay.Language.get(
+						'with-differences'
+					)}`}
+				</ClayLabel>
+			</div>
+
+			<div className="align-items-center d-flex mb-3">
+				<div className="flex-grow-1 mr-3">
+					<ClayInput
+						onChange={(event) => {
+							setSearchTerm(event.target.value);
+							setPage(1);
+						}}
+						placeholder={Liferay.Language.get('search-tables')}
+						type="text"
+						value={searchTerm}
+					/>
+				</div>
+
+				<ClayToggle
+					label={Liferay.Language.get('show-only-differences')}
+					onToggle={(toggled) => {
+						setOnlyDifferences(toggled);
+						setPage(1);
+					}}
+					toggled={onlyDifferences}
+				/>
+			</div>
 
 			<table className="table table-autofit table-list">
 				<thead>
@@ -236,7 +312,7 @@ const SchemaComparisonTab: React.FC<SchemaComparisonTabProps> = ({
 					setDelta(newDelta);
 					setPage(1);
 				}}
-				totalItems={tableComparisons.length}
+				totalItems={filteredTableComparisons.length}
 			/>
 		</div>
 	);
