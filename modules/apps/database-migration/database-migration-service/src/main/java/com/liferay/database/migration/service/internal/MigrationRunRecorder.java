@@ -13,8 +13,11 @@ import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectEntryLocalServiceUtil;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -36,7 +39,13 @@ public class MigrationRunRecorder {
 		long companyId, long userId, String migrationName, String sourceJDBCURL,
 		String targetJDBCURL, MigrationStatus migrationStatus) {
 
-		try {
+		String principalName = PrincipalThreadLocal.getName();
+
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(companyId)) {
+
+			PrincipalThreadLocal.setName(userId);
+
 			ObjectDefinition objectDefinition = _getObjectDefinition(
 				companyId, userId);
 
@@ -70,13 +79,13 @@ public class MigrationRunRecorder {
 				).put(
 					"migrationName", migrationName
 				).put(
+					"migrationStatus", status
+				).put(
 					"rowsCopied", rowsCopied
 				).put(
 					"sourceURL", sourceJDBCURL
 				).put(
 					"startedAt", new Date(migrationStatus.getStartTime())
-				).put(
-					"status", status
 				).put(
 					"tableCount",
 					migrationStatus.getTableRowCounts(
@@ -84,15 +93,27 @@ public class MigrationRunRecorder {
 				).put(
 					"targetURL", targetJDBCURL
 				).build(),
-				new ServiceContext());
+				_createServiceContext(companyId, userId));
 		}
 		catch (Exception exception) {
 			_log.error("Unable to record the migration run", exception);
+		}
+		finally {
+			PrincipalThreadLocal.setName(principalName);
 		}
 	}
 
 	private Map<Locale, String> _createLabelMap(String value) {
 		return Collections.singletonMap(LocaleUtil.getDefault(), value);
+	}
+
+	private ServiceContext _createServiceContext(long companyId, long userId) {
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(companyId);
+		serviceContext.setUserId(userId);
+
+		return serviceContext;
 	}
 
 	private ObjectDefinition _getObjectDefinition(long companyId, long userId)
@@ -134,7 +155,7 @@ public class MigrationRunRecorder {
 					ObjectFieldUtil.createObjectField(
 						ObjectFieldConstants.BUSINESS_TYPE_TEXT,
 						ObjectFieldConstants.DB_TYPE_STRING, true, false, null,
-						"Status", "status", false),
+						"Status", "migrationStatus", false),
 					ObjectFieldUtil.createObjectField(
 						ObjectFieldConstants.BUSINESS_TYPE_INTEGER,
 						ObjectFieldConstants.DB_TYPE_INTEGER, false, false,
@@ -151,7 +172,8 @@ public class MigrationRunRecorder {
 						ObjectFieldConstants.BUSINESS_TYPE_INTEGER,
 						ObjectFieldConstants.DB_TYPE_INTEGER, false, false,
 						null, "Duration Seconds", "durationSeconds", false)),
-				Collections.emptyList(), new ServiceContext());
+				Collections.emptyList(),
+				_createServiceContext(companyId, userId));
 
 		return ObjectDefinitionLocalServiceUtil.publishCustomObjectDefinition(
 			userId, objectDefinition.getObjectDefinitionId());
