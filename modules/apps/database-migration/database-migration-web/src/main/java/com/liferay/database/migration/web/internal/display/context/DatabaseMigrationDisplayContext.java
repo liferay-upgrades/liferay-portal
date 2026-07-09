@@ -1,0 +1,32 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.database.migration.web.internal.display.context;
+
+import com.liferay.database.migration.service.DatabaseMigrationManager;
+import com.liferay.database.migration.service.MigrationStatus;
+
+/**
+ * @author Albert Gomes Cabral
+ */
+public class DatabaseMigrationDisplayContext {
+
+	public DatabaseMigrationDisplayContext(
+		DatabaseMigrationManager databaseMigrationManager) {
+
+		_databaseMigrationManager = databaseMigrationManager;
+	}
+
+	public MigrationStatus getMigrationStatus() {
+		return _databaseMigrationManager.getMigrationStatus();
+	}
+
+	public boolean isMigrationRunning() {
+		return _databaseMigrationManager.isMigrationRunning();
+	}
+
+	private final DatabaseMigrationManager _databaseMigrationManager;
+
+}
