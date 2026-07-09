@@ -16,6 +16,7 @@ public interface DatabaseMigrationManager {
 
 	public void startMigration(
 		String sourceJDBCURL, String sourceUserName, String sourcePassword,
-		String targetJDBCURL, String targetUserName, String targetPassword);
+		String targetJDBCURL, String targetUserName, String targetPassword,
+		long companyId, long userId, String migrationName);
 
 }
