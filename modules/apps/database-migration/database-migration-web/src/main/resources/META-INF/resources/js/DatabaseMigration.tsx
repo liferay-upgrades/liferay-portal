@@ -28,6 +28,7 @@ const DatabaseMigration: React.FC<Props> = ({
 	schemaComparisonURL,
 	startMigrationURL,
 	statusURL,
+	testConnectionURL,
 }) => {
 	const [status, setStatus] = useState<Status | null>(null);
 	const [tracking, setTracking] = useState(false);
@@ -126,6 +127,7 @@ const DatabaseMigration: React.FC<Props> = ({
 						namespace={namespace}
 						onStarted={handleStarted}
 						startMigrationURL={startMigrationURL}
+						testConnectionURL={testConnectionURL}
 					/>
 				</>
 			)}

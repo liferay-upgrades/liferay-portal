@@ -13,6 +13,14 @@ interface MigrationFormProps {
 	namespace: string;
 	onStarted: () => void;
 	startMigrationURL: string;
+	testConnectionURL: string;
+}
+
+type Side = 'source' | 'target';
+
+interface TestState {
+	message?: string;
+	status: 'error' | 'success' | 'testing';
 }
 
 function getErrorMessage(errorCode: string): string {
@@ -39,6 +47,7 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 	namespace,
 	onStarted,
 	startMigrationURL,
+	testConnectionURL,
 }) => {
 	const [values, setValues] = useState({
 		migrationName: '',
@@ -51,6 +60,10 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 	});
 	const [errorCode, setErrorCode] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
+	const [testStates, setTestStates] = useState<{
+		source?: TestState;
+		target?: TestState;
+	}>({});
 
 	const setValue = (name: string, value: string) =>
 		setValues((previous) => ({...previous, [name]: value}));
@@ -85,6 +98,36 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 			});
 	};
 
+	const handleTest = (side: Side) => {
+		setTestStates((previous) => ({
+			...previous,
+			[side]: {status: 'testing'},
+		}));
+
+		const body = new URLSearchParams();
+
+		body.append(namespace + 'jdbcURL', values[`${side}JDBCURL`]);
+		body.append(namespace + 'userName', values[`${side}UserName`]);
+		body.append(namespace + 'password', values[`${side}Password`]);
+
+		fetch(testConnectionURL, {body, method: 'POST'})
+			.then((response) => response.json())
+			.then((json) =>
+				setTestStates((previous) => ({
+					...previous,
+					[side]: json.valid
+						? {status: 'success'}
+						: {message: json.message, status: 'error'},
+				}))
+			)
+			.catch(() =>
+				setTestStates((previous) => ({
+					...previous,
+					[side]: {status: 'error'},
+				}))
+			);
+	};
+
 	const renderField = (
 		name: keyof typeof values,
 		label: string,
@@ -103,6 +146,43 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 			/>
 		</ClayForm.Group>
 	);
+
+	const renderTest = (side: Side) => {
+		const testState = testStates[side];
+
+		return (
+			<>
+				<ClayButton
+					disabled={
+						testState?.status === 'testing' ||
+						!values[`${side}JDBCURL`] ||
+						!values[`${side}UserName`]
+					}
+					displayType="secondary"
+					onClick={() => handleTest(side)}
+					type="button"
+				>
+					{Liferay.Language.get('test-database-connection')}
+				</ClayButton>
+
+				{testState?.status === 'success' && (
+					<ClayAlert className="mt-3" displayType="success">
+						{Liferay.Language.get('the-connection-was-successful')}
+					</ClayAlert>
+				)}
+
+				{testState?.status === 'error' && (
+					<ClayAlert className="mt-3" displayType="danger">
+						{Liferay.Language.get(
+							'the-connection-could-not-be-established'
+						)}
+
+						{testState.message ? ` ${testState.message}` : ''}
+					</ClayAlert>
+				)}
+			</>
+		);
+	};
 
 	return (
 		<ClayForm className="sheet" onSubmit={handleSubmit}>
@@ -148,6 +228,8 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 						Liferay.Language.get('password'),
 						'password'
 					)}
+
+					{renderTest('source')}
 				</div>
 
 				<div className="col-md-6">
@@ -173,10 +255,12 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 						Liferay.Language.get('password'),
 						'password'
 					)}
+
+					{renderTest('target')}
 				</div>
 			</div>
 
-			<ClayButton disabled={submitting} type="submit">
+			<ClayButton className="mt-4" disabled={submitting} type="submit">
 				{Liferay.Language.get('start-migration')}
 			</ClayButton>
 		</ClayForm>

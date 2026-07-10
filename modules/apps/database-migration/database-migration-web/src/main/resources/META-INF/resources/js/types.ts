@@ -66,4 +66,5 @@ export interface Props {
 	schemaComparisonURL: string;
 	startMigrationURL: string;
 	statusURL: string;
+	testConnectionURL: string;
 }

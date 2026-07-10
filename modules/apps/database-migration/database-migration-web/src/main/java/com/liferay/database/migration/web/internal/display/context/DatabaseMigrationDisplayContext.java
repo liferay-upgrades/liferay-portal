@@ -32,6 +32,9 @@ public class DatabaseMigrationDisplayContext {
 			_createResourceURL("/database_migration/start_migration")
 		).put(
 			"statusURL", _createResourceURL("/database_migration/get_status")
+		).put(
+			"testConnectionURL",
+			_createResourceURL("/database_migration/test_connection")
 		).build();
 	}
 
