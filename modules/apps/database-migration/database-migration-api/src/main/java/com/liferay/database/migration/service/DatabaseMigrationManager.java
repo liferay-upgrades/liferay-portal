@@ -19,4 +19,7 @@ public interface DatabaseMigrationManager {
 		String targetJDBCURL, String targetUserName, String targetPassword,
 		long companyId, long userId, String migrationName);
 
+	public void testConnection(String jdbcURL, String userName, String password)
+		throws Exception;
+
 }

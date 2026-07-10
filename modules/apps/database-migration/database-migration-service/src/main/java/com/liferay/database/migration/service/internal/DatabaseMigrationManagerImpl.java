@@ -10,9 +10,14 @@ import com.liferay.database.migration.service.MigrationStatus;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+
+import javax.sql.DataSource;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -59,6 +64,27 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 			});
 	}
 
+	@Override
+	public void testConnection(String jdbcURL, String userName, String password)
+		throws Exception {
+
+		DataSource dataSource = null;
+
+		try {
+			dataSource = MigrationDataSourceFactory.initDataSource(
+				jdbcURL, userName, password);
+
+			try (Connection connection = dataSource.getConnection()) {
+				if (!connection.isValid(_CONNECTION_TIMEOUT)) {
+					throw new SQLException("The connection is not valid");
+				}
+			}
+		}
+		finally {
+			MigrationDataSourceFactory.destroy(dataSource);
+		}
+	}
+
 	@Activate
 	protected void activate() {
 		ThreadFactory threadFactory = runnable -> {
@@ -78,6 +104,8 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 			_executorService.shutdownNow();
 		}
 	}
+
+	private static final int _CONNECTION_TIMEOUT = 10;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DatabaseMigrationManagerImpl.class);
