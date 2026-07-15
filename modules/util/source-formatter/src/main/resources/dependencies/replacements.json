@@ -5995,6 +5995,15 @@
 		]
 	},
 	{
+		"from": "SitesUtil.setMergeFailCount",
+		"issueKey": "LPD-85990",
+		"newImports": [
+			"com.liferay.layout.set.prototype.helper.LayoutSetPrototypeHelper"
+		],
+		"newReference": "LayoutSetPrototypeHelper _layoutSetPrototypeHelper",
+		"to": "_layoutSetPrototypeHelper.setMergeFailCount"
+	},
+	{
 		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
 		"issueKey": "LPS-153962",
 		"newImports": [
