@@ -14,11 +14,6 @@ public interface DatabaseMigrationManager {
 
 	public boolean isMigrationRunning();
 
-	public void migrate(
-			String sourceJDBCURL, String sourceUserName, String sourcePassword,
-			String targetJDBCURL, String targetUserName, String targetPassword)
-		throws Exception;
-
 	public void startMigration(
 		String sourceJDBCURL, String sourceUserName, String sourcePassword,
 		String targetJDBCURL, String targetUserName, String targetPassword);
