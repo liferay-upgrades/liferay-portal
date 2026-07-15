@@ -39,6 +39,8 @@ public interface MigrationStatus {
 
 	public long getStartTime();
 
+	public List<TableComparison> getTableComparisons();
+
 	public Map<String, Long> getTableRowCounts();
 
 }
