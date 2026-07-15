@@ -229,11 +229,7 @@ public class DatabaseMigrator {
 						tableName);
 				}
 
-				boolean baselineKnown = false;
-
-				if (standardTable || objectTable) {
-					baselineKnown = true;
-				}
+				boolean baselineKnown = standardTable || objectTable;
 
 				List<ColumnValidation> columnValidations = new ArrayList<>();
 
