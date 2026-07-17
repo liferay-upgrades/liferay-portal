@@ -4,7 +4,7 @@
  */
 
 import ClayButton from '@clayui/button';
-import {ClayInput, ClayToggle} from '@clayui/form';
+import {ClayInput, ClaySelect} from '@clayui/form';
 import ClayLabel from '@clayui/label';
 import {fetch} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
@@ -107,6 +107,33 @@ function needsReview(tableValidation: TableValidation) {
 	return displayType === 'danger' || displayType === 'warning';
 }
 
+const STATUS_FILTER_ALL = 'all';
+
+const STATUS_FILTER_CUSTOM_TABLE = 'custom-table';
+
+const STATUS_FILTER_NEEDS_REVIEW = 'needs-review';
+
+const STATUS_FILTER_OBJECT = 'object';
+
+function matchesStatusFilter(
+	tableValidation: TableValidation,
+	statusFilter: string
+) {
+	if (statusFilter === STATUS_FILTER_NEEDS_REVIEW) {
+		return needsReview(tableValidation);
+	}
+
+	if (statusFilter === STATUS_FILTER_CUSTOM_TABLE) {
+		return tableValidation.status === 'CUSTOM_TABLE';
+	}
+
+	if (statusFilter === STATUS_FILTER_OBJECT) {
+		return tableValidation.status === 'OBJECT';
+	}
+
+	return true;
+}
+
 const SchemaValidationTab: React.FC<SchemaValidationTabProps> = ({
 	phase,
 	schemaValidationURL,
@@ -117,7 +144,7 @@ const SchemaValidationTab: React.FC<SchemaValidationTabProps> = ({
 	const [page, setPage] = useState(1);
 	const [delta, setDelta] = useState(20);
 	const [searchTerm, setSearchTerm] = useState('');
-	const [onlyIssues, setOnlyIssues] = useState(false);
+	const [statusFilter, setStatusFilter] = useState(STATUS_FILTER_ALL);
 
 	useEffect(() => {
 		fetch(schemaValidationURL)
@@ -143,7 +170,7 @@ const SchemaValidationTab: React.FC<SchemaValidationTabProps> = ({
 
 	const filteredTableValidations = tableValidations.filter(
 		(tableValidation) => {
-			if (onlyIssues && !needsReview(tableValidation)) {
+			if (!matchesStatusFilter(tableValidation, statusFilter)) {
 				return false;
 			}
 
@@ -209,14 +236,36 @@ const SchemaValidationTab: React.FC<SchemaValidationTabProps> = ({
 					/>
 				</div>
 
-				<ClayToggle
-					label={Liferay.Language.get('show-only-issues')}
-					onToggle={(toggled) => {
-						setOnlyIssues(toggled);
-						setPage(1);
-					}}
-					toggled={onlyIssues}
-				/>
+				<div style={{minWidth: '12rem'}}>
+					<ClaySelect
+						aria-label={Liferay.Language.get('filter-by-status')}
+						onChange={(event) => {
+							setStatusFilter(event.target.value);
+							setPage(1);
+						}}
+						value={statusFilter}
+					>
+						<ClaySelect.Option
+							label={Liferay.Language.get('all-tables')}
+							value={STATUS_FILTER_ALL}
+						/>
+
+						<ClaySelect.Option
+							label={Liferay.Language.get('needs-review')}
+							value={STATUS_FILTER_NEEDS_REVIEW}
+						/>
+
+						<ClaySelect.Option
+							label={Liferay.Language.get('custom-tables')}
+							value={STATUS_FILTER_CUSTOM_TABLE}
+						/>
+
+						<ClaySelect.Option
+							label={Liferay.Language.get('object-tables')}
+							value={STATUS_FILTER_OBJECT}
+						/>
+					</ClaySelect>
+				</div>
 			</div>
 
 			<table className="table table-autofit table-list">
