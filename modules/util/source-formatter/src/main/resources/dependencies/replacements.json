@@ -5462,6 +5462,14 @@
 	},
 	{
 		"classNames": [
+			"HttpComponentsUtil"
+		],
+		"from": "getParameterMap()",
+		"hasMessage": true,
+		"issueKey": "LPD-58480"
+	},
+	{
+		"classNames": [
 			"PropsKeys"
 		],
 		"from": "COMPANY_SECURITY_AUTH_REQUIRES_HTTPS",
