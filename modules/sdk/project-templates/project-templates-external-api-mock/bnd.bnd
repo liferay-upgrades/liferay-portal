@@ -1,0 +1,9 @@
+Bundle-Description: Creates a Liferay module project that mocks an external API and consumes it through a configurable client.
+Bundle-Name: Liferay Project Templates External API Mock
+Bundle-SymbolicName: com.liferay.project.templates.external.api.mock
+Bundle-Version: 1.0.0
+Liferay-Versions: [7,9999.0)
+-removeheaders:\
+	Import-Package,\
+	Private-Package,\
+	Require-Capability
