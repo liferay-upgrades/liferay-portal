@@ -2575,6 +2575,11 @@
 		]
 	},
 	{
+		"from": "regex:SafeConsumer\\.ignore\\(\\s*(?<lambda>dropdownItem\\s*->\\s*\\{[\\s\\S]*?}\\s*)\\)",
+		"issueKey": "LPD-27965",
+		"to": "${lambda}"
+	},
+	{
 		"classNames": [
 			"BaseJSPDynamicInclude"
 		],
