@@ -6014,6 +6014,14 @@
 		"to": "DLFileEntryTypeUtil.getDDMStructures(${varName})"
 	},
 	{
+		"from": "regex:(?<classProperties>class=\"(?![^\"]*\\bsr-only\\b)[^\"]*\\bhide-accessible\\b[^\"]*)",
+		"issueKey": "LPD-84169",
+		"to": "${classProperties} sr-only",
+		"validExtensions": [
+			"ftl"
+		]
+	},
+	{
 		"classNames": [
 			"CommerceOrderItemLocalServiceWrapper"
 		],
