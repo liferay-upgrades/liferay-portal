@@ -6059,6 +6059,14 @@
 		"to": "_sites.updateLayoutSetPrototypesLinks"
 	},
 	{
+		"classNames": [
+			"CPDefinitionVirtualSetting"
+		],
+		"from": "getFileEntryId()",
+		"hasMessage": true,
+		"issueKey": "LPD-102094"
+	},
+	{
 		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
 		"issueKey": "LPS-153962",
 		"newImports": [
