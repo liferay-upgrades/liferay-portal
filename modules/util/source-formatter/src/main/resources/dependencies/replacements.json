@@ -6334,6 +6334,14 @@
 	},
 	{
 		"classNames": [
+			"CommerceOrderHttpHelper"
+		],
+		"from": "getCommerceCartPortletURL(HttpServletRequest httpServletRequest)",
+		"hasMessage": true,
+		"issueKey": "LPD-102414"
+	},
+	{
+		"classNames": [
 			"CommerceOrderLocalService",
 			"CommerceOrderLocalServiceUtil",
 			"CommerceOrderLocalServiceWrapper",
