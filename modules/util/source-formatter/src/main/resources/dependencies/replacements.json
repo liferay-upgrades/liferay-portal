@@ -6269,6 +6269,11 @@
 		"to": "Indexer<?>"
 	},
 	{
+		"from": "regex:Indexer<[?\\w\\s]+>\\s+(?<variableName>\\w+)\\s*=\\s*IndexerRegistryUtil\\.nullSafeGetIndexer\\(\\s*(?<className>[\\w.]+)\\.class\\s*\\);",
+		"issueKey": "LPS-191840",
+		"to": "Indexer<${className}> ${variableName} = IndexerRegistryUtil.nullSafeGetIndexer(${className}.class);"
+	},
+	{
 		"classNames": [
 			"Indexer"
 		],
