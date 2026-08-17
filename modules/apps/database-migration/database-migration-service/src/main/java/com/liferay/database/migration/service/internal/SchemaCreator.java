@@ -56,21 +56,24 @@ public class SchemaCreator {
 			DB targetDB = DBManagerUtil.getDB(
 				DBType.POSTGRESQL, _targetDataSource);
 
+			ObjectSchemaProvider objectSchemaProvider =
+				new ObjectSchemaProvider(sourceConnection);
+
 			for (String tableName :
 					MigrationUtil.getTableNames(sourceConnection)) {
 
-				String createTableSQL =
-					_portableSchemaProvider.getCreateTableSQL(tableName);
+				String createTableSQL = _getCreateTableSQL(
+					objectSchemaProvider, tableName);
 
-				if (createTableSQL != null) {
-					_createLiferayTable(
-						targetDB, sourceConnection, targetConnection, tableName,
-						createTableSQL, createdTableNames);
-				}
-				else {
+				if (createTableSQL == null) {
 					_createTableFromMetadata(
 						sourceConnection, targetConnection, tableName,
 						createdTableNames);
+				}
+				else {
+					_createLiferayTable(
+						targetDB, sourceConnection, targetConnection, tableName,
+						createTableSQL, createdTableNames);
 				}
 			}
 		}
@@ -341,6 +344,19 @@ public class SchemaCreator {
 		}
 
 		return columnSizes;
+	}
+
+	private String _getCreateTableSQL(
+		ObjectSchemaProvider objectSchemaProvider, String tableName) {
+
+		String createTableSQL = _portableSchemaProvider.getCreateTableSQL(
+			tableName);
+
+		if (createTableSQL != null) {
+			return createTableSQL;
+		}
+
+		return objectSchemaProvider.getCreateTableSQL(tableName);
 	}
 
 	private boolean _hasSameColumns(

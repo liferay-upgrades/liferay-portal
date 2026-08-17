@@ -17,7 +17,10 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.math.BigDecimal;
+
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -155,6 +158,52 @@ public class DatabaseMigrationManagerTest {
 	}
 
 	@Test
+	public void testMigrateObjectTable() throws Exception {
+		_setUpObjectSchema();
+
+		_databaseMigrationManager.startMigration(
+			_sourceURL, _sourceUserName, _sourcePassword, _targetURL,
+			_targetUserName, _targetPassword, TestPropsValues.getCompanyId(),
+			TestPropsValues.getUserId(), "Test Object Table Migration");
+
+		_waitForMigrationToComplete();
+
+		MigrationStatus migrationStatus =
+			_databaseMigrationManager.getMigrationStatus();
+
+		Assert.assertEquals(
+			migrationStatus.getMessage(), MigrationStatus.PHASE_COMPLETED,
+			migrationStatus.getPhase());
+
+		Map<String, Long> tableRowCounts = migrationStatus.getTableRowCounts();
+
+		Assert.assertEquals(
+			tableRowCounts.toString(), Long.valueOf(1),
+			tableRowCounts.get(_TABLE_OBJECT));
+
+		_assertColumn(_TABLE_OBJECT, "amount", "numeric", 30, 16);
+		_assertColumn(_TABLE_OBJECT, "title", "varchar", 280, 0);
+
+		try (Connection connection = _targetDataSource.getConnection();
+
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				"select amount, title from " + _TABLE_OBJECT);
+
+			ResultSet resultSet = preparedStatement.executeQuery()) {
+
+			Assert.assertTrue(resultSet.next());
+			Assert.assertEquals(
+				0,
+				resultSet.getBigDecimal(
+					"amount"
+				).compareTo(
+					new BigDecimal("1.5")
+				));
+			Assert.assertEquals("Alpha", resultSet.getString("title"));
+		}
+	}
+
+	@Test
 	public void testMigrateSourceReleaseMismatch() throws Exception {
 		_execute(
 			_sourceDataSource,
@@ -214,6 +263,29 @@ public class DatabaseMigrationManagerTest {
 			_sourceURL, _sourceUserName, _sourcePassword);
 		_databaseMigrationManager.testConnection(
 			_targetURL, _targetUserName, _targetPassword);
+	}
+
+	private void _assertColumn(
+			String tableName, String columnName, String typeName,
+			int columnSize, int decimalDigits)
+		throws Exception {
+
+		try (Connection connection = _targetDataSource.getConnection()) {
+			DatabaseMetaData databaseMetaData = connection.getMetaData();
+
+			try (ResultSet resultSet = databaseMetaData.getColumns(
+					connection.getCatalog(), connection.getSchema(), tableName,
+					columnName)) {
+
+				Assert.assertTrue(
+					tableName + "." + columnName, resultSet.next());
+				Assert.assertEquals(typeName, resultSet.getString("TYPE_NAME"));
+				Assert.assertEquals(
+					columnSize, resultSet.getInt("COLUMN_SIZE"));
+				Assert.assertEquals(
+					decimalDigits, resultSet.getInt("DECIMAL_DIGITS"));
+			}
+		}
 	}
 
 	private void _assertCustomColumnMigrated() throws Exception {
@@ -305,12 +377,17 @@ public class DatabaseMigrationManagerTest {
 	}
 
 	private void _dropTestTables() throws Exception {
-		_execute(_sourceDataSource, "drop table if exists " + _TABLE_ALL_TYPES);
-		_execute(_sourceDataSource, "drop table if exists " + _TABLE_PARTIAL);
-		_execute(_sourceDataSource, "drop table if exists " + _TABLE_RELEASE);
-		_execute(_targetDataSource, "drop table if exists " + _TABLE_ALL_TYPES);
-		_execute(_targetDataSource, "drop table if exists " + _TABLE_PARTIAL);
-		_execute(_targetDataSource, "drop table if exists " + _TABLE_RELEASE);
+		for (DataSource dataSource :
+				new DataSource[] {_sourceDataSource, _targetDataSource}) {
+
+			_execute(dataSource, "drop table if exists " + _TABLE_ALL_TYPES);
+			_execute(dataSource, "drop table if exists " + _TABLE_OBJECT);
+			_execute(
+				dataSource, "drop table if exists " + _TABLE_OBJECT_DEFINITION);
+			_execute(dataSource, "drop table if exists " + _TABLE_OBJECT_FIELD);
+			_execute(dataSource, "drop table if exists " + _TABLE_PARTIAL);
+			_execute(dataSource, "drop table if exists " + _TABLE_RELEASE);
+		}
 	}
 
 	private void _execute(DataSource dataSource, String sql) throws Exception {
@@ -386,6 +463,58 @@ public class DatabaseMigrationManagerTest {
 		}
 	}
 
+	private void _setUpObjectSchema() throws Exception {
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"create table ", _TABLE_OBJECT_DEFINITION,
+				" (objectDefinitionId bigint not null primary key, companyId ",
+				"bigint, dbTableName varchar(75), modifiable boolean, ",
+				"pkObjectFieldDBColumnName varchar(75), system_ boolean)"));
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"insert into ", _TABLE_OBJECT_DEFINITION,
+				" (objectDefinitionId, companyId, dbTableName, modifiable, ",
+				"pkObjectFieldDBColumnName, system_) values (1, 1, '",
+				_TABLE_OBJECT, "', true, 'migrationId', false)"));
+
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"create table ", _TABLE_OBJECT_FIELD,
+				" (objectFieldId bigint not null primary key, businessType ",
+				"varchar(75), dbColumnName varchar(75), dbTableName ",
+				"varchar(75), dbType varchar(75), localized boolean, ",
+				"objectDefinitionId bigint)"));
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"insert into ", _TABLE_OBJECT_FIELD,
+				" (objectFieldId, businessType, dbColumnName, dbTableName, ",
+				"dbType, localized, objectDefinitionId) values (1, 'Decimal', ",
+				"'amount', '", _TABLE_OBJECT, "', 'BigDecimal', false, 1)"));
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"insert into ", _TABLE_OBJECT_FIELD,
+				" (objectFieldId, businessType, dbColumnName, dbTableName, ",
+				"dbType, localized, objectDefinitionId) values (2, 'Text', ",
+				"'title', '", _TABLE_OBJECT, "', 'String', false, 1)"));
+
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"create table ", _TABLE_OBJECT,
+				" (migrationId bigint not null primary key, amount ",
+				"numeric(30, 16), title varchar(75))"));
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"insert into ", _TABLE_OBJECT,
+				" (migrationId, amount, title) values (1, 1.5, 'Alpha')"));
+	}
+
 	private void _setUpSourceSchema() throws Exception {
 		_execute(
 			_sourceDataSource,
@@ -436,6 +565,12 @@ public class DatabaseMigrationManagerTest {
 	private static final byte[] _PAYLOAD = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 	private static final String _TABLE_ALL_TYPES = "dbmigration_all_types";
+
+	private static final String _TABLE_OBJECT = "o_9999_dbmigration";
+
+	private static final String _TABLE_OBJECT_DEFINITION = "ObjectDefinition";
+
+	private static final String _TABLE_OBJECT_FIELD = "ObjectField";
 
 	private static final String _TABLE_PARTIAL = "dbmigration_partial";
 
