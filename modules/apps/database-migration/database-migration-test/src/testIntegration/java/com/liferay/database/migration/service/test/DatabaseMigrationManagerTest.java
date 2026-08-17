@@ -158,6 +158,48 @@ public class DatabaseMigrationManagerTest {
 	}
 
 	@Test
+	public void testMigrateObjectLocalizationTable() throws Exception {
+		_setUpObjectLocalizationSchema();
+
+		_databaseMigrationManager.startMigration(
+			_sourceURL, _sourceUserName, _sourcePassword, _targetURL,
+			_targetUserName, _targetPassword, TestPropsValues.getCompanyId(),
+			TestPropsValues.getUserId(),
+			"Test Object Localization Table Migration");
+
+		_waitForMigrationToComplete();
+
+		MigrationStatus migrationStatus =
+			_databaseMigrationManager.getMigrationStatus();
+
+		Assert.assertEquals(
+			migrationStatus.getMessage(), MigrationStatus.PHASE_COMPLETED,
+			migrationStatus.getPhase());
+
+		Map<String, Long> tableRowCounts = migrationStatus.getTableRowCounts();
+
+		Assert.assertEquals(
+			tableRowCounts.toString(), Long.valueOf(1),
+			tableRowCounts.get(_TABLE_OBJECT_LOCALIZATION));
+
+		_assertColumn(
+			_TABLE_OBJECT_LOCALIZATION, "languageId", "varchar", 10, 0);
+		_assertColumn(_TABLE_OBJECT_LOCALIZATION, "name", "varchar", 280, 0);
+
+		try (Connection connection = _targetDataSource.getConnection();
+
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				"select languageId, name from " + _TABLE_OBJECT_LOCALIZATION);
+
+			ResultSet resultSet = preparedStatement.executeQuery()) {
+
+			Assert.assertTrue(resultSet.next());
+			Assert.assertEquals("en_US", resultSet.getString("languageId"));
+			Assert.assertEquals("Alpha", resultSet.getString("name"));
+		}
+	}
+
+	@Test
 	public void testMigrateObjectTable() throws Exception {
 		_setUpObjectSchema();
 
@@ -376,6 +418,32 @@ public class DatabaseMigrationManagerTest {
 		Assert.assertFalse(_databaseMigrationManager.isMigrationRunning());
 	}
 
+	private void _createObjectMetadataTables() throws Exception {
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"create table ", _TABLE_OBJECT_DEFINITION,
+				" (objectDefinitionId bigint not null primary key, companyId ",
+				"bigint, dbTableName varchar(75), modifiable boolean, ",
+				"pkObjectFieldDBColumnName varchar(75), system_ boolean)"));
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"insert into ", _TABLE_OBJECT_DEFINITION,
+				" (objectDefinitionId, companyId, dbTableName, modifiable, ",
+				"pkObjectFieldDBColumnName, system_) values (1, 1, '",
+				_TABLE_OBJECT, "', true, 'migrationId', false)"));
+
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"create table ", _TABLE_OBJECT_FIELD,
+				" (objectFieldId bigint not null primary key, businessType ",
+				"varchar(75), dbColumnName varchar(75), dbTableName ",
+				"varchar(75), dbType varchar(75), localized boolean, ",
+				"objectDefinitionId bigint)"));
+	}
+
 	private void _dropTestTables() throws Exception {
 		for (DataSource dataSource :
 				new DataSource[] {_sourceDataSource, _targetDataSource}) {
@@ -385,6 +453,9 @@ public class DatabaseMigrationManagerTest {
 			_execute(
 				dataSource, "drop table if exists " + _TABLE_OBJECT_DEFINITION);
 			_execute(dataSource, "drop table if exists " + _TABLE_OBJECT_FIELD);
+			_execute(
+				dataSource,
+				"drop table if exists " + _TABLE_OBJECT_LOCALIZATION);
 			_execute(dataSource, "drop table if exists " + _TABLE_PARTIAL);
 			_execute(dataSource, "drop table if exists " + _TABLE_RELEASE);
 		}
@@ -463,30 +534,41 @@ public class DatabaseMigrationManagerTest {
 		}
 	}
 
-	private void _setUpObjectSchema() throws Exception {
-		_execute(
-			_sourceDataSource,
-			StringBundler.concat(
-				"create table ", _TABLE_OBJECT_DEFINITION,
-				" (objectDefinitionId bigint not null primary key, companyId ",
-				"bigint, dbTableName varchar(75), modifiable boolean, ",
-				"pkObjectFieldDBColumnName varchar(75), system_ boolean)"));
-		_execute(
-			_sourceDataSource,
-			StringBundler.concat(
-				"insert into ", _TABLE_OBJECT_DEFINITION,
-				" (objectDefinitionId, companyId, dbTableName, modifiable, ",
-				"pkObjectFieldDBColumnName, system_) values (1, 1, '",
-				_TABLE_OBJECT, "', true, 'migrationId', false)"));
+	private void _setUpObjectLocalizationSchema() throws Exception {
+		_createObjectMetadataTables();
 
 		_execute(
 			_sourceDataSource,
 			StringBundler.concat(
-				"create table ", _TABLE_OBJECT_FIELD,
-				" (objectFieldId bigint not null primary key, businessType ",
-				"varchar(75), dbColumnName varchar(75), dbTableName ",
-				"varchar(75), dbType varchar(75), localized boolean, ",
-				"objectDefinitionId bigint)"));
+				"insert into ", _TABLE_OBJECT_FIELD,
+				" (objectFieldId, businessType, dbColumnName, dbTableName, ",
+				"dbType, localized, objectDefinitionId) values (1, 'Text', ",
+				"'name', '", _TABLE_OBJECT, "', 'String', true, 1)"));
+
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"create table ", _TABLE_OBJECT,
+				" (migrationId bigint not null primary key)"));
+
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"create table ", _TABLE_OBJECT_LOCALIZATION,
+				" (migrationId bigint not null, languageId varchar(75) not ",
+				"null, name varchar(75), primary key (migrationId, ",
+				"languageId))"));
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"insert into ", _TABLE_OBJECT_LOCALIZATION,
+				" (migrationId, languageId, name) values (1, 'en_US', ",
+				"'Alpha')"));
+	}
+
+	private void _setUpObjectSchema() throws Exception {
+		_createObjectMetadataTables();
+
 		_execute(
 			_sourceDataSource,
 			StringBundler.concat(
@@ -571,6 +653,9 @@ public class DatabaseMigrationManagerTest {
 	private static final String _TABLE_OBJECT_DEFINITION = "ObjectDefinition";
 
 	private static final String _TABLE_OBJECT_FIELD = "ObjectField";
+
+	private static final String _TABLE_OBJECT_LOCALIZATION =
+		"o_9999_dbmigration_l";
 
 	private static final String _TABLE_PARTIAL = "dbmigration_partial";
 
