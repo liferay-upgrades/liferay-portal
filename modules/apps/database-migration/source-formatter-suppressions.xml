@@ -3,5 +3,6 @@
 <suppressions>
 	<source-check>
 		<suppress checks="JavaCompanyThreadLocalCheck" files="database-migration-service/src/main/java/com/liferay/database/migration/service/internal/MigrationRunRecorder\.java" />
+		<suppress checks="JavaConnectionTransactionCheck" files="database-migration-service/src/main/java/com/liferay/database/migration/service/internal/TableCopier\.java" />
 	</source-check>
 </suppressions>
