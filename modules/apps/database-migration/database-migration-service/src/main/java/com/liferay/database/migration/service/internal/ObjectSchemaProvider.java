@@ -154,7 +154,7 @@ public class ObjectSchemaProvider {
 		List<String> columnDefinitions = new ArrayList<>();
 
 		for (ObjectFieldMetadata objectFieldMetadata :
-				objectDefinitionMetadata.getObjectFieldMetadatas()) {
+				objectDefinitionMetadata.getObjectFieldMetadata()) {
 
 			if (objectFieldMetadata.isLocalized() ||
 				!objectFieldMetadata.hasInsertValues() ||
@@ -228,7 +228,7 @@ public class ObjectSchemaProvider {
 		List<String> columnDefinitions = new ArrayList<>();
 
 		for (ObjectFieldMetadata objectFieldMetadata :
-				objectDefinitionMetadata.getObjectFieldMetadatas()) {
+				objectDefinitionMetadata.getObjectFieldMetadata()) {
 
 			if (!objectFieldMetadata.isLocalized()) {
 				continue;
@@ -397,7 +397,7 @@ public class ObjectSchemaProvider {
 		public void addObjectFieldMetadata(
 			ObjectFieldMetadata objectFieldMetadata) {
 
-			_objectFieldMetadatas.add(objectFieldMetadata);
+			_objectFieldMetadata.add(objectFieldMetadata);
 		}
 
 		public String getDBTableName() {
@@ -412,8 +412,8 @@ public class ObjectSchemaProvider {
 			return _dbTableName + _LOCALIZATION_TABLE_NAME_SUFFIX;
 		}
 
-		public List<ObjectFieldMetadata> getObjectFieldMetadatas() {
-			return _objectFieldMetadatas;
+		public List<ObjectFieldMetadata> getObjectFieldMetadata() {
+			return _objectFieldMetadata;
 		}
 
 		public String getPKObjectFieldDBColumnName() {
@@ -422,7 +422,7 @@ public class ObjectSchemaProvider {
 
 		private final String _dbTableName;
 		private final String _extensionDBTableName;
-		private final List<ObjectFieldMetadata> _objectFieldMetadatas =
+		private final List<ObjectFieldMetadata> _objectFieldMetadata =
 			new ArrayList<>();
 		private final String _pkObjectFieldDBColumnName;
 

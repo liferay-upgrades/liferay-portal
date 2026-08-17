@@ -13,6 +13,9 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.service.ReleaseLocalService;
+import com.liferay.portal.kernel.util.PropsValues;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -141,6 +144,10 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 	private List<String> _getSourceReleaseMismatches(
 		String jdbcURL, String userName, String password) {
 
+		if (_isCurrentConnection(jdbcURL)) {
+			return null;
+		}
+
 		DataSource dataSource = null;
 
 		try {
@@ -164,6 +171,14 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 		finally {
 			MigrationDataSourceFactory.destroy(dataSource);
 		}
+	}
+
+	private boolean _isCurrentConnection(String jdbcURL) {
+		if (Validator.isNull(PropsValues.JDBC_DEFAULT_URL)) {
+			return false;
+		}
+
+		return StringUtil.equals(jdbcURL, PropsValues.JDBC_DEFAULT_URL);
 	}
 
 	private static final int _CONNECTION_TIMEOUT = 10;
