@@ -5,12 +5,18 @@
 
 package com.liferay.database.migration.service.internal;
 
-import com.liferay.object.constants.ObjectFieldConstants;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectField;
+import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTable;
+import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionLocalizationTableFactory;
+import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTable;
 import com.liferay.object.petra.sql.dsl.DynamicObjectDefinitionTableUtil;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
+import com.liferay.object.service.ObjectFieldLocalServiceUtil;
+import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -19,12 +25,11 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -57,51 +62,40 @@ public class ObjectSchemaProvider {
 		).matches();
 	}
 
-	private void _addColumnName(String tableName, String columnName) {
-		if (Validator.isNull(tableName) || Validator.isNull(columnName)) {
-			return;
+	private Map<Long, List<ObjectField>> _getObjectFields(Connection connection)
+		throws Exception {
+
+		Map<Long, List<ObjectField>> objectFieldsMap = new HashMap<>();
+
+		try (Statement statement = connection.createStatement();
+
+			ResultSet resultSet = statement.executeQuery(
+				"select objectDefinitionId, businessType, dbColumnName, " +
+					"dbTableName, dbType, localized from " +
+						_TABLE_NAME_OBJECT_FIELD)) {
+
+			while (resultSet.next()) {
+				ObjectField objectField =
+					ObjectFieldLocalServiceUtil.createObjectField(0);
+
+				objectField.setBusinessType(
+					resultSet.getString("businessType"));
+				objectField.setDBColumnName(
+					resultSet.getString("dbColumnName"));
+				objectField.setDBTableName(resultSet.getString("dbTableName"));
+				objectField.setDBType(resultSet.getString("dbType"));
+				objectField.setLocalized(resultSet.getBoolean("localized"));
+
+				List<ObjectField> objectFields =
+					objectFieldsMap.computeIfAbsent(
+						resultSet.getLong("objectDefinitionId"),
+						objectDefinitionId -> new ArrayList<>());
+
+				objectFields.add(objectField);
+			}
 		}
 
-		Set<String> columnNames = _columnNames.computeIfAbsent(
-			tableName, key -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER));
-
-		columnNames.add(columnName);
-	}
-
-	private String _getColumnDefinition(
-		String tableName, String businessType, String dbColumnName,
-		String dbType, boolean appendSQLColumnNull) {
-
-		String dataType = DynamicObjectDefinitionTableUtil.getDataType(
-			businessType, dbType);
-
-		if (dataType == null) {
-			return null;
-		}
-
-		_addColumnName(tableName, dbColumnName);
-
-		if (!appendSQLColumnNull) {
-			return StringBundler.concat(dbColumnName, " ", dataType);
-		}
-
-		return StringBundler.concat(
-			dbColumnName, " ", dataType,
-			DynamicObjectDefinitionTableUtil.getSQLColumnNull(dbType));
-	}
-
-	private String _getExtensionDBTableName(
-		String dbTableName, boolean unmodifiableSystemObject, long companyId) {
-
-		if (!unmodifiableSystemObject) {
-			return dbTableName + "_x";
-		}
-
-		if (dbTableName.endsWith("_")) {
-			return dbTableName + "x_" + companyId;
-		}
-
-		return dbTableName + "_x_" + companyId;
+		return objectFieldsMap;
 	}
 
 	private void _index(Connection connection) {
@@ -114,21 +108,28 @@ public class ObjectSchemaProvider {
 				return;
 			}
 
-			Map<Long, ObjectDefinitionMetadata> objectDefinitionMetadatas =
+			Map<Long, ObjectDefinition> objectDefinitions =
 				_indexObjectDefinitions(connection);
 
-			_indexObjectFields(connection, objectDefinitionMetadatas);
+			Map<Long, List<ObjectField>> objectFieldsMap = _getObjectFields(
+				connection);
 
-			for (ObjectDefinitionMetadata objectDefinitionMetadata :
-					objectDefinitionMetadatas.values()) {
+			for (Map.Entry<Long, ObjectDefinition> entry :
+					objectDefinitions.entrySet()) {
 
-				_indexCreateTableSQL(
-					objectDefinitionMetadata,
-					objectDefinitionMetadata.getDBTableName());
-				_indexCreateTableSQL(
-					objectDefinitionMetadata,
-					objectDefinitionMetadata.getExtensionDBTableName());
-				_indexLocalizationCreateTableSQL(objectDefinitionMetadata);
+				ObjectDefinition objectDefinition = entry.getValue();
+				List<ObjectField> objectFields = objectFieldsMap.getOrDefault(
+					entry.getKey(), Collections.emptyList());
+
+				if (!_isResolvable(objectDefinition, objectFields)) {
+					continue;
+				}
+
+				_indexCreateTableSQL(false, objectDefinition, objectFields);
+				_indexCreateTableSQL(true, objectDefinition, objectFields);
+
+				_indexLocalizationCreateTableSQL(
+					objectDefinition, objectFields);
 			}
 		}
 		catch (Exception exception) {
@@ -141,144 +142,60 @@ public class ObjectSchemaProvider {
 		}
 	}
 
+	private void _indexColumnNames(
+		Collection<? extends Column<?, ?>> columns, String tableName) {
+
+		Set<String> columnNames = _columnNames.computeIfAbsent(
+			tableName, key -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER));
+
+		for (Column<?, ?> column : columns) {
+			columnNames.add(column.getName());
+		}
+	}
+
 	private void _indexCreateTableSQL(
-		ObjectDefinitionMetadata objectDefinitionMetadata, String tableName) {
+		boolean extension, ObjectDefinition objectDefinition,
+		List<ObjectField> objectFields) {
 
-		String primaryKeyColumnName =
-			objectDefinitionMetadata.getPKObjectFieldDBColumnName();
+		DynamicObjectDefinitionTable dynamicObjectDefinitionTable =
+			DynamicObjectDefinitionTableUtil.getDynamicObjectDefinitionTable(
+				extension, objectDefinition, objectFields);
 
-		if (Validator.isNull(primaryKeyColumnName)) {
-			return;
-		}
+		_createTableSQLs.put(
+			dynamicObjectDefinitionTable.getTableName(),
+			dynamicObjectDefinitionTable.getCreateTableSQL());
 
-		List<String> columnDefinitions = new ArrayList<>();
-
-		for (ObjectFieldMetadata objectFieldMetadata :
-				objectDefinitionMetadata.getObjectFieldMetadata()) {
-
-			if (objectFieldMetadata.isLocalized() ||
-				!objectFieldMetadata.hasInsertValues() ||
-				!StringUtil.equalsIgnoreCase(
-					tableName, objectFieldMetadata.getDBTableName())) {
-
-				continue;
-			}
-
-			for (String dbColumnName : objectFieldMetadata.getDBColumnNames()) {
-				String columnDefinition = _getColumnDefinition(
-					tableName, objectFieldMetadata.getBusinessType(),
-					dbColumnName, objectFieldMetadata.getDBType(), true);
-
-				if (columnDefinition == null) {
-					return;
-				}
-
-				columnDefinitions.add(columnDefinition);
-			}
-
-			if (objectFieldMetadata.compareBusinessType(
-					ObjectFieldConstants.BUSINESS_TYPE_AUTO_INCREMENT)) {
-
-				String columnDefinition = _getColumnDefinition(
-					tableName, objectFieldMetadata.getBusinessType(),
-					objectFieldMetadata.getSortableDBColumnName(),
-					ObjectFieldConstants.DB_TYPE_LONG, true);
-
-				if (columnDefinition == null) {
-					return;
-				}
-
-				columnDefinitions.add(columnDefinition);
-			}
-		}
-
-		_addColumnName(tableName, primaryKeyColumnName);
-
-		StringBundler sb = new StringBundler();
-
-		sb.append("create table ");
-		sb.append(tableName);
-		sb.append(" (");
-		sb.append(primaryKeyColumnName);
-		sb.append(" LONG not null primary key");
-
-		for (String columnDefinition : columnDefinitions) {
-			sb.append(", ");
-			sb.append(columnDefinition);
-		}
-
-		sb.append(");");
-
-		_createTableSQLs.put(tableName, sb.toString());
+		_indexColumnNames(
+			dynamicObjectDefinitionTable.getColumns(),
+			dynamicObjectDefinitionTable.getTableName());
 	}
 
 	private void _indexLocalizationCreateTableSQL(
-		ObjectDefinitionMetadata objectDefinitionMetadata) {
+		ObjectDefinition objectDefinition, List<ObjectField> objectFields) {
 
-		String primaryKeyColumnName =
-			objectDefinitionMetadata.getPKObjectFieldDBColumnName();
+		DynamicObjectDefinitionLocalizationTable
+			dynamicObjectDefinitionLocalizationTable =
+				DynamicObjectDefinitionLocalizationTableFactory.create(
+					objectDefinition, objectFields);
 
-		if (Validator.isNull(primaryKeyColumnName)) {
+		if (dynamicObjectDefinitionLocalizationTable == null) {
 			return;
 		}
 
-		String tableName =
-			objectDefinitionMetadata.getLocalizationDBTableName();
+		_createTableSQLs.put(
+			dynamicObjectDefinitionLocalizationTable.getTableName(),
+			dynamicObjectDefinitionLocalizationTable.getCreateTableSQL());
 
-		List<String> columnDefinitions = new ArrayList<>();
-
-		for (ObjectFieldMetadata objectFieldMetadata :
-				objectDefinitionMetadata.getObjectFieldMetadata()) {
-
-			if (!objectFieldMetadata.isLocalized()) {
-				continue;
-			}
-
-			String columnDefinition = _getColumnDefinition(
-				tableName, objectFieldMetadata.getBusinessType(),
-				objectFieldMetadata.getDBColumnName(),
-				objectFieldMetadata.getDBType(), false);
-
-			if (columnDefinition == null) {
-				return;
-			}
-
-			columnDefinitions.add(columnDefinition);
-		}
-
-		if (columnDefinitions.isEmpty()) {
-			return;
-		}
-
-		_addColumnName(tableName, primaryKeyColumnName);
-		_addColumnName(tableName, "languageId");
-
-		StringBundler sb = new StringBundler();
-
-		sb.append("create table ");
-		sb.append(tableName);
-		sb.append(" (");
-		sb.append(primaryKeyColumnName);
-		sb.append(" LONG not null, languageId VARCHAR(10) not null");
-
-		for (String columnDefinition : columnDefinitions) {
-			sb.append(", ");
-			sb.append(columnDefinition);
-		}
-
-		sb.append(", primary key (");
-		sb.append(primaryKeyColumnName);
-		sb.append(", languageId));");
-
-		_createTableSQLs.put(tableName, sb.toString());
+		_indexColumnNames(
+			dynamicObjectDefinitionLocalizationTable.getColumns(),
+			dynamicObjectDefinitionLocalizationTable.getTableName());
 	}
 
-	private Map<Long, ObjectDefinitionMetadata> _indexObjectDefinitions(
+	private Map<Long, ObjectDefinition> _indexObjectDefinitions(
 			Connection connection)
 		throws Exception {
 
-		Map<Long, ObjectDefinitionMetadata> objectDefinitionMetadatas =
-			new HashMap<>();
+		Map<Long, ObjectDefinition> objectDefinitions = new HashMap<>();
 
 		try (Statement statement = connection.createStatement();
 
@@ -294,76 +211,61 @@ public class ObjectSchemaProvider {
 					continue;
 				}
 
-				long companyId = resultSet.getLong("companyId");
+				ObjectDefinition objectDefinition =
+					ObjectDefinitionLocalServiceUtil.createObjectDefinition(0);
 
-				boolean unmodifiableSystemObject = false;
-
-				if (resultSet.getBoolean("system_") &&
-					!resultSet.getBoolean("modifiable")) {
-
-					unmodifiableSystemObject = true;
-				}
-
-				String extensionDBTableName = _getExtensionDBTableName(
-					dbTableName, unmodifiableSystemObject, companyId);
+				objectDefinition.setObjectDefinitionId(
+					resultSet.getLong("objectDefinitionId"));
+				objectDefinition.setCompanyId(resultSet.getLong("companyId"));
+				objectDefinition.setDBTableName(dbTableName);
+				objectDefinition.setModifiable(
+					resultSet.getBoolean("modifiable"));
+				objectDefinition.setPKObjectFieldDBColumnName(
+					resultSet.getString("pkObjectFieldDBColumnName"));
+				objectDefinition.setSystem(resultSet.getBoolean("system_"));
 
 				_tableNames.add(dbTableName);
-				_tableNames.add(dbTableName + _LOCALIZATION_TABLE_NAME_SUFFIX);
-				_tableNames.add(extensionDBTableName);
+				_tableNames.add(objectDefinition.getExtensionDBTableName());
+				_tableNames.add(objectDefinition.getLocalizationDBTableName());
 
-				String pkObjectFieldDBColumnName = resultSet.getString(
-					"pkObjectFieldDBColumnName");
-
-				_addColumnName(dbTableName, pkObjectFieldDBColumnName);
-				_addColumnName(extensionDBTableName, pkObjectFieldDBColumnName);
-
-				objectDefinitionMetadatas.put(
-					resultSet.getLong("objectDefinitionId"),
-					new ObjectDefinitionMetadata(
-						dbTableName, extensionDBTableName,
-						pkObjectFieldDBColumnName));
+				objectDefinitions.put(
+					objectDefinition.getObjectDefinitionId(), objectDefinition);
 			}
 		}
 
-		return objectDefinitionMetadatas;
+		return objectDefinitions;
 	}
 
-	private void _indexObjectFields(
-			Connection connection,
-			Map<Long, ObjectDefinitionMetadata> objectDefinitionMetadatas)
-		throws Exception {
+	private boolean _isResolvable(
+		ObjectDefinition objectDefinition, List<ObjectField> objectFields) {
 
-		try (Statement statement = connection.createStatement();
-
-			ResultSet resultSet = statement.executeQuery(
-				"select objectDefinitionId, businessType, dbColumnName, " +
-					"dbTableName, dbType, localized from " +
-						_TABLE_NAME_OBJECT_FIELD)) {
-
-			while (resultSet.next()) {
-				String dbColumnName = resultSet.getString("dbColumnName");
-				String dbTableName = resultSet.getString("dbTableName");
-
-				_addColumnName(dbTableName, dbColumnName);
-
-				ObjectDefinitionMetadata objectDefinitionMetadata =
-					objectDefinitionMetadatas.get(
-						resultSet.getLong("objectDefinitionId"));
-
-				if (objectDefinitionMetadata == null) {
-					continue;
-				}
-
-				objectDefinitionMetadata.addObjectFieldMetadata(
-					new ObjectFieldMetadata(
-						resultSet.getString("businessType"), dbColumnName,
-						dbTableName, resultSet.getString("dbType"),
-						resultSet.getBoolean("localized")));
-			}
+		if (Validator.isNull(objectDefinition.getPKObjectFieldDBColumnName())) {
+			return false;
 		}
-	}
 
-	private static final String _LOCALIZATION_TABLE_NAME_SUFFIX = "_l";
+		for (ObjectField objectField : objectFields) {
+			String dataType = DynamicObjectDefinitionTableUtil.getDataType(
+				objectField.getBusinessType(), objectField.getDBType());
+
+			if (dataType != null) {
+				continue;
+			}
+
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					StringBundler.concat(
+						"Unable to resolve the data type of column \"",
+						objectField.getDBColumnName(), "\" in table \"",
+						objectField.getDBTableName(),
+						"\" because the source database declares an unknown ",
+						"database type \"", objectField.getDBType(), "\""));
+			}
+
+			return false;
+		}
+
+		return true;
+	}
 
 	private static final String _TABLE_NAME_OBJECT_DEFINITION =
 		"ObjectDefinition";
@@ -382,122 +284,5 @@ public class ObjectSchemaProvider {
 		String.CASE_INSENSITIVE_ORDER);
 	private final Set<String> _tableNames = new TreeSet<>(
 		String.CASE_INSENSITIVE_ORDER);
-
-	private static class ObjectDefinitionMetadata {
-
-		public ObjectDefinitionMetadata(
-			String dbTableName, String extensionDBTableName,
-			String pkObjectFieldDBColumnName) {
-
-			_dbTableName = dbTableName;
-			_extensionDBTableName = extensionDBTableName;
-			_pkObjectFieldDBColumnName = pkObjectFieldDBColumnName;
-		}
-
-		public void addObjectFieldMetadata(
-			ObjectFieldMetadata objectFieldMetadata) {
-
-			_objectFieldMetadata.add(objectFieldMetadata);
-		}
-
-		public String getDBTableName() {
-			return _dbTableName;
-		}
-
-		public String getExtensionDBTableName() {
-			return _extensionDBTableName;
-		}
-
-		public String getLocalizationDBTableName() {
-			return _dbTableName + _LOCALIZATION_TABLE_NAME_SUFFIX;
-		}
-
-		public List<ObjectFieldMetadata> getObjectFieldMetadata() {
-			return _objectFieldMetadata;
-		}
-
-		public String getPKObjectFieldDBColumnName() {
-			return _pkObjectFieldDBColumnName;
-		}
-
-		private final String _dbTableName;
-		private final String _extensionDBTableName;
-		private final List<ObjectFieldMetadata> _objectFieldMetadata =
-			new ArrayList<>();
-		private final String _pkObjectFieldDBColumnName;
-
-	}
-
-	private static class ObjectFieldMetadata {
-
-		public ObjectFieldMetadata(
-			String businessType, String dbColumnName, String dbTableName,
-			String dbType, boolean localized) {
-
-			_businessType = businessType;
-			_dbColumnName = dbColumnName;
-			_dbTableName = dbTableName;
-			_dbType = dbType;
-			_localized = localized;
-		}
-
-		public boolean compareBusinessType(String businessType) {
-			return Objects.equals(_businessType, businessType);
-		}
-
-		public String getBusinessType() {
-			return _businessType;
-		}
-
-		public String getDBColumnName() {
-			return _dbColumnName;
-		}
-
-		public List<String> getDBColumnNames() {
-			if (compareBusinessType(
-					ObjectFieldConstants.BUSINESS_TYPE_ASSIGNEE)) {
-
-				return Arrays.asList(
-					"classNameId_" + _dbColumnName, "classPK_" + _dbColumnName);
-			}
-
-			return Collections.singletonList(_dbColumnName);
-		}
-
-		public String getDBTableName() {
-			return _dbTableName;
-		}
-
-		public String getDBType() {
-			return _dbType;
-		}
-
-		public String getSortableDBColumnName() {
-			return _dbColumnName + Field.SORTABLE_FIELD_SUFFIX;
-		}
-
-		public boolean hasInsertValues() {
-			if (compareBusinessType(
-					ObjectFieldConstants.BUSINESS_TYPE_AGGREGATION) ||
-				compareBusinessType(
-					ObjectFieldConstants.BUSINESS_TYPE_FORMULA)) {
-
-				return false;
-			}
-
-			return true;
-		}
-
-		public boolean isLocalized() {
-			return _localized;
-		}
-
-		private final String _businessType;
-		private final String _dbColumnName;
-		private final String _dbTableName;
-		private final String _dbType;
-		private final boolean _localized;
-
-	}
 
 }
