@@ -6,6 +6,7 @@
 package com.liferay.database.migration.web.internal.portlet.action;
 
 import com.liferay.database.migration.service.DatabaseMigrationManager;
+import com.liferay.database.migration.service.SourceReleaseMismatchException;
 import com.liferay.database.migration.web.internal.constants.DatabaseMigrationPortletKeys;
 import com.liferay.database.migration.web.internal.util.PortalDatabaseConnection;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -67,6 +68,7 @@ public class StartMigrationMVCResourceCommand extends BaseMVCResourceCommand {
 			resourceRequest, "targetUserName");
 
 		String error = null;
+		String message = null;
 
 		if (Validator.isNull(sourceJDBCURL) ||
 			Validator.isNull(sourceUserName) ||
@@ -103,12 +105,25 @@ public class StartMigrationMVCResourceCommand extends BaseMVCResourceCommand {
 
 				error = "migrationAlreadyRunning";
 			}
+			catch (SourceReleaseMismatchException
+						sourceReleaseMismatchException) {
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(sourceReleaseMismatchException);
+				}
+
+				error = "sourceReleaseVersionMismatch";
+				message = StringUtil.merge(
+					sourceReleaseMismatchException.getMismatches(), ", ");
+			}
 		}
 
 		JSONPortletResponseUtil.writeJSON(
 			resourceRequest, resourceResponse,
 			JSONUtil.put(
 				"error", error
+			).put(
+				"message", message
 			).put(
 				"started", Validator.isNull(error)
 			));

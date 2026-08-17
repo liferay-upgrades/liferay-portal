@@ -7,12 +7,19 @@ package com.liferay.database.migration.service.internal;
 
 import com.liferay.database.migration.service.DatabaseMigrationManager;
 import com.liferay.database.migration.service.MigrationStatus;
+import com.liferay.database.migration.service.SourceReleaseMismatchException;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Release;
+import com.liferay.portal.kernel.service.ReleaseLocalService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -23,6 +30,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Albert Gomes Cabral
@@ -49,6 +57,13 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 		if (isMigrationRunning()) {
 			throw new IllegalStateException(
 				"A database migration is already running");
+		}
+
+		List<String> mismatches = _getSourceReleaseMismatches(
+			sourceJDBCURL, sourceUserName, sourcePassword);
+
+		if (mismatches != null) {
+			throw new SourceReleaseMismatchException(mismatches);
 		}
 
 		_executorService.submit(
@@ -109,6 +124,48 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 		}
 	}
 
+	private Map<String, String> _getSchemaVersions() {
+		Map<String, String> schemaVersions = new TreeMap<>();
+
+		for (Release release :
+				_releaseLocalService.getReleases(
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
+
+			schemaVersions.put(
+				release.getServletContextName(), release.getSchemaVersion());
+		}
+
+		return schemaVersions;
+	}
+
+	private List<String> _getSourceReleaseMismatches(
+		String jdbcURL, String userName, String password) {
+
+		DataSource dataSource = null;
+
+		try {
+			dataSource = MigrationDataSourceFactory.initDataSource(
+				jdbcURL, userName, password);
+
+			try (Connection connection = dataSource.getConnection()) {
+				return SourceReleaseValidator.getMismatches(
+					connection, _getSchemaVersions());
+			}
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to compare the source database schema versions",
+					exception);
+			}
+
+			return null;
+		}
+		finally {
+			MigrationDataSourceFactory.destroy(dataSource);
+		}
+	}
+
 	private static final int _CONNECTION_TIMEOUT = 10;
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -117,5 +174,8 @@ public class DatabaseMigrationManagerImpl implements DatabaseMigrationManager {
 	private BundleContext _bundleContext;
 	private final DatabaseMigrator _databaseMigrator = new DatabaseMigrator();
 	private ExecutorService _executorService;
+
+	@Reference
+	private ReleaseLocalService _releaseLocalService;
 
 }

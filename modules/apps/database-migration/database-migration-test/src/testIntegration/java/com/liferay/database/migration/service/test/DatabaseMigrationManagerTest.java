@@ -8,6 +8,7 @@ package com.liferay.database.migration.service.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.database.migration.service.DatabaseMigrationManager;
 import com.liferay.database.migration.service.MigrationStatus;
+import com.liferay.database.migration.service.SourceReleaseMismatchException;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -23,6 +24,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -153,6 +155,44 @@ public class DatabaseMigrationManagerTest {
 	}
 
 	@Test
+	public void testMigrateSourceReleaseMismatch() throws Exception {
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"create table ", _TABLE_RELEASE,
+				" (releaseId bigint not null primary key, servletContextName ",
+				"varchar(75), schemaVersion varchar(75))"));
+		_execute(
+			_sourceDataSource,
+			StringBundler.concat(
+				"insert into ", _TABLE_RELEASE,
+				" (releaseId, servletContextName, schemaVersion) values (1, ",
+				"'portal', '0.0.1')"));
+
+		try {
+			_databaseMigrationManager.startMigration(
+				_sourceURL, _sourceUserName, _sourcePassword, _targetURL,
+				_targetUserName, _targetPassword,
+				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+				"Test Source Release Mismatch Migration");
+
+			Assert.fail();
+		}
+		catch (SourceReleaseMismatchException sourceReleaseMismatchException) {
+			List<String> mismatches =
+				sourceReleaseMismatchException.getMismatches();
+
+			Assert.assertEquals(mismatches.toString(), 1, mismatches.size());
+
+			String mismatch = mismatches.get(0);
+
+			Assert.assertTrue(mismatch, mismatch.startsWith("portal: 0.0.1 "));
+		}
+
+		Assert.assertFalse(_databaseMigrationManager.isMigrationRunning());
+	}
+
+	@Test
 	public void testTestConnectionInvalid() throws Exception {
 		boolean failed = false;
 
@@ -267,8 +307,10 @@ public class DatabaseMigrationManagerTest {
 	private void _dropTestTables() throws Exception {
 		_execute(_sourceDataSource, "drop table if exists " + _TABLE_ALL_TYPES);
 		_execute(_sourceDataSource, "drop table if exists " + _TABLE_PARTIAL);
+		_execute(_sourceDataSource, "drop table if exists " + _TABLE_RELEASE);
 		_execute(_targetDataSource, "drop table if exists " + _TABLE_ALL_TYPES);
 		_execute(_targetDataSource, "drop table if exists " + _TABLE_PARTIAL);
+		_execute(_targetDataSource, "drop table if exists " + _TABLE_RELEASE);
 	}
 
 	private void _execute(DataSource dataSource, String sql) throws Exception {
@@ -396,6 +438,8 @@ public class DatabaseMigrationManagerTest {
 	private static final String _TABLE_ALL_TYPES = "dbmigration_all_types";
 
 	private static final String _TABLE_PARTIAL = "dbmigration_partial";
+
+	private static final String _TABLE_RELEASE = "Release_";
 
 	private static DataSource _sourceDataSource;
 	private static String _sourcePassword;

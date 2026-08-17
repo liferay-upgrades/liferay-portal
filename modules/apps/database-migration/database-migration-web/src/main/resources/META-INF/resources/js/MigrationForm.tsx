@@ -33,6 +33,12 @@ function getErrorMessage(errorCode: string): string {
 		return Liferay.Language.get('a-database-migration-is-already-running');
 	}
 
+	if (errorCode === 'sourceReleaseVersionMismatch') {
+		return Liferay.Language.get(
+			'the-source-database-schema-versions-do-not-match-this-liferay-installation'
+		);
+	}
+
 	if (errorCode === 'targetDatabaseMustBePostgreSQL') {
 		return Liferay.Language.get(
 			'the-target-database-url-must-be-postgresql'
@@ -61,6 +67,7 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 		targetUserName: '',
 	});
 	const [errorCode, setErrorCode] = useState<string | null>(null);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 	const [testingSide, setTestingSide] = useState<Side | null>(null);
 	const [useCurrentSourceConnection, setUseCurrentSourceConnection] =
@@ -76,6 +83,7 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 		event.preventDefault();
 
 		setErrorCode(null);
+		setErrorMessage(null);
 		setSubmitting(true);
 
 		const body = new URLSearchParams();
@@ -98,6 +106,7 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 				}
 				else {
 					setErrorCode(json.error || 'unexpected');
+					setErrorMessage(json.message);
 				}
 			})
 			.catch(() => {
@@ -210,7 +219,9 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 					displayType="danger"
 					title={Liferay.Language.get('error')}
 				>
-					{getErrorMessage(errorCode)}
+					{errorMessage
+						? `${getErrorMessage(errorCode)} ${errorMessage}`
+						: getErrorMessage(errorCode)}
 				</ClayAlert>
 			)}
 
