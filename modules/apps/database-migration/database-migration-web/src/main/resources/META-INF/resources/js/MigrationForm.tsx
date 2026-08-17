@@ -106,6 +106,20 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 			});
 	};
 
+	const handleUseCurrentSourceConnectionChange = () => {
+		if (useCurrentSourceConnection) {
+			openToast({
+				autoClose: false,
+				message: Liferay.Language.get(
+					'the-external-database-must-belong-to-a-liferay-installation-with-this-same-version'
+				),
+				type: 'warning',
+			});
+		}
+
+		setUseCurrentSourceConnection(!useCurrentSourceConnection);
+	};
+
 	const notifyTestResult = (valid: boolean, message?: string) => {
 		setTestingSide(null);
 
@@ -218,9 +232,7 @@ const MigrationForm: React.FC<MigrationFormProps> = ({
 					label={Liferay.Language.get(
 						'migrate-from-this-liferays-database'
 					)}
-					onChange={() =>
-						setUseCurrentSourceConnection((previous) => !previous)
-					}
+					onChange={handleUseCurrentSourceConnectionChange}
 				/>
 			)}
 
