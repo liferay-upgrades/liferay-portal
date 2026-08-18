@@ -183,6 +183,9 @@ public class DatabaseMigrator {
 			allTableNames.addAll(sourceTableNames);
 			allTableNames.addAll(targetTableNames);
 
+			ObjectSchemaProvider objectSchemaProvider =
+				new ObjectSchemaProvider(sourceConnection);
+
 			List<TableValidation> tableValidations = new ArrayList<>();
 
 			for (String tableName : allTableNames) {
@@ -214,9 +217,6 @@ public class DatabaseMigrator {
 				boolean standardTable = portableSchemaProvider.hasTable(
 					tableName);
 
-				ObjectSchemaProvider objectSchemaProvider =
-					new ObjectSchemaProvider(sourceConnection);
-
 				boolean objectTable = objectSchemaProvider.isObjectTable(
 					tableName);
 
@@ -231,7 +231,11 @@ public class DatabaseMigrator {
 						tableName);
 				}
 
-				boolean baselineKnown = standardTable || objectTable;
+				boolean baselineKnown = false;
+
+				if (standardTable || objectTable) {
+					baselineKnown = true;
+				}
 
 				List<ColumnValidation> columnValidations = new ArrayList<>();
 
