@@ -17,6 +17,8 @@ export const PHASE_INDEX_CREATION = 5;
 
 export const PHASE_SCHEMA_CREATION = 3;
 
+export const PHASE_SCHEMA_VALIDATION = 7;
+
 export interface TableRowCount {
 	rowCount: number;
 	tableName: string;

@@ -27,6 +27,8 @@ public interface MigrationStatus {
 
 	public static final int PHASE_SCHEMA_CREATION = 3;
 
+	public static final int PHASE_SCHEMA_VALIDATION = 7;
+
 	public long getElapsedTime();
 
 	public String getMessage();

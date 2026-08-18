@@ -149,6 +149,8 @@ public class DatabaseMigrator {
 		List<String> tableNames, PortableSchemaProvider portableSchemaProvider,
 		MigrationStatusImpl migrationStatusImpl) {
 
+		migrationStatusImpl.setPhase(MigrationStatus.PHASE_SCHEMA_VALIDATION);
+		migrationStatusImpl.setProgress(0);
 		migrationStatusImpl.setMessage("Validating the migrated schema");
 
 		try (Connection sourceConnection = sourceDataSource.getConnection();

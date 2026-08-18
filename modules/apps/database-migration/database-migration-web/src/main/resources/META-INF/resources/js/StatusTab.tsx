@@ -14,6 +14,7 @@ import {
 	PHASE_ERROR,
 	PHASE_INDEX_CREATION,
 	PHASE_SCHEMA_CREATION,
+	PHASE_SCHEMA_VALIDATION,
 	Status,
 } from './types';
 
@@ -48,6 +49,10 @@ function getPhaseLabel(phase: number): string {
 
 	if (phase === PHASE_INDEX_CREATION) {
 		return Liferay.Language.get('creating-indexes');
+	}
+
+	if (phase === PHASE_SCHEMA_VALIDATION) {
+		return Liferay.Language.get('validating-schema');
 	}
 
 	if (phase === PHASE_COMPLETED) {

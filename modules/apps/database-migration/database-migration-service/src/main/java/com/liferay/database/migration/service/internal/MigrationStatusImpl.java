@@ -84,6 +84,10 @@ public class MigrationStatusImpl implements MigrationStatus, Serializable {
 			return "Creating Schema";
 		}
 
+		if (_phase == PHASE_SCHEMA_VALIDATION) {
+			return "Validating Schema";
+		}
+
 		return "Idle";
 	}
 
