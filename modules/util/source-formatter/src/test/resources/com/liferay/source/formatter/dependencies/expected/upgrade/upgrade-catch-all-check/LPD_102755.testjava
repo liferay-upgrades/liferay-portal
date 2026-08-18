@@ -1,0 +1,36 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.source.formatter.dependencies.upgrade;
+
+import org.osgi.service.component.annotations.Reference;
+
+/**
+ * @author Lucas Ferruccio
+ */
+public class LPD_102755 {
+
+	public void method(
+		long addressId, String name, String description, String street1,
+		String street2, String street3, String city, String zip, long regionId,
+		long countryId, long listTypeId, boolean mailing, boolean primary,
+		String phoneNumber) {
+
+		AddressLocalServiceUtil.updateAddress(
+			123, name, description, street1, street2, street3, city, zip,
+			regionId, countryId, listTypeId, mailing, primary, phoneNumber);
+		AddressLocalServiceUtil.updateAddress(null, addressId, countryId, listTypeId, regionId, city, description, mailing, name, primary, street1, street2, street3, null, zip, phoneNumber);
+		AddressServiceUtil.updateAddress(null, addressId, countryId, listTypeId, regionId, city, description, mailing, name, primary, street1, street2, street3, null, zip, phoneNumber);
+		_addressLocalService.updateAddress(null, addressId, countryId, listTypeId, regionId, city, description, mailing, name, primary, street1, street2, street3, null, zip, phoneNumber);
+		_addressService.updateAddress(null, addressId, countryId, listTypeId, regionId, city, description, mailing, name, primary, street1, street2, street3, null, zip, phoneNumber);
+	}
+
+	@Reference
+	AddressLocalService _addressLocalService;
+
+	@Reference
+	AddressService _addressService;
+
+}

@@ -6059,6 +6059,17 @@
 		"to": "_sites.updateLayoutSetPrototypesLinks"
 	},
 	{
+		"classNames": [
+			"AddressLocalService",
+			"AddressLocalServiceUtil",
+			"AddressService",
+			"AddressServiceUtil"
+		],
+		"from": "updateAddress(long paramName, String paramName, String paramName, String paramName, String paramName, String paramName, String paramName, String paramName, long paramName, long paramName, long paramName, boolean paramName, boolean paramName, String paramName)",
+		"issueKey": "LPD-102755",
+		"to": "updateAddress(null, param#0#, param#9#, param#10#, param#8#, param#6#, param#2#, param#11#, param#1#, param#12#, param#3#, param#4#, param#5#, null, param#7#, param#13#)"
+	},
+	{
 		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
 		"issueKey": "LPS-153962",
 		"newImports": [
