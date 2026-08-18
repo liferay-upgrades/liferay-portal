@@ -6059,6 +6059,15 @@
 		"to": "_sites.updateLayoutSetPrototypesLinks"
 	},
 	{
+		"classNames": [
+			"CommerceVirtualOrderItemLocalService",
+			"CommerceVirtualOrderItemLocalServiceUtil"
+		],
+		"from": "regex:(?<variableName>\\w+)\\.addCommerceVirtualOrderItem\\(\\s*(?<commerceOrderItemId>\\w+),\\s*(?<cpDefinitionVirtualSettingVariableName>\\w+)\\.getFileEntryId\\(\\),\\s*\\k<cpDefinitionVirtualSettingVariableName>\\.getUrl\\(\\),\\s*(?<activationStatus>\\w+),\\s*(?<duration>\\w+),\\s*(?<maxUsages>\\w+),\\s*(?<useSample>\\w+),\\s*(?<serviceContext>\\w+)\\s*\\)",
+		"issueKey": "LPD-99286",
+		"to": "${variableName}.addCommerceVirtualOrderItem(${commerceOrderItemId}, ${cpDefinitionVirtualSettingVariableName}.getCPDVirtualSettingFileEntries(), ${activationStatus}, ${duration}, ${maxUsages}, ${serviceContext})"
+	},
+	{
 		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
 		"issueKey": "LPS-153962",
 		"newImports": [
