@@ -1,0 +1,37 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.source.formatter.dependencies.upgrade;
+
+import org.osgi.service.component.annotations.Reference;
+
+/**
+ * @author Paulo Pereira
+ */
+public class LPD_101848 {
+
+	public void method(
+			String externalReferenceCode, long userId, long groupId,
+			String name, ServiceContext serviceContext)
+		throws PortalException {
+
+		AssetTagLocalServiceUtil.addTag(
+			"test123", groupId, name, serviceContext);
+
+		AssetTagLocalServiceUtil.addTag(null, userId, groupId, name, serviceContext);
+
+		AssetTagLocalServiceUtil.addTag(
+			externalReferenceCode, userId, groupId, name, serviceContext);
+
+		_assetTagLocalService.addTag(null, userId, groupId, name, serviceContext);
+
+		_assetTagLocalService.addTag(
+			externalReferenceCode, userId, groupId, name, serviceContext);
+	}
+
+	@Reference
+	private AssetTagLocalService _assetTagLocalService;
+
+}
