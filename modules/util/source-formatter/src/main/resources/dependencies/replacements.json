@@ -6059,6 +6059,14 @@
 		"to": "_sites.updateLayoutSetPrototypesLinks"
 	},
 	{
+		"classNames": [
+			"CPDefinitionInventoryEngine"
+		],
+		"from": "getMinStockQuantity(CPInstance cpInstance)",
+		"issueKey": "LPD-102781",
+		"to": "getMinStockQuantity(0L, param#0#)"
+	},
+	{
 		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
 		"issueKey": "LPS-153962",
 		"newImports": [
