@@ -5629,6 +5629,17 @@
 	},
 	{
 		"classNames": [
+			"FileAttachment"
+		],
+		"from": "getFile()",
+		"hasMessage": true,
+		"issueKey": "LPD-61485",
+		"validExtensions": [
+			"java"
+		]
+	},
+	{
+		"classNames": [
 			"LayoutLocalService",
 			"LayoutLocalServiceUtil",
 			"LayoutService",
