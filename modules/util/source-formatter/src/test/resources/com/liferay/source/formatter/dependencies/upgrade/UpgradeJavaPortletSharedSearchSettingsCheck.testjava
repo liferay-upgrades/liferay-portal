@@ -5,12 +5,14 @@
 
 package com.liferay.source.formatter.dependencies.upgrade;
 
+import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchResponse;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchSettings;
 
 import java.util.Optional;
 
 import jakarta.portlet.ActionRequest;
 import jakarta.portlet.PortletPreferences;
+import jakarta.portlet.RenderRequest;
 
 /**
  * @author Nícolas Moura
@@ -19,9 +21,18 @@ public class UpgradeJavaPortletSharedSearchSettingsCheck {
 
 	public void method(
 		ActionRequest actionRequest,
-		PortletSharedSearchSettings portletSharedSearchSettings) {
+		PortletSharedSearchResponse portletSharedSearchResponse,
+		PortletSharedSearchSettings portletSharedSearchSettings,
+		RenderRequest renderRequest) {
 
 		// Replacement cases
+
+		Optional<String[]> responseParameterValuesOptional =
+			portletSharedSearchResponse.getParameterValues(
+				"parameterName", renderRequest);
+
+		Optional<PortletPreferences> responsePortletPreferencesOptional =
+			portletSharedSearchResponse.getPortletPreferences(renderRequest);
 
 		Optional<String[]> parameterValuesOptional =
 			portletSharedSearchSettings.getParameterValues("parameterName");
