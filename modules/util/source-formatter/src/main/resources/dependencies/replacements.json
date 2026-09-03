@@ -6006,6 +6006,14 @@
 		"issueKey": "LPD-82354"
 	},
 	{
+		"classNames": [
+			"NavItem"
+		],
+		"from": "fromLayouts(HttpServletRequest httpServletRequest, List<Layout> parentLayouts, Map<String, Object> contextObjects)",
+		"hasMessage": true,
+		"issueKey": "LPD-83957"
+	},
+	{
 		"from": "regex:(?<varName>\\w*?FileEntryType)\\.getDDMStructures\\(\\)",
 		"issueKey": "LPD-84010",
 		"newImports": [
