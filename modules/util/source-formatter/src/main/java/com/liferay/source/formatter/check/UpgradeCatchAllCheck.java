@@ -233,6 +233,21 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 		return interpolatedNewParameterNames;
 	}
 
+	private static List<JavaTerm> _getJavaTerms(JavaClass javaClass) {
+		List<JavaTerm> javaTerms = new ArrayList<>();
+
+		for (JavaTerm childJavaTerm : javaClass.getChildJavaTerms()) {
+			if (childJavaTerm.isJavaClass()) {
+				javaTerms.addAll(_getJavaTerms((JavaClass)childJavaTerm));
+			}
+			else {
+				javaTerms.add(childJavaTerm);
+			}
+		}
+
+		return javaTerms;
+	}
+
 	private static String _getMessage(JSONObject jsonObject) {
 		StringBundler sb = new StringBundler(6);
 
@@ -509,7 +524,9 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 
 		String newContent = content;
 
-		for (JavaTerm childJavaTerm : javaClass.getChildJavaTerms()) {
+		Pattern pattern = _getPattern(jsonObject);
+
+		for (JavaTerm childJavaTerm : _getJavaTerms(javaClass)) {
 			String javaContent = null;
 
 			if (childJavaTerm.isJavaMethod()) {
@@ -528,8 +545,6 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 			}
 
 			int index = newContent.indexOf(javaContent);
-
-			Pattern pattern = _getPattern(jsonObject);
 
 			Matcher matcher = pattern.matcher(javaContent);
 
