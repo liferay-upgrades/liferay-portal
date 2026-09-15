@@ -1,0 +1,20 @@
+{
+	"items": [
+		{
+			"age": 24,
+			"country": "Brazil",
+			"name": "Test"
+		},
+		{
+			"age": 31,
+			"country": "Peru",
+			"name": "Maria"
+		},
+		{
+			"age": 45,
+			"country": "United States",
+			"name": "John"
+		}
+	],
+	"totalCount": 3
+}
