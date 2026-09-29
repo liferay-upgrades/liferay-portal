@@ -267,6 +267,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 		_testPostAssetLibraryCopyAssets();
 		_testPostAssetLibraryCopyConnectedSites();
+		_testPostAssetLibraryCopyConnectedSitesWithoutUpdatePermission();
 		_testPostAssetLibraryCopyDepotAppCustomizations();
 		_testPostAssetLibraryCopyMembers();
 		_testPostAssetLibraryCopySettings();
@@ -1079,6 +1080,44 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 		Assert.assertEquals(
 			_group.getGroupId(), depotEntryGroupRel.getToGroupId());
+	}
+
+	private void _testPostAssetLibraryCopyConnectedSitesWithoutUpdatePermission()
+		throws Exception {
+
+		AssetLibrary sourceAssetLibrary = _addAssetLibrary();
+
+		_group = GroupTestUtil.addGroup();
+
+		DepotEntry sourceDepotEntry =
+			_depotEntryLocalService.getGroupDepotEntry(
+				sourceAssetLibrary.getSiteId());
+
+		_depotEntryGroupRelLocalService.addDepotEntryGroupRel(
+			sourceDepotEntry.getDepotEntryId(), _group.getGroupId());
+
+		String password = RandomTestUtil.randomString();
+
+		_user = _addUser(sourceAssetLibrary.getSiteId(), password);
+
+		_role = _addUserDepotEntryRole(_user.getUserId(), ActionKeys.UPDATE);
+
+		AssetLibraryResource userAssetLibraryResource =
+			_getAssetLibraryResource(password, _user);
+
+		AssetLibrary assetLibrary =
+			userAssetLibraryResource.postAssetLibraryCopy(
+				sourceAssetLibrary.getExternalReferenceCode(),
+				randomAssetLibrary());
+
+		DepotEntry depotEntry = _depotEntryLocalService.getGroupDepotEntry(
+			assetLibrary.getSiteId());
+
+		List<DepotEntryGroupRel> depotEntryGroupRels =
+			_depotEntryGroupRelLocalService.getDepotEntryGroupRels(depotEntry);
+
+		Assert.assertEquals(
+			depotEntryGroupRels.toString(), 0, depotEntryGroupRels.size());
 	}
 
 	private void _testPostAssetLibraryCopyDepotAppCustomizations()
