@@ -16,6 +16,10 @@ import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.depot.service.DepotEntryPinLocalService;
 import com.liferay.document.library.constants.DLPortletKeys;
+import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.headless.asset.library.client.dto.v1_0.AssetLibrary;
 import com.liferay.headless.asset.library.client.dto.v1_0.MimeTypeLimit;
 import com.liferay.headless.asset.library.client.dto.v1_0.Settings;
@@ -46,6 +50,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -258,6 +263,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 	public void testPostAssetLibraryCopy() throws Exception {
 		super.testPostAssetLibraryCopy();
 
+		_testPostAssetLibraryCopyAssets();
 		_testPostAssetLibraryCopyConnectedSites();
 		_testPostAssetLibraryCopyDepotAppCustomizations();
 		_testPostAssetLibraryCopyMembers();
@@ -981,6 +987,35 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		_assertGroupDepotEntryType(assetLibrary);
 	}
 
+	private void _testPostAssetLibraryCopyAssets() throws Exception {
+		AssetLibrary sourceAssetLibrary = _addAssetLibrary();
+
+		String sourceFileName = RandomTestUtil.randomString() + ".txt";
+
+		_dlAppLocalService.addFileEntry(
+			null, TestPropsValues.getUserId(), sourceAssetLibrary.getSiteId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, sourceFileName,
+			ContentTypes.TEXT_PLAIN, RandomTestUtil.randomBytes(), null, null,
+			null,
+			ServiceContextTestUtil.getServiceContext(
+				sourceAssetLibrary.getSiteId(), TestPropsValues.getUserId()));
+
+		AssetLibrary assetLibrary = assetLibraryResource.postAssetLibraryCopy(
+			sourceAssetLibrary.getExternalReferenceCode(),
+			randomAssetLibrary());
+
+		List<DLFileEntry> dlFileEntries =
+			_dlFileEntryLocalService.getFileEntries(
+				assetLibrary.getSiteId(),
+				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		Assert.assertEquals(dlFileEntries.toString(), 1, dlFileEntries.size());
+
+		DLFileEntry dlFileEntry = dlFileEntries.get(0);
+
+		Assert.assertEquals(sourceFileName, dlFileEntry.getTitle());
+	}
+
 	private void _testPostAssetLibraryCopyConnectedSites() throws Exception {
 		AssetLibrary sourceAssetLibrary = _addAssetLibrary();
 
@@ -1267,6 +1302,12 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 	@Inject
 	private DepotEntryPinLocalService _depotEntryPinLocalService;
+
+	@Inject
+	private DLAppLocalService _dlAppLocalService;
+
+	@Inject
+	private DLFileEntryLocalService _dlFileEntryLocalService;
 
 	@DeleteAfterTestRun
 	private Group _group;
