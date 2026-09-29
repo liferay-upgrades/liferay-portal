@@ -975,6 +975,25 @@ public abstract class BaseAssetLibraryResourceTestCase {
 	}
 
 	@Test
+	public void testPostAssetLibraryCopy() throws Exception {
+		AssetLibrary randomAssetLibrary = randomAssetLibrary();
+
+		AssetLibrary postAssetLibrary =
+			testPostAssetLibraryCopy_addAssetLibrary(randomAssetLibrary);
+
+		assertEquals(randomAssetLibrary, postAssetLibrary);
+		assertValid(postAssetLibrary);
+	}
+
+	protected AssetLibrary testPostAssetLibraryCopy_addAssetLibrary(
+			AssetLibrary assetLibrary)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
 	public void testPutAssetLibrary() throws Exception {
 		AssetLibrary postAssetLibrary = testPutAssetLibrary_addAssetLibrary();
 
@@ -2590,4 +2609,4 @@ public abstract class BaseAssetLibraryResourceTestCase {
 			_assetLibraryResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:483980998
+// LIFERAY-REST-BUILDER-HASH:223574279

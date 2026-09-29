@@ -713,6 +713,43 @@ public abstract class BaseAssetLibraryResourceImpl
 		).build();
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'POST' 'http://localhost:8080/o/headless-asset-library/v1.0/asset-libraries/{assetLibraryExternalReferenceCode}/copy' -d $'{"assetLibraryKey": ___, "description": ___, "description_i18n": ___, "externalReferenceCode": ___, "friendlyURL": ___, "name": ___, "name_i18n": ___, "permissions": ___, "settings": ___, "type": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 */
+	@io.swagger.v3.oas.annotations.Operation(
+		description = "Adds a new asset library that copies the settings, app customizations, members, member roles, connected sites, and assets of the asset library with the given external reference code. The request body provides the new asset library's own name, description, and external reference code."
+	)
+	@io.swagger.v3.oas.annotations.Parameters(
+		value = {
+			@io.swagger.v3.oas.annotations.Parameter(
+				in = io.swagger.v3.oas.annotations.enums.ParameterIn.PATH,
+				name = "assetLibraryExternalReferenceCode", required = true
+			)
+		}
+	)
+	@io.swagger.v3.oas.annotations.tags.Tags(
+		value = {@io.swagger.v3.oas.annotations.tags.Tag(name = "AssetLibrary")}
+	)
+	@jakarta.ws.rs.Consumes({"application/json", "application/xml"})
+	@jakarta.ws.rs.Path(
+		"/asset-libraries/{assetLibraryExternalReferenceCode}/copy"
+	)
+	@jakarta.ws.rs.POST
+	@jakarta.ws.rs.Produces({"application/json", "application/xml"})
+	@Override
+	public AssetLibrary postAssetLibraryCopy(
+			@io.swagger.v3.oas.annotations.Parameter(hidden = true)
+			@jakarta.validation.constraints.NotNull
+			@jakarta.ws.rs.PathParam("assetLibraryExternalReferenceCode")
+			String assetLibraryExternalReferenceCode,
+			AssetLibrary assetLibrary)
+		throws Exception {
+
+		return new AssetLibrary();
+	}
+
 	protected abstract AssetLibrary doPutAssetLibrary(
 			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
 		throws Exception;
@@ -1844,4 +1881,4 @@ public abstract class BaseAssetLibraryResourceImpl
 		LogFactoryUtil.getLog(BaseAssetLibraryResourceImpl.class);
 
 }
-// LIFERAY-REST-BUILDER-HASH:1828625024
+// LIFERAY-REST-BUILDER-HASH:834994125
