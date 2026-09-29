@@ -35,13 +35,21 @@ describe('NewSpace', () => {
 	let apiPostSpy: jest.SpyInstance;
 
 	beforeEach(() => {
+		jest.spyOn(ApiHelper, 'getAll').mockResolvedValue([
+			{
+				externalReferenceCode: 'fake-erc',
+				name: 'Marketing',
+				settings: {logoColor: 'outline-3'},
+			},
+		]);
+
 		apiPostSpy = jest
 			.spyOn(ApiHelper, 'post')
 			.mockResolvedValue({data: {id: 'fake-id'}, error: null});
 	});
 
 	afterEach(() => {
-		apiPostSpy.mockRestore();
+		jest.restoreAllMocks();
 	});
 
 	it('renders with correct title, description, buttons', () => {
@@ -125,6 +133,54 @@ describe('NewSpace', () => {
 				}
 			);
 		});
+	});
+
+	it('submits form copying an existing space', async () => {
+		render(<NewSpace {...props} />);
+
+		const spaceName = 'My Space';
+
+		await userEvent.type(
+			screen.getByRole('textbox', {
+				name: /space-name/i,
+			}),
+			spaceName
+		);
+
+		await userEvent.selectOptions(
+			await screen.findByRole('combobox', {name: 'copy-from'}),
+			'fake-erc'
+		);
+
+		await userEvent.click(
+			screen.getByRole('button', {
+				name: 'continue',
+			})
+		);
+
+		await waitFor(() => {
+			expect(apiPostSpy).toHaveBeenCalledWith(
+				'/o/headless-asset-library/v1.0/asset-libraries/fake-erc/copy',
+				expect.objectContaining({
+					name: spaceName,
+					type: 'Space',
+				})
+			);
+		});
+	});
+
+	it('hides the copy from field when there are no spaces', async () => {
+		jest.spyOn(ApiHelper, 'getAll').mockResolvedValue([]);
+
+		render(<NewSpace {...props} />);
+
+		await waitFor(() => {
+			expect(ApiHelper.getAll).toHaveBeenCalled();
+		});
+
+		expect(
+			screen.queryByRole('combobox', {name: 'copy-from'})
+		).not.toBeInTheDocument();
 	});
 
 	it('submits form with custom color', async () => {
