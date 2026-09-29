@@ -729,6 +729,37 @@ paths:
                     description:
                         default response
             tags: ["ConnectedSite"]
+    "/asset-libraries/{assetLibraryExternalReferenceCode}/copy":
+        post:
+            description:
+                Adds a new asset library that copies the settings, app customizations, members, member roles, connected sites, and assets of the asset library with the given external reference code. The request body provides the new asset library's own name, description, and external reference code.
+            operationId: postAssetLibraryCopy
+            parameters:
+                -   in: path
+                    name: assetLibraryExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AssetLibrary"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/AssetLibrary"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AssetLibrary"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/AssetLibrary"
+                    description:
+                        default response
+            tags: ["AssetLibrary"]
     "/asset-libraries/{assetLibraryExternalReferenceCode}/permissions":
         get:
             operationId: getAssetLibraryPermissionsPage
