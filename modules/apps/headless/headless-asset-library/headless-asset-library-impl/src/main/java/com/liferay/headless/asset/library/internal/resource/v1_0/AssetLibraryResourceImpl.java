@@ -6,6 +6,7 @@
 package com.liferay.headless.asset.library.internal.resource.v1_0;
 
 import com.liferay.depot.constants.DepotActionKeys;
+import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotAppCustomization;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryPin;
@@ -26,6 +27,10 @@ import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.portal.kernel.exception.DuplicateGroupExternalReferenceCodeException;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.model.UserGroupGroupRole;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
@@ -34,10 +39,19 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService;
+import com.liferay.portal.kernel.service.UserGroupGroupRoleService;
+import com.liferay.portal.kernel.service.UserGroupLocalService;
+import com.liferay.portal.kernel.service.UserGroupRoleService;
+import com.liferay.portal.kernel.service.UserGroupService;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.UserService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -66,6 +80,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -241,6 +256,9 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 				sourceGroup.getTypeSettingsProperties()),
 			_dlSizeLimitConfigurationProvider.getGroupMimeTypeSizeLimit(
 				sourceGroup.getGroupId()));
+
+		_copyMembers(
+			depotEntry.getGroupId(), serviceContext, sourceGroup.getGroupId());
 
 		return _toAssetLibrary(depotEntry);
 	}
@@ -481,6 +499,49 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		if (group != null) {
 			throw new DuplicateGroupExternalReferenceCodeException(
 				externalReferenceCode);
+		}
+	}
+
+	private void _copyMembers(
+			long groupId, ServiceContext serviceContext, long sourceGroupId)
+		throws Exception {
+
+		List<User> users = ListUtil.filter(
+			_userLocalService.getGroupUsers(sourceGroupId),
+			user -> user.getUserId() != contextUser.getUserId());
+
+		_userService.addGroupUsers(
+			groupId, ListUtil.toLongArray(users, User.USER_ID_ACCESSOR),
+			serviceContext);
+
+		for (User user : users) {
+			long[] roleIds = ListUtil.toLongArray(
+				ListUtil.filter(
+					_roleLocalService.getUserGroupRoles(
+						user.getUserId(), sourceGroupId),
+					role -> !Objects.equals(
+						role.getName(),
+						DepotRolesConstants.ASSET_LIBRARY_OWNER)),
+				Role.ROLE_ID_ACCESSOR);
+
+			_userGroupRoleService.addUserGroupRoles(
+				user.getUserId(), groupId, roleIds);
+		}
+
+		List<UserGroup> userGroups = _userGroupLocalService.getGroupUserGroups(
+			sourceGroupId);
+
+		_userGroupService.addGroupUserGroups(
+			groupId,
+			ListUtil.toLongArray(userGroups, UserGroup.USER_GROUP_ID_ACCESSOR));
+
+		for (UserGroup userGroup : userGroups) {
+			_userGroupGroupRoleService.addUserGroupGroupRoles(
+				userGroup.getUserGroupId(), groupId,
+				ListUtil.toLongArray(
+					_userGroupGroupRoleLocalService.getUserGroupGroupRoles(
+						userGroup.getUserGroupId(), sourceGroupId),
+					UserGroupGroupRole::getRoleId));
 		}
 	}
 
@@ -868,5 +929,29 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		target = "(model.class.name=com.liferay.portal.kernel.model.Group)"
 	)
 	private ModelResourcePermission<Group> _groupModelResourcePermission;
+
+	@Reference
+	private RoleLocalService _roleLocalService;
+
+	@Reference
+	private UserGroupGroupRoleLocalService _userGroupGroupRoleLocalService;
+
+	@Reference
+	private UserGroupGroupRoleService _userGroupGroupRoleService;
+
+	@Reference
+	private UserGroupLocalService _userGroupLocalService;
+
+	@Reference
+	private UserGroupRoleService _userGroupRoleService;
+
+	@Reference
+	private UserGroupService _userGroupService;
+
+	@Reference
+	private UserLocalService _userLocalService;
+
+	@Reference
+	private UserService _userService;
 
 }
