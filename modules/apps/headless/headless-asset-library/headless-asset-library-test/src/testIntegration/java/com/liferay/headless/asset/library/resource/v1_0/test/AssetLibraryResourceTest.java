@@ -8,11 +8,14 @@ package com.liferay.headless.asset.library.resource.v1_0.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.constants.DepotRolesConstants;
+import com.liferay.depot.model.DepotAppCustomization;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
+import com.liferay.depot.service.DepotAppCustomizationLocalService;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.depot.service.DepotEntryPinLocalService;
+import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.headless.asset.library.client.dto.v1_0.AssetLibrary;
 import com.liferay.headless.asset.library.client.dto.v1_0.MimeTypeLimit;
 import com.liferay.headless.asset.library.client.dto.v1_0.Settings;
@@ -256,6 +259,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		super.testPostAssetLibraryCopy();
 
 		_testPostAssetLibraryCopyConnectedSites();
+		_testPostAssetLibraryCopyDepotAppCustomizations();
 		_testPostAssetLibraryCopyMembers();
 		_testPostAssetLibraryCopySettings();
 	}
@@ -1008,6 +1012,43 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 			_group.getGroupId(), depotEntryGroupRel.getToGroupId());
 	}
 
+	private void _testPostAssetLibraryCopyDepotAppCustomizations()
+		throws Exception {
+
+		AssetLibrary sourceAssetLibrary = _addAssetLibrary();
+
+		DepotEntry sourceDepotEntry =
+			_depotEntryLocalService.getGroupDepotEntry(
+				sourceAssetLibrary.getSiteId());
+
+		_depotAppCustomizationLocalService.updateDepotAppCustomization(
+			sourceDepotEntry.getDepotEntryId(), false,
+			DLPortletKeys.DOCUMENT_LIBRARY);
+
+		AssetLibrary assetLibrary = assetLibraryResource.postAssetLibraryCopy(
+			sourceAssetLibrary.getExternalReferenceCode(),
+			randomAssetLibrary());
+
+		DepotEntry depotEntry = _depotEntryLocalService.getGroupDepotEntry(
+			assetLibrary.getSiteId());
+
+		List<DepotAppCustomization> depotAppCustomizations =
+			_depotAppCustomizationLocalService.getDepotAppCustomizations(
+				depotEntry.getDepotEntryId());
+
+		Assert.assertEquals(
+			depotAppCustomizations.toString(), 1,
+			depotAppCustomizations.size());
+
+		DepotAppCustomization depotAppCustomization =
+			depotAppCustomizations.get(0);
+
+		Assert.assertEquals(
+			DLPortletKeys.DOCUMENT_LIBRARY,
+			depotAppCustomization.getPortletId());
+		Assert.assertFalse(depotAppCustomization.isEnabled());
+	}
+
 	private void _testPostAssetLibraryCopyMembers() throws Exception {
 		AssetLibrary sourceAssetLibrary = _addAssetLibrary();
 
@@ -1213,6 +1254,10 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 		_assertGroupDepotEntryType(assetLibrary);
 	}
+
+	@Inject
+	private DepotAppCustomizationLocalService
+		_depotAppCustomizationLocalService;
 
 	@Inject
 	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
