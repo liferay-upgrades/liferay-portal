@@ -6,6 +6,7 @@
 package com.liferay.headless.asset.library.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.depot.constants.DepotActionKeys;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotAppCustomization;
@@ -46,6 +47,7 @@ import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -268,6 +270,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		_testPostAssetLibraryCopyDepotAppCustomizations();
 		_testPostAssetLibraryCopyMembers();
 		_testPostAssetLibraryCopySettings();
+		_testPostAssetLibraryCopyWithoutUpdatePermission();
 	}
 
 	@Override
@@ -478,6 +481,37 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		return assetLibraryResource.postAssetLibrary(randomAssetLibrary());
 	}
 
+	private User _addUser(long groupId, String password) throws Exception {
+		return UserTestUtil.addUser(
+			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+			password, RandomTestUtil.randomString() + "@liferay.com",
+			RandomTestUtil.randomString(), LocaleUtil.getDefault(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			new long[] {groupId}, ServiceContextTestUtil.getServiceContext());
+	}
+
+	private Role _addUserDepotEntryRole(long userId, String... actionIds)
+		throws Exception {
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		RoleTestUtil.addResourcePermission(
+			role, DepotConstants.RESOURCE_NAME, ResourceConstants.SCOPE_COMPANY,
+			String.valueOf(TestPropsValues.getCompanyId()),
+			DepotActionKeys.ADD_DEPOT_ENTRY);
+
+		for (String actionId : actionIds) {
+			RoleTestUtil.addResourcePermission(
+				role, DepotEntry.class.getName(),
+				ResourceConstants.SCOPE_COMPANY,
+				String.valueOf(TestPropsValues.getCompanyId()), actionId);
+		}
+
+		_userLocalService.addRoleUser(role.getRoleId(), userId);
+
+		return role;
+	}
+
 	private void _assertFriendlyURLAndName(
 			AssetLibrary assetLibrary, String expectedFriendlyURL,
 			String expectedName, AssetLibrary patchAssetLibrary)
@@ -585,6 +619,20 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 			expectedTrashEntriesMaxAge, (int)settings.getTrashEntriesMaxAge());
 		Assert.assertEquals(
 			expectedUseCustomLanguages, settings.getUseCustomLanguages());
+	}
+
+	private AssetLibraryResource _getAssetLibraryResource(
+		String password, User user) {
+
+		return AssetLibraryResource.builder(
+		).authentication(
+			user.getEmailAddress(), password
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
 	}
 
 	private String[] _getAvailableLanguageIds(Locale... locales) {
@@ -903,13 +951,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 		String password = RandomTestUtil.randomString();
 
-		_user = UserTestUtil.addUser(
-			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-			password, RandomTestUtil.randomString() + "@liferay.com",
-			RandomTestUtil.randomString(), LocaleUtil.getDefault(),
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			new long[] {depotEntry.getGroupId()},
-			ServiceContextTestUtil.getServiceContext());
+		_user = _addUser(depotEntry.getGroupId(), password);
 
 		Settings settings = new Settings();
 
@@ -928,15 +970,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		patchAssetLibrary.setSettings(settings);
 
 		AssetLibraryResource userAssetLibraryResource =
-			AssetLibraryResource.builder(
-			).authentication(
-				_user.getEmailAddress(), password
-			).endpoint(
-				testCompany.getVirtualHostname(),
-				PortalUtil.getPortalServerPort(false), "http"
-			).locale(
-				LocaleUtil.getDefault()
-			).build();
+			_getAssetLibraryResource(password, _user);
 
 		try {
 			userAssetLibraryResource.patchAssetLibrary(
@@ -1148,6 +1182,34 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		Assert.assertEquals(postAssetLibrary.getName(), assetLibrary.getName());
 	}
 
+	private void _testPostAssetLibraryCopyWithoutUpdatePermission()
+		throws Exception {
+
+		AssetLibrary sourceAssetLibrary = _addAssetLibrary();
+
+		String password = RandomTestUtil.randomString();
+
+		_user = _addUser(sourceAssetLibrary.getSiteId(), password);
+
+		_role = _addUserDepotEntryRole(_user.getUserId());
+
+		AssetLibraryResource userAssetLibraryResource =
+			_getAssetLibraryResource(password, _user);
+
+		try {
+			userAssetLibraryResource.postAssetLibraryCopy(
+				sourceAssetLibrary.getExternalReferenceCode(),
+				randomAssetLibrary());
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("FORBIDDEN", problem.getStatus());
+		}
+	}
+
 	private void _testPostAssetLibraryFriendlyURL() throws Exception {
 		AssetLibrary assetLibrary = _addAssetLibrary();
 
@@ -1323,6 +1385,9 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@DeleteAfterTestRun
+	private Role _role;
 
 	@Inject
 	private RoleLocalService _roleLocalService;
