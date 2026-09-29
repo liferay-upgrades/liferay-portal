@@ -124,6 +124,27 @@ const NewSpace = (props: NewSpaceProps) => {
 			),
 	});
 
+	const handleChangeSourceExternalReferenceCode = (
+		event: React.ChangeEvent<HTMLSelectElement>
+	) => {
+		const sourceExternalReferenceCode = event.target.value;
+
+		setFieldValue(
+			'sourceExternalReferenceCode',
+			sourceExternalReferenceCode
+		);
+
+		const sourceSpace = spaces.find(
+			({externalReferenceCode}) =>
+				externalReferenceCode === sourceExternalReferenceCode
+		);
+
+		setFieldValue(
+			'logoColor',
+			sourceSpace?.settings?.logoColor ?? 'outline-0'
+		);
+	};
+
 	const shouldDisableContinueBtn = isSubmitting || !values.name;
 
 	return (
@@ -168,7 +189,9 @@ const NewSpace = (props: NewSpaceProps) => {
 								]}
 								label={Liferay.Language.get('copy-from')}
 								name="sourceExternalReferenceCode"
-								onChange={handleChange}
+								onChange={
+									handleChangeSourceExternalReferenceCode
+								}
 								value={values.sourceExternalReferenceCode}
 							/>
 						)}
