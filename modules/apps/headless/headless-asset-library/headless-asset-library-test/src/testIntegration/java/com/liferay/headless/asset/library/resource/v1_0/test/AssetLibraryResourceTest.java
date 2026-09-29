@@ -246,6 +246,14 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 	@Override
 	@Test
+	public void testPostAssetLibraryCopy() throws Exception {
+		super.testPostAssetLibraryCopy();
+
+		_testPostAssetLibraryCopySettings();
+	}
+
+	@Override
+	@Test
 	public void testPutAssetLibrary() throws Exception {
 		super.testPutAssetLibrary();
 
@@ -389,6 +397,17 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		throws Exception {
 
 		return permissionsAssetLibraryResource.postAssetLibrary(assetLibrary);
+	}
+
+	@Override
+	protected AssetLibrary testPostAssetLibraryCopy_addAssetLibrary(
+			AssetLibrary assetLibrary)
+		throws Exception {
+
+		AssetLibrary sourceAssetLibrary = _addAssetLibrary();
+
+		return assetLibraryResource.postAssetLibraryCopy(
+			sourceAssetLibrary.getExternalReferenceCode(), assetLibrary);
 	}
 
 	@Override
@@ -948,6 +967,38 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 			trashEnabled, trashEntriesMaxAge, useCustomLanguages);
 
 		_assertGroupDepotEntryType(assetLibrary);
+	}
+
+	private void _testPostAssetLibraryCopySettings() throws Exception {
+		String[] availableLanguageIds = _getAvailableLanguageIds(
+			LocaleUtil.US, LocaleUtil.SPAIN);
+		String defaultLanguageId = _language.getLanguageId(LocaleUtil.US);
+		MimeTypeLimit[] mimeTypeLimits = {
+			new MimeTypeLimit() {
+				{
+					maximumSize = 1234;
+					mimeType = "application/pdf";
+				}
+			}
+		};
+		int trashEntriesMaxAge = RandomTestUtil.randomInt();
+
+		AssetLibrary sourceAssetLibrary = _postAssetLibraryWithSettings(
+			true, availableLanguageIds, defaultLanguageId, "color-3",
+			mimeTypeLimits, true, true, trashEntriesMaxAge, true);
+
+		AssetLibrary postAssetLibrary = randomAssetLibrary();
+
+		postAssetLibrary.setSettings((Settings)null);
+
+		AssetLibrary assetLibrary = assetLibraryResource.postAssetLibraryCopy(
+			sourceAssetLibrary.getExternalReferenceCode(), postAssetLibrary);
+
+		_assertSettings(
+			assetLibrary, true, availableLanguageIds, defaultLanguageId,
+			"color-3", mimeTypeLimits, true, true, trashEntriesMaxAge, true);
+
+		Assert.assertEquals(postAssetLibrary.getName(), assetLibrary.getName());
 	}
 
 	private void _testPostAssetLibraryFriendlyURL() throws Exception {
