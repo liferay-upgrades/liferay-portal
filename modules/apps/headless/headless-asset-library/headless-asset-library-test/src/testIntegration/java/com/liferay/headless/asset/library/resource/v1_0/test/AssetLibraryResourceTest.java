@@ -7,6 +7,7 @@ package com.liferay.headless.asset.library.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.depot.service.DepotEntryPinLocalService;
@@ -30,6 +31,8 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -249,6 +252,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 	public void testPostAssetLibraryCopy() throws Exception {
 		super.testPostAssetLibraryCopy();
 
+		_testPostAssetLibraryCopyMembers();
 		_testPostAssetLibraryCopySettings();
 	}
 
@@ -969,6 +973,38 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		_assertGroupDepotEntryType(assetLibrary);
 	}
 
+	private void _testPostAssetLibraryCopyMembers() throws Exception {
+		AssetLibrary sourceAssetLibrary = _addAssetLibrary();
+
+		_memberUser = UserTestUtil.addUser(sourceAssetLibrary.getSiteId());
+
+		Role administratorRole = _roleLocalService.getRole(
+			testCompany.getCompanyId(),
+			DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR);
+
+		_userGroupRoleLocalService.addUserGroupRoles(
+			_memberUser.getUserId(), sourceAssetLibrary.getSiteId(),
+			new long[] {administratorRole.getRoleId()});
+
+		AssetLibrary assetLibrary = assetLibraryResource.postAssetLibraryCopy(
+			sourceAssetLibrary.getExternalReferenceCode(),
+			randomAssetLibrary());
+
+		Assert.assertTrue(
+			_userLocalService.hasGroupUser(
+				assetLibrary.getSiteId(), _memberUser.getUserId()));
+
+		List<Role> roles = _roleLocalService.getUserGroupRoles(
+			_memberUser.getUserId(), assetLibrary.getSiteId());
+
+		Assert.assertEquals(roles.toString(), 1, roles.size());
+
+		Role role = roles.get(0);
+
+		Assert.assertEquals(
+			DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR, role.getName());
+	}
+
 	private void _testPostAssetLibraryCopySettings() throws Exception {
 		String[] availableLanguageIds = _getAvailableLanguageIds(
 			LocaleUtil.US, LocaleUtil.SPAIN);
@@ -1155,6 +1191,9 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 	@Inject
 	private Language _language;
 
+	@DeleteAfterTestRun
+	private User _memberUser;
+
 	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
@@ -1163,5 +1202,11 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 	@DeleteAfterTestRun
 	private User _user;
+
+	@Inject
+	private UserGroupRoleLocalService _userGroupRoleLocalService;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }
