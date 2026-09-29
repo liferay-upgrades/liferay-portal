@@ -19,6 +19,12 @@ import com.liferay.depot.service.DepotEntryService;
 import com.liferay.document.library.configuration.DLSizeLimitConfigurationProvider;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
+import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationParameterMapFactory;
+import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactory;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
+import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
+import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalService;
+import com.liferay.exportimport.kernel.service.ExportImportLocalService;
 import com.liferay.headless.asset.library.dto.v1_0.AssetLibrary;
 import com.liferay.headless.asset.library.dto.v1_0.MimeTypeLimit;
 import com.liferay.headless.asset.library.dto.v1_0.Settings;
@@ -52,6 +58,7 @@ import com.liferay.portal.kernel.service.UserGroupRoleService;
 import com.liferay.portal.kernel.service.UserGroupService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserService;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -74,6 +81,8 @@ import com.liferay.sharing.constants.SharingConfigurationConstants;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 
+import java.io.File;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -84,6 +93,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -259,6 +269,8 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 				sourceGroup.getTypeSettingsProperties()),
 			_dlSizeLimitConfigurationProvider.getGroupMimeTypeSizeLimit(
 				sourceGroup.getGroupId()));
+
+		_copyAssets(depotEntry.getGroupId(), sourceGroup.getGroupId());
 
 		_copyConnectedSites(depotEntry, sourceDepotEntry);
 
@@ -506,6 +518,48 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		if (group != null) {
 			throw new DuplicateGroupExternalReferenceCodeException(
 				externalReferenceCode);
+		}
+	}
+
+	private void _copyAssets(long groupId, long sourceGroupId)
+		throws Exception {
+
+		Map<String, String[]> parameterMap =
+			_exportImportConfigurationParameterMapFactory.
+				buildFullPublishParameterMap();
+
+		parameterMap.put(
+			PortletDataHandlerKeys.DATA_STRATEGY,
+			new String[] {PortletDataHandlerKeys.DATA_STRATEGY_COPY_AS_NEW});
+
+		long userId = contextUser.getUserId();
+		Locale locale = contextAcceptLanguage.getPreferredLocale();
+		TimeZone timeZone = contextUser.getTimeZone();
+
+		File file = _exportImportLocalService.exportLayoutsAsFile(
+			_exportImportConfigurationLocalService.
+				addDraftExportImportConfiguration(
+					userId,
+					ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT,
+					_exportImportConfigurationSettingsMapFactory.
+						buildExportLayoutSettingsMap(
+							userId, sourceGroupId, false, new long[0],
+							parameterMap, locale, timeZone)));
+
+		try {
+			_exportImportLocalService.importLayouts(
+				_exportImportConfigurationLocalService.
+					addDraftExportImportConfiguration(
+						userId,
+						ExportImportConfigurationConstants.TYPE_IMPORT_LAYOUT,
+						_exportImportConfigurationSettingsMapFactory.
+							buildImportLayoutSettingsMap(
+								userId, groupId, false, new long[0],
+								parameterMap, locale, timeZone)),
+				file);
+		}
+		finally {
+			FileUtil.delete(file);
 		}
 	}
 
@@ -968,6 +1022,21 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
+
+	@Reference
+	private ExportImportConfigurationLocalService
+		_exportImportConfigurationLocalService;
+
+	@Reference
+	private ExportImportConfigurationParameterMapFactory
+		_exportImportConfigurationParameterMapFactory;
+
+	@Reference
+	private ExportImportConfigurationSettingsMapFactory
+		_exportImportConfigurationSettingsMapFactory;
+
+	@Reference
+	private ExportImportLocalService _exportImportLocalService;
 
 	@Reference
 	private GroupLocalService _groupLocalService;
