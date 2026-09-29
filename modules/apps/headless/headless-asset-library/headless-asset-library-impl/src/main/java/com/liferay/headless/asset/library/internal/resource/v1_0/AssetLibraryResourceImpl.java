@@ -58,6 +58,7 @@ import com.liferay.portal.kernel.service.UserGroupRoleService;
 import com.liferay.portal.kernel.service.UserGroupService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserService;
+import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -574,6 +575,14 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		for (DepotEntryGroupRel sourceDepotEntryGroupRel :
 				_depotEntryGroupRelService.getDepotEntryGroupRels(
 					sourceDepotEntry, QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
+
+			if (!GroupPermissionUtil.contains(
+					PermissionThreadLocal.getPermissionChecker(),
+					sourceDepotEntryGroupRel.getToGroupId(),
+					ActionKeys.UPDATE)) {
+
+				continue;
+			}
 
 			DepotEntryGroupRel depotEntryGroupRel =
 				_depotEntryGroupRelService.addDepotEntryGroupRel(
