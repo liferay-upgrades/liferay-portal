@@ -238,6 +238,10 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			_getGroupIdByExternalReferenceCode(
 				assetLibraryExternalReferenceCode));
 
+		_depotEntryModelResourcePermission.check(
+			PermissionThreadLocal.getPermissionChecker(), sourceDepotEntry,
+			ActionKeys.UPDATE);
+
 		_checkDuplicateExternalReferenceCode(
 			assetLibrary.getExternalReferenceCode());
 
