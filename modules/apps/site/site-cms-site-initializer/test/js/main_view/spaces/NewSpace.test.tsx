@@ -135,7 +135,7 @@ describe('NewSpace', () => {
 		});
 	});
 
-	it('submits form copying an existing space', async () => {
+	it('submits form copying an existing space with its logo color', async () => {
 		render(<NewSpace {...props} />);
 
 		const spaceName = 'My Space';
@@ -161,10 +161,12 @@ describe('NewSpace', () => {
 		await waitFor(() => {
 			expect(apiPostSpy).toHaveBeenCalledWith(
 				'/o/headless-asset-library/v1.0/asset-libraries/fake-erc/copy',
-				expect.objectContaining({
+				{
+					description: '',
 					name: spaceName,
+					settings: {logoColor: 'outline-3'},
 					type: 'Space',
-				})
+				}
 			);
 		});
 	});
@@ -181,6 +183,37 @@ describe('NewSpace', () => {
 		expect(
 			screen.queryByRole('combobox', {name: 'copy-from'})
 		).not.toBeInTheDocument();
+	});
+
+	it('resets the logo color when copying is cleared', async () => {
+		render(<NewSpace {...props} />);
+
+		await userEvent.type(
+			screen.getByRole('textbox', {
+				name: /space-name/i,
+			}),
+			'My Space'
+		);
+
+		const select = await screen.findByRole('combobox', {name: 'copy-from'});
+
+		await userEvent.selectOptions(select, 'fake-erc');
+		await userEvent.selectOptions(select, '');
+
+		await userEvent.click(
+			screen.getByRole('button', {
+				name: 'continue',
+			})
+		);
+
+		await waitFor(() => {
+			expect(apiPostSpy).toHaveBeenCalledWith(
+				'/o/headless-asset-library/v1.0/asset-libraries',
+				expect.objectContaining({
+					settings: {logoColor: 'outline-0'},
+				})
+			);
+		});
 	});
 
 	it('submits form with custom color', async () => {
