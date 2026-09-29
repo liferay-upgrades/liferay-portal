@@ -9,8 +9,10 @@ import com.liferay.depot.constants.DepotActionKeys;
 import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotAppCustomization;
 import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.model.DepotEntryPin;
 import com.liferay.depot.service.DepotAppCustomizationLocalService;
+import com.liferay.depot.service.DepotEntryGroupRelService;
 import com.liferay.depot.service.DepotEntryPinLocalService;
 import com.liferay.depot.service.DepotEntryPinService;
 import com.liferay.depot.service.DepotEntryService;
@@ -24,6 +26,7 @@ import com.liferay.headless.asset.library.internal.odata.entity.v1_0.AssetLibrar
 import com.liferay.headless.asset.library.internal.util.AssetLibraryUtil;
 import com.liferay.headless.asset.library.resource.v1_0.AssetLibraryResource;
 import com.liferay.petra.function.UnsafeSupplier;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.DuplicateGroupExternalReferenceCodeException;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -256,6 +259,8 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 				sourceGroup.getTypeSettingsProperties()),
 			_dlSizeLimitConfigurationProvider.getGroupMimeTypeSizeLimit(
 				sourceGroup.getGroupId()));
+
+		_copyConnectedSites(depotEntry, sourceDepotEntry);
 
 		_copyMembers(
 			depotEntry.getGroupId(), serviceContext, sourceGroup.getGroupId());
@@ -499,6 +504,29 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		if (group != null) {
 			throw new DuplicateGroupExternalReferenceCodeException(
 				externalReferenceCode);
+		}
+	}
+
+	private void _copyConnectedSites(
+			DepotEntry depotEntry, DepotEntry sourceDepotEntry)
+		throws Exception {
+
+		for (DepotEntryGroupRel sourceDepotEntryGroupRel :
+				_depotEntryGroupRelService.getDepotEntryGroupRels(
+					sourceDepotEntry, QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
+
+			DepotEntryGroupRel depotEntryGroupRel =
+				_depotEntryGroupRelService.addDepotEntryGroupRel(
+					depotEntry.getDepotEntryId(),
+					sourceDepotEntryGroupRel.getToGroupId());
+
+			_depotEntryGroupRelService.updateDDMStructuresAvailable(
+				depotEntryGroupRel.getDepotEntryGroupRelId(),
+				sourceDepotEntryGroupRel.isDdmStructuresAvailable());
+
+			_depotEntryGroupRelService.updateSearchable(
+				depotEntryGroupRel.getDepotEntryGroupRelId(),
+				sourceDepotEntryGroupRel.isSearchable());
 		}
 	}
 
@@ -902,6 +930,9 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	@Reference
 	private DepotAppCustomizationLocalService
 		_depotAppCustomizationLocalService;
+
+	@Reference
+	private DepotEntryGroupRelService _depotEntryGroupRelService;
 
 	@Reference(target = "(model.class.name=com.liferay.depot.model.DepotEntry)")
 	private ModelResourcePermission<DepotEntry>
