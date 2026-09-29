@@ -147,10 +147,11 @@ describe('NewSpace', () => {
 			spaceName
 		);
 
-		await userEvent.selectOptions(
-			await screen.findByRole('combobox', {name: 'copy-from'}),
-			'fake-erc'
+		await userEvent.click(
+			await screen.findByRole('combobox', {name: 'copy-from'})
 		);
+
+		await userEvent.click(screen.getByRole('option', {name: /Marketing/}));
 
 		await userEvent.click(
 			screen.getByRole('button', {
@@ -195,10 +196,17 @@ describe('NewSpace', () => {
 			'My Space'
 		);
 
-		const select = await screen.findByRole('combobox', {name: 'copy-from'});
+		const picker = await screen.findByRole('combobox', {name: 'copy-from'});
 
-		await userEvent.selectOptions(select, 'fake-erc');
-		await userEvent.selectOptions(select, '');
+		await userEvent.click(picker);
+
+		await userEvent.click(screen.getByRole('option', {name: /Marketing/}));
+
+		await userEvent.click(picker);
+
+		await userEvent.click(
+			screen.getByRole('option', {name: 'start-from-scratch'})
+		);
 
 		await userEvent.click(
 			screen.getByRole('button', {
