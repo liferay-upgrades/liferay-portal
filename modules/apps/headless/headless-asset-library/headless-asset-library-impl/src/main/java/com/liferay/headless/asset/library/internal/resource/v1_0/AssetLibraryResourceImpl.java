@@ -259,15 +259,7 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 
 		String externalReferenceCode = assetLibrary.getExternalReferenceCode();
 
-		if (Validator.isNotNull(externalReferenceCode)) {
-			Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
-				externalReferenceCode, contextCompany.getCompanyId());
-
-			if (group != null) {
-				throw new DuplicateGroupExternalReferenceCodeException(
-					externalReferenceCode);
-			}
-		}
+		_checkDuplicateExternalReferenceCode(externalReferenceCode);
 
 		return _toAssetLibrary(
 			_addOrUpdateDepotEntry(
@@ -430,6 +422,22 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		}
 
 		return depotEntry;
+	}
+
+	private void _checkDuplicateExternalReferenceCode(
+		String externalReferenceCode) {
+
+		if (Validator.isNull(externalReferenceCode)) {
+			return;
+		}
+
+		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
+			externalReferenceCode, contextCompany.getCompanyId());
+
+		if (group != null) {
+			throw new DuplicateGroupExternalReferenceCodeException(
+				externalReferenceCode);
+		}
 	}
 
 	private Boolean _getBooleanValue(Object defaultValue, Boolean value) {
