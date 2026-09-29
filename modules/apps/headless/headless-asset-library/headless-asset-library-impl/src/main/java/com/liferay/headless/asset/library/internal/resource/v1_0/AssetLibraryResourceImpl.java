@@ -202,6 +202,50 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	}
 
 	@Override
+	public AssetLibrary postAssetLibraryCopy(
+			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
+		throws Exception {
+
+		DepotEntry sourceDepotEntry = _depotEntryService.getGroupDepotEntry(
+			_getGroupIdByExternalReferenceCode(
+				assetLibraryExternalReferenceCode));
+
+		_checkDuplicateExternalReferenceCode(
+			assetLibrary.getExternalReferenceCode());
+
+		if (assetLibrary.getSettings() == null) {
+			assetLibrary.setSettings(Settings::new);
+		}
+
+		if (assetLibrary.getType() == null) {
+			assetLibrary.setType(
+				() -> AssetLibraryUtil.getAssetLibraryType(
+					sourceDepotEntry.getType()));
+		}
+
+		ServiceContext serviceContext = _getServiceContext();
+
+		Group sourceGroup = sourceDepotEntry.getGroup();
+
+		DepotEntry depotEntry = _addOrUpdateDepotEntry(
+			assetLibrary,
+			_getLocalizedMap(
+				assetLibrary.getDescription(),
+				assetLibrary.getDescription_i18n()),
+			assetLibrary.getExternalReferenceCode(),
+			_getLocalizedMap(
+				assetLibrary.getName(), assetLibrary.getName_i18n()),
+			serviceContext,
+			_patchUnicodeProperties(
+				assetLibrary.getSettings(),
+				sourceGroup.getTypeSettingsProperties()),
+			_dlSizeLimitConfigurationProvider.getGroupMimeTypeSizeLimit(
+				sourceGroup.getGroupId()));
+
+		return _toAssetLibrary(depotEntry);
+	}
+
+	@Override
 	public AssetLibrary putAssetLibraryPin(
 			String assetLibraryExternalReferenceCode)
 		throws Exception {
@@ -331,7 +375,7 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		throws Exception {
 
 		if (assetLibrary.getSettings() == null) {
-			assetLibrary.setSettings(() -> new Settings());
+			assetLibrary.setSettings(Settings::new);
 		}
 
 		Group group = null;
