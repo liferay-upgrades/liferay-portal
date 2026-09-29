@@ -10,13 +10,17 @@ async function addSpace({
 	description,
 	name,
 	settings,
+	sourceExternalReferenceCode,
 }: {
 	description?: string;
 	name: string;
 	settings?: {logoColor: string};
+	sourceExternalReferenceCode?: string;
 }) {
 	return await ApiHelper.post<{id: number}>(
-		'/o/headless-asset-library/v1.0/asset-libraries',
+		sourceExternalReferenceCode
+			? `/o/headless-asset-library/v1.0/asset-libraries/${sourceExternalReferenceCode}/copy`
+			: '/o/headless-asset-library/v1.0/asset-libraries',
 		{
 			description,
 			name,
