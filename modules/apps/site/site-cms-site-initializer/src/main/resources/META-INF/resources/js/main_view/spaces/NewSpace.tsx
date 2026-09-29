@@ -12,7 +12,6 @@ import {ILearnResourceContext, openToast} from 'frontend-js-components-web';
 import {navigate} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
-import {FieldSelect} from '../../common/components/forms';
 import {
 	invalidCharacters,
 	maxLength,
@@ -26,6 +25,7 @@ import {LogoColor, Space} from '../../common/types/Space';
 import focusInvalidElement from '../../common/utils/focusInvalidElement';
 import {getImage} from '../../common/utils/getImage';
 import {NewSpaceFormSection} from './NewSpaceFormSection';
+import SourceSpacePicker from './SourceSpacePicker';
 import BaseFields from './SpaceBaseFields';
 
 export interface NewSpaceProps {
@@ -124,19 +124,10 @@ const NewSpace = (props: NewSpaceProps) => {
 			),
 	});
 
-	const handleChangeSourceExternalReferenceCode = (
-		event: React.ChangeEvent<HTMLSelectElement>
-	) => {
-		const sourceExternalReferenceCode = event.target.value;
-
+	const handleChangeSourceSpace = (sourceSpace?: Space) => {
 		setFieldValue(
 			'sourceExternalReferenceCode',
-			sourceExternalReferenceCode
-		);
-
-		const sourceSpace = spaces.find(
-			({externalReferenceCode}) =>
-				externalReferenceCode === sourceExternalReferenceCode
+			sourceSpace?.externalReferenceCode ?? ''
 		);
 
 		setFieldValue(
@@ -172,26 +163,9 @@ const NewSpace = (props: NewSpaceProps) => {
 						values={values}
 					>
 						{!!spaces.length && (
-							<FieldSelect
-								items={[
-									{
-										label: Liferay.Language.get(
-											'start-from-scratch'
-										),
-										value: '',
-									},
-									...spaces.map(
-										({externalReferenceCode, name}) => ({
-											label: name,
-											value: externalReferenceCode,
-										})
-									),
-								]}
-								label={Liferay.Language.get('copy-from')}
-								name="sourceExternalReferenceCode"
-								onChange={
-									handleChangeSourceExternalReferenceCode
-								}
+							<SourceSpacePicker
+								onChangeValue={handleChangeSourceSpace}
+								spaces={spaces}
 								value={values.sourceExternalReferenceCode}
 							/>
 						)}
