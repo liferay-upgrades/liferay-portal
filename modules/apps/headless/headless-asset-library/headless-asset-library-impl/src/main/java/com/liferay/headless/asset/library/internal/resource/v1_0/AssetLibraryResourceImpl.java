@@ -262,6 +262,8 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 
 		_copyConnectedSites(depotEntry, sourceDepotEntry);
 
+		_copyDepotAppCustomizations(depotEntry, sourceDepotEntry);
+
 		_copyMembers(
 			depotEntry.getGroupId(), serviceContext, sourceGroup.getGroupId());
 
@@ -527,6 +529,20 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			_depotEntryGroupRelService.updateSearchable(
 				depotEntryGroupRel.getDepotEntryGroupRelId(),
 				sourceDepotEntryGroupRel.isSearchable());
+		}
+	}
+
+	private void _copyDepotAppCustomizations(
+			DepotEntry depotEntry, DepotEntry sourceDepotEntry)
+		throws Exception {
+
+		for (DepotAppCustomization depotAppCustomization :
+				_depotAppCustomizationLocalService.getDepotAppCustomizations(
+					sourceDepotEntry.getDepotEntryId())) {
+
+			_depotAppCustomizationLocalService.updateDepotAppCustomization(
+				depotEntry.getDepotEntryId(), depotAppCustomization.isEnabled(),
+				depotAppCustomization.getPortletId());
 		}
 	}
 
