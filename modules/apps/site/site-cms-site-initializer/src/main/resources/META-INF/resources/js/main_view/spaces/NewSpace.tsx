@@ -6,10 +6,11 @@
 import ClayButton from '@clayui/button';
 import ClayLayout from '@clayui/layout';
 import ClayLink from '@clayui/link';
+import {useIsMounted} from '@liferay/frontend-js-react-web';
 import {useFormik} from 'formik';
 import {ILearnResourceContext, openToast} from 'frontend-js-components-web';
 import {navigate} from 'frontend-js-web';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {
 	invalidCharacters,
@@ -20,10 +21,11 @@ import {
 	validate,
 } from '../../common/components/forms/validations';
 import SpaceService from '../../common/services/SpaceService';
-import {LogoColor} from '../../common/types/Space';
+import {LogoColor, Space} from '../../common/types/Space';
 import focusInvalidElement from '../../common/utils/focusInvalidElement';
 import {getImage} from '../../common/utils/getImage';
 import {NewSpaceFormSection} from './NewSpaceFormSection';
+import SourceSpacePicker from './SourceSpacePicker';
 import BaseFields from './SpaceBaseFields';
 
 export interface NewSpaceProps {
@@ -40,6 +42,19 @@ const NewSpace = (props: NewSpaceProps) => {
 		description: formDescription,
 		learnResources,
 	} = props;
+
+	const isMounted = useIsMounted();
+
+	const [spaces, setSpaces] = useState<Space[]>([]);
+
+	useEffect(() => {
+		SpaceService.getSpaces().then((spaces) => {
+			if (isMounted()) {
+				setSpaces(spaces);
+			}
+		});
+	}, [isMounted]);
+
 	const {
 		errors,
 		handleBlur,
@@ -56,14 +71,21 @@ const NewSpace = (props: NewSpaceProps) => {
 			description: '',
 			logoColor: 'outline-0' as LogoColor,
 			name: '',
+			sourceExternalReferenceCode: '',
 		},
 		onSubmit: (values) => {
-			const {description, logoColor = 'outline-0', name} = values;
+			const {
+				description,
+				logoColor = 'outline-0',
+				name,
+				sourceExternalReferenceCode,
+			} = values;
 
 			SpaceService.addSpace({
 				description,
 				name,
 				settings: {logoColor},
+				sourceExternalReferenceCode,
 			}).then((response) => {
 				if (response.data) {
 					navigate(
@@ -102,6 +124,18 @@ const NewSpace = (props: NewSpaceProps) => {
 			),
 	});
 
+	const handleChangeSourceSpace = (sourceSpace?: Space) => {
+		setFieldValue(
+			'sourceExternalReferenceCode',
+			sourceSpace?.externalReferenceCode ?? ''
+		);
+
+		setFieldValue(
+			'logoColor',
+			sourceSpace?.settings?.logoColor ?? 'outline-0'
+		);
+	};
+
 	const shouldDisableContinueBtn = isSubmitting || !values.name;
 
 	return (
@@ -127,7 +161,15 @@ const NewSpace = (props: NewSpaceProps) => {
 						onChangeName={handleChange}
 						touched={touched}
 						values={values}
-					/>
+					>
+						{!!spaces.length && (
+							<SourceSpacePicker
+								onChangeValue={handleChangeSourceSpace}
+								spaces={spaces}
+								value={values.sourceExternalReferenceCode}
+							/>
+						)}
+					</BaseFields>
 
 					<ClayButton.Group className="mb-0 mt-4 w-100" spaced>
 						<ClayLink

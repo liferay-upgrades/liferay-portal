@@ -92,6 +92,10 @@ public interface AssetLibraryResource {
 	public Response postAssetLibraryBatch(String callbackURL, Object object)
 		throws Exception;
 
+	public AssetLibrary postAssetLibraryCopy(
+			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
+		throws Exception;
+
 	public AssetLibrary putAssetLibrary(
 			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
 		throws Exception;
@@ -205,4 +209,4 @@ public interface AssetLibraryResource {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:723081869
+// LIFERAY-REST-BUILDER-HASH:-1382228726

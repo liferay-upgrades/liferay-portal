@@ -35,13 +35,21 @@ describe('NewSpace', () => {
 	let apiPostSpy: jest.SpyInstance;
 
 	beforeEach(() => {
+		jest.spyOn(ApiHelper, 'getAll').mockResolvedValue([
+			{
+				externalReferenceCode: 'fake-erc',
+				name: 'Marketing',
+				settings: {logoColor: 'outline-3'},
+			},
+		]);
+
 		apiPostSpy = jest
 			.spyOn(ApiHelper, 'post')
 			.mockResolvedValue({data: {id: 'fake-id'}, error: null});
 	});
 
 	afterEach(() => {
-		apiPostSpy.mockRestore();
+		jest.restoreAllMocks();
 	});
 
 	it('renders with correct title, description, buttons', () => {
@@ -123,6 +131,95 @@ describe('NewSpace', () => {
 					},
 					type: 'Space',
 				}
+			);
+		});
+	});
+
+	it('submits form copying an existing space with its logo color', async () => {
+		render(<NewSpace {...props} />);
+
+		const spaceName = 'My Space';
+
+		await userEvent.type(
+			screen.getByRole('textbox', {
+				name: /space-name/i,
+			}),
+			spaceName
+		);
+
+		await userEvent.click(
+			await screen.findByRole('combobox', {name: 'copy-from'})
+		);
+
+		await userEvent.click(screen.getByRole('option', {name: /Marketing/}));
+
+		await userEvent.click(
+			screen.getByRole('button', {
+				name: 'continue',
+			})
+		);
+
+		await waitFor(() => {
+			expect(apiPostSpy).toHaveBeenCalledWith(
+				'/o/headless-asset-library/v1.0/asset-libraries/fake-erc/copy',
+				{
+					description: '',
+					name: spaceName,
+					settings: {logoColor: 'outline-3'},
+					type: 'Space',
+				}
+			);
+		});
+	});
+
+	it('hides the copy from field when there are no spaces', async () => {
+		jest.spyOn(ApiHelper, 'getAll').mockResolvedValue([]);
+
+		render(<NewSpace {...props} />);
+
+		await waitFor(() => {
+			expect(ApiHelper.getAll).toHaveBeenCalled();
+		});
+
+		expect(
+			screen.queryByRole('combobox', {name: 'copy-from'})
+		).not.toBeInTheDocument();
+	});
+
+	it('resets the logo color when copying is cleared', async () => {
+		render(<NewSpace {...props} />);
+
+		await userEvent.type(
+			screen.getByRole('textbox', {
+				name: /space-name/i,
+			}),
+			'My Space'
+		);
+
+		const picker = await screen.findByRole('combobox', {name: 'copy-from'});
+
+		await userEvent.click(picker);
+
+		await userEvent.click(screen.getByRole('option', {name: /Marketing/}));
+
+		await userEvent.click(picker);
+
+		await userEvent.click(
+			screen.getByRole('option', {name: 'start-from-scratch'})
+		);
+
+		await userEvent.click(
+			screen.getByRole('button', {
+				name: 'continue',
+			})
+		);
+
+		await waitFor(() => {
+			expect(apiPostSpy).toHaveBeenCalledWith(
+				'/o/headless-asset-library/v1.0/asset-libraries',
+				expect.objectContaining({
+					settings: {logoColor: 'outline-0'},
+				})
 			);
 		});
 	});

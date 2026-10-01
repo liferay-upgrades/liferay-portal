@@ -6,16 +6,25 @@
 package com.liferay.headless.asset.library.internal.resource.v1_0;
 
 import com.liferay.depot.constants.DepotActionKeys;
+import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotAppCustomization;
 import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.model.DepotEntryPin;
 import com.liferay.depot.service.DepotAppCustomizationLocalService;
+import com.liferay.depot.service.DepotEntryGroupRelService;
 import com.liferay.depot.service.DepotEntryPinLocalService;
 import com.liferay.depot.service.DepotEntryPinService;
 import com.liferay.depot.service.DepotEntryService;
 import com.liferay.document.library.configuration.DLSizeLimitConfigurationProvider;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
+import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationParameterMapFactory;
+import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactory;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
+import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
+import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalService;
+import com.liferay.exportimport.kernel.service.ExportImportLocalService;
 import com.liferay.headless.asset.library.dto.v1_0.AssetLibrary;
 import com.liferay.headless.asset.library.dto.v1_0.MimeTypeLimit;
 import com.liferay.headless.asset.library.dto.v1_0.Settings;
@@ -23,9 +32,14 @@ import com.liferay.headless.asset.library.internal.odata.entity.v1_0.AssetLibrar
 import com.liferay.headless.asset.library.internal.util.AssetLibraryUtil;
 import com.liferay.headless.asset.library.resource.v1_0.AssetLibraryResource;
 import com.liferay.petra.function.UnsafeSupplier;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.DuplicateGroupExternalReferenceCodeException;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.model.UserGroupGroupRole;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
@@ -34,10 +48,21 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService;
+import com.liferay.portal.kernel.service.UserGroupGroupRoleService;
+import com.liferay.portal.kernel.service.UserGroupLocalService;
+import com.liferay.portal.kernel.service.UserGroupRoleService;
+import com.liferay.portal.kernel.service.UserGroupService;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.UserService;
+import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -57,6 +82,8 @@ import com.liferay.sharing.constants.SharingConfigurationConstants;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 
+import java.io.File;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,6 +93,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.TimeZone;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -202,6 +231,63 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	}
 
 	@Override
+	public AssetLibrary postAssetLibraryCopy(
+			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
+		throws Exception {
+
+		DepotEntry sourceDepotEntry = _depotEntryService.getGroupDepotEntry(
+			_getGroupIdByExternalReferenceCode(
+				assetLibraryExternalReferenceCode));
+
+		_depotEntryModelResourcePermission.check(
+			PermissionThreadLocal.getPermissionChecker(), sourceDepotEntry,
+			ActionKeys.UPDATE);
+
+		_checkDuplicateExternalReferenceCode(
+			assetLibrary.getExternalReferenceCode());
+
+		if (assetLibrary.getSettings() == null) {
+			assetLibrary.setSettings(Settings::new);
+		}
+
+		if (assetLibrary.getType() == null) {
+			assetLibrary.setType(
+				() -> AssetLibraryUtil.getAssetLibraryType(
+					sourceDepotEntry.getType()));
+		}
+
+		ServiceContext serviceContext = _getServiceContext();
+
+		Group sourceGroup = sourceDepotEntry.getGroup();
+
+		DepotEntry depotEntry = _addOrUpdateDepotEntry(
+			assetLibrary,
+			_getLocalizedMap(
+				assetLibrary.getDescription(),
+				assetLibrary.getDescription_i18n()),
+			assetLibrary.getExternalReferenceCode(),
+			_getLocalizedMap(
+				assetLibrary.getName(), assetLibrary.getName_i18n()),
+			serviceContext,
+			_patchUnicodeProperties(
+				assetLibrary.getSettings(),
+				sourceGroup.getTypeSettingsProperties()),
+			_dlSizeLimitConfigurationProvider.getGroupMimeTypeSizeLimit(
+				sourceGroup.getGroupId()));
+
+		_copyAssets(depotEntry.getGroupId(), sourceGroup.getGroupId());
+
+		_copyConnectedSites(depotEntry, sourceDepotEntry);
+
+		_copyDepotAppCustomizations(depotEntry, sourceDepotEntry);
+
+		_copyMembers(
+			depotEntry.getGroupId(), serviceContext, sourceGroup.getGroupId());
+
+		return _toAssetLibrary(depotEntry);
+	}
+
+	@Override
 	public AssetLibrary putAssetLibraryPin(
 			String assetLibraryExternalReferenceCode)
 		throws Exception {
@@ -259,15 +345,7 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 
 		String externalReferenceCode = assetLibrary.getExternalReferenceCode();
 
-		if (Validator.isNotNull(externalReferenceCode)) {
-			Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
-				externalReferenceCode, contextCompany.getCompanyId());
-
-			if (group != null) {
-				throw new DuplicateGroupExternalReferenceCodeException(
-					externalReferenceCode);
-			}
-		}
+		_checkDuplicateExternalReferenceCode(externalReferenceCode);
 
 		return _toAssetLibrary(
 			_addOrUpdateDepotEntry(
@@ -339,7 +417,7 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		throws Exception {
 
 		if (assetLibrary.getSettings() == null) {
-			assetLibrary.setSettings(() -> new Settings());
+			assetLibrary.setSettings(Settings::new);
 		}
 
 		Group group = null;
@@ -430,6 +508,152 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		}
 
 		return depotEntry;
+	}
+
+	private void _checkDuplicateExternalReferenceCode(
+		String externalReferenceCode) {
+
+		if (Validator.isNull(externalReferenceCode)) {
+			return;
+		}
+
+		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
+			externalReferenceCode, contextCompany.getCompanyId());
+
+		if (group != null) {
+			throw new DuplicateGroupExternalReferenceCodeException(
+				externalReferenceCode);
+		}
+	}
+
+	private void _copyAssets(long groupId, long sourceGroupId)
+		throws Exception {
+
+		Map<String, String[]> parameterMap =
+			_exportImportConfigurationParameterMapFactory.
+				buildFullPublishParameterMap();
+
+		parameterMap.put(
+			PortletDataHandlerKeys.DATA_STRATEGY,
+			new String[] {PortletDataHandlerKeys.DATA_STRATEGY_COPY_AS_NEW});
+
+		long userId = contextUser.getUserId();
+		Locale locale = contextAcceptLanguage.getPreferredLocale();
+		TimeZone timeZone = contextUser.getTimeZone();
+
+		File file = _exportImportLocalService.exportLayoutsAsFile(
+			_exportImportConfigurationLocalService.
+				addDraftExportImportConfiguration(
+					userId,
+					ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT,
+					_exportImportConfigurationSettingsMapFactory.
+						buildExportLayoutSettingsMap(
+							userId, sourceGroupId, false, new long[0],
+							parameterMap, locale, timeZone)));
+
+		try {
+			_exportImportLocalService.importLayouts(
+				_exportImportConfigurationLocalService.
+					addDraftExportImportConfiguration(
+						userId,
+						ExportImportConfigurationConstants.TYPE_IMPORT_LAYOUT,
+						_exportImportConfigurationSettingsMapFactory.
+							buildImportLayoutSettingsMap(
+								userId, groupId, false, new long[0],
+								parameterMap, locale, timeZone)),
+				file);
+		}
+		finally {
+			FileUtil.delete(file);
+		}
+	}
+
+	private void _copyConnectedSites(
+			DepotEntry depotEntry, DepotEntry sourceDepotEntry)
+		throws Exception {
+
+		for (DepotEntryGroupRel sourceDepotEntryGroupRel :
+				_depotEntryGroupRelService.getDepotEntryGroupRels(
+					sourceDepotEntry, QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
+
+			if (!GroupPermissionUtil.contains(
+					PermissionThreadLocal.getPermissionChecker(),
+					sourceDepotEntryGroupRel.getToGroupId(),
+					ActionKeys.UPDATE)) {
+
+				continue;
+			}
+
+			DepotEntryGroupRel depotEntryGroupRel =
+				_depotEntryGroupRelService.addDepotEntryGroupRel(
+					depotEntry.getDepotEntryId(),
+					sourceDepotEntryGroupRel.getToGroupId());
+
+			_depotEntryGroupRelService.updateDDMStructuresAvailable(
+				depotEntryGroupRel.getDepotEntryGroupRelId(),
+				sourceDepotEntryGroupRel.isDdmStructuresAvailable());
+
+			_depotEntryGroupRelService.updateSearchable(
+				depotEntryGroupRel.getDepotEntryGroupRelId(),
+				sourceDepotEntryGroupRel.isSearchable());
+		}
+	}
+
+	private void _copyDepotAppCustomizations(
+			DepotEntry depotEntry, DepotEntry sourceDepotEntry)
+		throws Exception {
+
+		for (DepotAppCustomization depotAppCustomization :
+				_depotAppCustomizationLocalService.getDepotAppCustomizations(
+					sourceDepotEntry.getDepotEntryId())) {
+
+			_depotAppCustomizationLocalService.updateDepotAppCustomization(
+				depotEntry.getDepotEntryId(), depotAppCustomization.isEnabled(),
+				depotAppCustomization.getPortletId());
+		}
+	}
+
+	private void _copyMembers(
+			long groupId, ServiceContext serviceContext, long sourceGroupId)
+		throws Exception {
+
+		List<User> users = ListUtil.filter(
+			_userLocalService.getGroupUsers(sourceGroupId),
+			user -> user.getUserId() != contextUser.getUserId());
+
+		_userService.addGroupUsers(
+			groupId, ListUtil.toLongArray(users, User.USER_ID_ACCESSOR),
+			serviceContext);
+
+		for (User user : users) {
+			long[] roleIds = ListUtil.toLongArray(
+				ListUtil.filter(
+					_roleLocalService.getUserGroupRoles(
+						user.getUserId(), sourceGroupId),
+					role -> !Objects.equals(
+						role.getName(),
+						DepotRolesConstants.ASSET_LIBRARY_OWNER)),
+				Role.ROLE_ID_ACCESSOR);
+
+			_userGroupRoleService.addUserGroupRoles(
+				user.getUserId(), groupId, roleIds);
+		}
+
+		List<UserGroup> userGroups = _userGroupLocalService.getGroupUserGroups(
+			sourceGroupId);
+
+		_userGroupService.addGroupUserGroups(
+			groupId,
+			ListUtil.toLongArray(userGroups, UserGroup.USER_GROUP_ID_ACCESSOR));
+
+		for (UserGroup userGroup : userGroups) {
+			_userGroupGroupRoleService.addUserGroupGroupRoles(
+				userGroup.getUserGroupId(), groupId,
+				ListUtil.toLongArray(
+					_userGroupGroupRoleLocalService.getUserGroupGroupRoles(
+						userGroup.getUserGroupId(), sourceGroupId),
+					UserGroupGroupRole::getRoleId));
+		}
 	}
 
 	private Boolean _getBooleanValue(Object defaultValue, Boolean value) {
@@ -790,6 +1014,9 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	private DepotAppCustomizationLocalService
 		_depotAppCustomizationLocalService;
 
+	@Reference
+	private DepotEntryGroupRelService _depotEntryGroupRelService;
+
 	@Reference(target = "(model.class.name=com.liferay.depot.model.DepotEntry)")
 	private ModelResourcePermission<DepotEntry>
 		_depotEntryModelResourcePermission;
@@ -810,11 +1037,50 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	private DTOConverterRegistry _dtoConverterRegistry;
 
 	@Reference
+	private ExportImportConfigurationLocalService
+		_exportImportConfigurationLocalService;
+
+	@Reference
+	private ExportImportConfigurationParameterMapFactory
+		_exportImportConfigurationParameterMapFactory;
+
+	@Reference
+	private ExportImportConfigurationSettingsMapFactory
+		_exportImportConfigurationSettingsMapFactory;
+
+	@Reference
+	private ExportImportLocalService _exportImportLocalService;
+
+	@Reference
 	private GroupLocalService _groupLocalService;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.portal.kernel.model.Group)"
 	)
 	private ModelResourcePermission<Group> _groupModelResourcePermission;
+
+	@Reference
+	private RoleLocalService _roleLocalService;
+
+	@Reference
+	private UserGroupGroupRoleLocalService _userGroupGroupRoleLocalService;
+
+	@Reference
+	private UserGroupGroupRoleService _userGroupGroupRoleService;
+
+	@Reference
+	private UserGroupLocalService _userGroupLocalService;
+
+	@Reference
+	private UserGroupRoleService _userGroupRoleService;
+
+	@Reference
+	private UserGroupService _userGroupService;
+
+	@Reference
+	private UserLocalService _userLocalService;
+
+	@Reference
+	private UserService _userService;
 
 }
