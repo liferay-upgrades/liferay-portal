@@ -522,6 +522,8 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 			JSONObject jsonObject)
 		throws Exception {
 
+		boolean matched = false;
+
 		String newContent = content;
 
 		Pattern pattern = _getPattern(jsonObject);
@@ -552,6 +554,8 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 				if (_isCommentLine(newContent, index + matcher.start())) {
 					continue;
 				}
+
+				matched = true;
 
 				String methodCall = matcher.group();
 
@@ -591,12 +595,28 @@ public class UpgradeCatchAllCheck extends BaseFileCheck {
 						methodCall, newContent, to);
 				}
 				else {
+					Set<String> keys = jsonObject.keySet();
+
+					if (keys.contains("hasMessage")) {
+						addMessage(
+							fileName, _getMessage(jsonObject),
+							getLineNumber(newContent, index + matcher.start()));
+
+						_newMessage = true;
+
+						continue;
+					}
+
 					newContent = StringUtil.replaceFirst(
 						newContent, methodCall,
 						StringUtil.replace(methodCall, from, to),
-						matcher.start());
+						index + matcher.start());
 				}
 			}
+		}
+
+		if (matched && content.equals(newContent)) {
+			return newContent;
 		}
 
 		return _processReplacementOrMessage(
