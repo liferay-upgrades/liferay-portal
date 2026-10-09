@@ -12,14 +12,29 @@ import org.osgi.service.component.annotations.Reference;
  */
 public class LPD_7751 {
 
-	public void method(long companyId, String externalReferenceCode) {
+	public void method(
+		long companyId, String externalReferenceCode, String errorMessage) {
+
 		CommerceCatalogLocalServiceUtil.fetchCommerceCatalogByExternalReferenceCode(externalReferenceCode, companyId);
 		_commerceCatalogLocalService.
 			fetchCommerceCatalogByExternalReferenceCode(123, "test123");
 		_commerceCatalogLocalService.fetchCommerceCatalogByExternalReferenceCode(externalReferenceCode, companyId);
+		Objects.requireNonNull(
+			_commerceCatalogLocalService.fetchCommerceCatalogByExternalReferenceCode(externalReferenceCode, companyId));
+		Assert.assertEquals(
+			_commerceCatalogLocalService.fetchCommerceCatalogByExternalReferenceCode(externalReferenceCode, companyId),
+			expectedCatalog, errorMessage);
 	}
 
 	@Reference
 	private CommerceCatalogLocalService _commerceCatalogLocalService;
+
+	private static class InnerClass {
+
+		public void method(long companyId, String externalReferenceCode) {
+			CommerceCatalogLocalServiceUtil.fetchCommerceCatalogByExternalReferenceCode(externalReferenceCode, companyId);
+		}
+
+	}
 
 }
