@@ -5660,11 +5660,11 @@
 				"to": "FileAvailabilityUtil.isAvailable(getServletContext(), ${page})"
 			},
 			{
-				"from": "servletContext = ServletContextUtil.getServletContext()",
+				"from": "regex:\\bservletContext = ServletContextUtil\\.getServletContext\\(\\)",
 				"to": "setServletContext(ServletContextUtil.getServletContext())"
 			},
 			{
-				"from": "setAttributes(request)",
+				"from": "regex:\\bsetAttributes\\(request\\)",
 				"to": "setAttributes(getRequest())"
 			}
 		]
@@ -6633,7 +6633,7 @@
 		]
 	},
 	{
-		"from": "ListUtil.fromArray(LanguageUtil.getAvailableLocales())",
+		"from": "regex:\\bListUtil\\.fromArray\\(LanguageUtil\\.getAvailableLocales\\(\\)\\)",
 		"issueKey": "LPS-192403",
 		"newImports": [
 			"java.util.ArrayList"
