@@ -6334,6 +6334,14 @@
 	},
 	{
 		"classNames": [
+			"CPDefinitionVirtualSetting"
+		],
+		"from": "getFileEntryId()",
+		"hasMessage": true,
+		"issueKey": "LPD-102094"
+	},
+	{
+		"classNames": [
 			"CommerceOrderLocalService",
 			"CommerceOrderLocalServiceUtil",
 			"CommerceOrderLocalServiceWrapper",
