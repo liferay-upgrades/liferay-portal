@@ -6334,6 +6334,15 @@
 	},
 	{
 		"classNames": [
+			"AssetTagLocalService",
+			"AssetTagLocalServiceUtil"
+		],
+		"from": "addTag(long paramName, long paramName, String paramName, ServiceContext paramName)",
+		"issueKey": "LPD-101848",
+		"to": "addTag(null, param#0#, param#1#, param#2#, param#3#)"
+	},
+	{
+		"classNames": [
 			"CommerceOrderLocalService",
 			"CommerceOrderLocalServiceUtil",
 			"CommerceOrderLocalServiceWrapper",
