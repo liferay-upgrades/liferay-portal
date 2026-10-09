@@ -1,0 +1,24 @@
+## Phase 3 — Fix Startup
+
+### OSGi validation on Hypersonic (Step C2b)
+- Status: complete / blocked (<list>)
+- Bundles not Active: none / <list with diag output>
+- DS unsatisfied components: none / <list with scr:info output>
+- Gogo answers saved to: <artifact dir>
+
+### Catalina
+- DB path (Step 0): upgraded database / Hypersonic only (DB-backed boot flagged for human review)
+- Status: complete
+- Issues fixed: <list>
+- Environment-specific warnings (not blocking): <list>
+
+### Startup (module deployment)
+- Modules deployed: <N>
+- Import-Package fixes: <N modules>
+- DS unsatisfied fixes: <N components>
+- All bundles Active: yes / no (blocked: <list>)
+
+### Login-render gate (Step S6)
+- DXP license: registered (Step C4.e) / missing (C4.e and S6 skipped, blocking)
+- Login renders: yes / theme-neutralized (flagged for Phase 5: <theme>)
+- Admin login: flagged for Phase 5, non-blocking (first-login reset pending: yes / no / unknown)
