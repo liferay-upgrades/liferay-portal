@@ -34,6 +34,7 @@ const mockedContext = {
 	changeLanguage: jest.fn(),
 	changeSpace: jest.fn(),
 	constants: {},
+	contentProgressFilter: '',
 	filters: {
 		language: initialLanguage,
 		space: initialSpace,

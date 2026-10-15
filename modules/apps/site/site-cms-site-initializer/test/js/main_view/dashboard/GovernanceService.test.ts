@@ -282,6 +282,7 @@ describe('GovernanceService.getContentProgress', () => {
 describe('GovernanceService.getContributors', () => {
 	afterEach(() => {
 		jest.restoreAllMocks();
+		jest.useRealTimers();
 	});
 
 	function mockContributorsSearch(buckets: object[], totalCount: number) {
@@ -309,6 +310,78 @@ describe('GovernanceService.getContributors', () => {
 					},
 				],
 			}
+		);
+	});
+
+	it('requests the given number of contributors', async () => {
+		const postSpy = mockContributorsSearch([], 0);
+
+		await GovernanceService.getContributors('someFilter', undefined, 5);
+
+		expect(postSpy).toHaveBeenCalledWith(
+			'/o/search/v1.0/search?filter=someFilter&pageSize=1',
+			expect.objectContaining({
+				facetConfigurations: [expect.objectContaining({maxTerms: 5})],
+			})
+		);
+	});
+
+	it('limits the contributors to the assets created in the last days', async () => {
+		jest.useFakeTimers().setSystemTime(
+			new Date('2026-10-07T12:00:00.000Z')
+		);
+
+		const postSpy = mockContributorsSearch([], 0);
+
+		await GovernanceService.getContributors('someFilter', 123, 5, {
+			days: 7,
+		});
+
+		const [url] = postSpy.mock.calls[0];
+
+		expect(
+			new URL(url, 'http://localhost').searchParams.get('filter')
+		).toBe(
+			'someFilter and groupIds/any(g:g eq 123) and dateCreated ge 2026-09-30T12:00:00.000Z'
+		);
+	});
+
+	it('limits the contributors to the whole days of a custom range', async () => {
+		const postSpy = mockContributorsSearch([], 0);
+
+		await GovernanceService.getContributors('someFilter', undefined, 5, {
+			endDate: '2026-09-30',
+			startDate: '2026-09-01',
+		});
+
+		const [url] = postSpy.mock.calls[0];
+
+		expect(
+			new URL(url, 'http://localhost').searchParams.get('filter')
+		).toBe(
+			`someFilter and dateCreated ge ${new Date(
+				'2026-09-01T00:00:00.000'
+			).toISOString()} and dateCreated le ${new Date(
+				'2026-09-30T23:59:59.999'
+			).toISOString()}`
+		);
+	});
+
+	it('skips the empty base filter when it joins the scope and the date range', async () => {
+		jest.useFakeTimers().setSystemTime(
+			new Date('2026-10-07T12:00:00.000Z')
+		);
+
+		const postSpy = mockContributorsSearch([], 0);
+
+		await GovernanceService.getContributors('', 123, 5, {days: 7});
+
+		const [url] = postSpy.mock.calls[0];
+
+		expect(
+			new URL(url, 'http://localhost').searchParams.get('filter')
+		).toBe(
+			'groupIds/any(g:g eq 123) and dateCreated ge 2026-09-30T12:00:00.000Z'
 		);
 	});
 
@@ -345,8 +418,8 @@ describe('GovernanceService.getContributors', () => {
 		expect(error).toBeNull();
 		expect(data).toEqual({
 			contributors: [
-				{frequency: 5, name: 'Daniel Reyes'},
-				{frequency: 3, name: null},
+				{frequency: 5, name: 'Daniel Reyes', userId: 1},
+				{frequency: 3, name: null, userId: 2},
 			],
 			totalCount: 10,
 		});
