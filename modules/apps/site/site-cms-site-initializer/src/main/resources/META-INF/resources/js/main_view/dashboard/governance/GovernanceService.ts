@@ -26,12 +26,17 @@ export type AssetStatistics = {
 export type Contributor = {
 	frequency: number;
 	name: string | null;
+	userId: number;
 };
 
 export type Contributors = {
 	contributors: Contributor[];
 	totalCount: number;
 };
+
+export type CreatedDateRange =
+	| {days: number}
+	| {endDate: string; startDate: string};
 
 export type DuplicateTitle = {
 	frequency: number;
@@ -103,10 +108,12 @@ async function getAssetStatistics(
 
 async function getContributors(
 	filter: string,
-	groupId?: number
+	groupId?: number,
+	maxTerms = MAX_CONTRIBUTORS,
+	createdDateRange?: CreatedDateRange
 ): Promise<RequestResult<Contributors>> {
 	const searchParams = new URLSearchParams({
-		filter: getScopedFilter(filter, groupId),
+		filter: getScopedFilter(filter, groupId, createdDateRange),
 		pageSize: '1',
 	});
 
@@ -119,7 +126,7 @@ async function getContributors(
 			{
 				aggregationName: CONTRIBUTORS_AGGREGATION_NAME,
 				frequencyThreshold: 1,
-				maxTerms: MAX_CONTRIBUTORS,
+				maxTerms,
 				name: 'user',
 			},
 		],
@@ -149,9 +156,10 @@ async function getContributors(
 
 	return {
 		data: {
-			contributors: buckets.map(({frequency}, index) => ({
+			contributors: buckets.map(({frequency, term}, index) => ({
 				frequency,
 				name: userAccounts[index].data?.name ?? null,
+				userId: Number(term),
 			})),
 			totalCount: data.totalCount,
 		},
@@ -164,17 +172,13 @@ function getContentProgress(
 	groupId?: number,
 	createdInLastDays?: number
 ) {
-	let scopedFilter = getScopedFilter(filter, groupId);
-
-	if (createdInLastDays) {
-		const createdSince = new Date(
-			Date.now() - createdInLastDays * MILLISECONDS_PER_DAY
-		);
-
-		scopedFilter = `${scopedFilter} and dateCreated ge ${createdSince.toISOString()}`;
-	}
-
-	const searchParams = new URLSearchParams({filter: scopedFilter});
+	const searchParams = new URLSearchParams({
+		filter: getScopedFilter(
+			filter,
+			groupId,
+			createdInLastDays ? {days: createdInLastDays} : undefined
+		),
+	});
 
 	// Facet configurations only work in the POST body, where the empty-search
 	// switch must travel as an attribute (the query parameter is ignored).
@@ -195,12 +199,33 @@ function getContentProgress(
 	});
 }
 
-function getScopedFilter(filter: string, groupId?: number) {
-	if (!Number(groupId)) {
-		return filter;
+function getDateCreatedFilter(createdDateRange: CreatedDateRange) {
+	if ('days' in createdDateRange) {
+		const createdSince = new Date(
+			Date.now() - createdDateRange.days * MILLISECONDS_PER_DAY
+		);
+
+		return `dateCreated ge ${createdSince.toISOString()}`;
 	}
 
-	return `${filter} and groupIds/any(g:g eq ${Number(groupId)})`;
+	const endDate = new Date(`${createdDateRange.endDate}T23:59:59.999`);
+	const startDate = new Date(`${createdDateRange.startDate}T00:00:00.000`);
+
+	return `dateCreated ge ${startDate.toISOString()} and dateCreated le ${endDate.toISOString()}`;
+}
+
+function getScopedFilter(
+	filter: string,
+	groupId?: number,
+	createdDateRange?: CreatedDateRange
+) {
+	return [
+		filter,
+		Number(groupId) ? `groupIds/any(g:g eq ${Number(groupId)})` : '',
+		createdDateRange ? getDateCreatedFilter(createdDateRange) : '',
+	]
+		.filter(Boolean)
+		.join(' and ');
 }
 
 function getLongStandingDraftsThresholdDate() {
