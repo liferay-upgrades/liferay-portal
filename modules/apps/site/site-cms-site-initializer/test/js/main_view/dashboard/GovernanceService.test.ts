@@ -312,6 +312,19 @@ describe('GovernanceService.getContributors', () => {
 		);
 	});
 
+	it('requests the given number of contributors', async () => {
+		const postSpy = mockContributorsSearch([], 0);
+
+		await GovernanceService.getContributors('someFilter', undefined, 5);
+
+		expect(postSpy).toHaveBeenCalledWith(
+			'/o/search/v1.0/search?filter=someFilter&pageSize=1',
+			expect.objectContaining({
+				facetConfigurations: [expect.objectContaining({maxTerms: 5})],
+			})
+		);
+	});
+
 	it('resolves each contributor name and marks deleted users', async () => {
 		mockContributorsSearch(
 			[
@@ -345,8 +358,8 @@ describe('GovernanceService.getContributors', () => {
 		expect(error).toBeNull();
 		expect(data).toEqual({
 			contributors: [
-				{frequency: 5, name: 'Daniel Reyes'},
-				{frequency: 3, name: null},
+				{frequency: 5, name: 'Daniel Reyes', userId: 1},
+				{frequency: 3, name: null, userId: 2},
 			],
 			totalCount: 10,
 		});
