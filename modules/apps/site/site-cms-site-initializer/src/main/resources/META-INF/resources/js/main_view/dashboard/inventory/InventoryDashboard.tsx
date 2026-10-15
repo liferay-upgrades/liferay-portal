@@ -14,16 +14,19 @@ import {ExpiredAssetsCard} from './components/ExpiredAssetsCard';
 import {FilesCard} from './components/FilesCard';
 import {InventoryAnalysisCard} from './components/InventoryAnalysisCard';
 import {LanguagesDropdown} from './components/LanguagesDropdown';
+import {TopContributorsCard} from './components/TopContributorsCard';
 
 import '../../../../css/dashboard/InventoryDashboard.scss';
 
 export default function InventoryDashboard({
 	constants,
+	contentProgressFilter,
 }: {
 	constants: {[key: string]: string};
+	contentProgressFilter: string;
 }) {
 	return (
-		<InventoryContextProvider value={{constants}}>
+		<InventoryContextProvider value={{constants, contentProgressFilter}}>
 			<InventoryDashboardContent />
 		</InventoryContextProvider>
 	);
@@ -95,8 +98,12 @@ function InventoryDashboardContent() {
 			</ClayLayout.Row>
 
 			<ClayLayout.Row className="mb-4">
-				<ClayLayout.Col size={12}>
+				<ClayLayout.Col className="mb-3" size={12}>
 					<ExpiredAssetsCard />
+				</ClayLayout.Col>
+
+				<ClayLayout.Col className="mb-3" lg={12} xl={6}>
+					<TopContributorsCard />
 				</ClayLayout.Col>
 			</ClayLayout.Row>
 		</>

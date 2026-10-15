@@ -118,7 +118,12 @@ function Dashboards({
 	if (enabledTabIds.length === 1) {
 		return (
 			<ClayLayout.Container className="px-4" fluid>
-				<InventoryDashboard constants={constants} />
+				<InventoryDashboard
+					constants={constants}
+					contentProgressFilter={
+						additionalProps.contentProgressFilter
+					}
+				/>
 			</ClayLayout.Container>
 		);
 	}
@@ -140,7 +145,12 @@ function Dashboards({
 				) : null}
 
 				{tabId === 'inventory' ? (
-					<InventoryDashboard constants={constants} />
+					<InventoryDashboard
+						constants={constants}
+						contentProgressFilter={
+							additionalProps.contentProgressFilter
+						}
+					/>
 				) : null}
 
 				{tabId === 'performance' ? (
