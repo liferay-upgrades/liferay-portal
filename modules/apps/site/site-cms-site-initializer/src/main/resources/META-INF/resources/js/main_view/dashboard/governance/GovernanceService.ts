@@ -26,6 +26,7 @@ export type AssetStatistics = {
 export type Contributor = {
 	frequency: number;
 	name: string | null;
+	userId: number;
 };
 
 export type Contributors = {
@@ -103,7 +104,8 @@ async function getAssetStatistics(
 
 async function getContributors(
 	filter: string,
-	groupId?: number
+	groupId?: number,
+	maxTerms = MAX_CONTRIBUTORS
 ): Promise<RequestResult<Contributors>> {
 	const searchParams = new URLSearchParams({
 		filter: getScopedFilter(filter, groupId),
@@ -119,7 +121,7 @@ async function getContributors(
 			{
 				aggregationName: CONTRIBUTORS_AGGREGATION_NAME,
 				frequencyThreshold: 1,
-				maxTerms: MAX_CONTRIBUTORS,
+				maxTerms,
 				name: 'user',
 			},
 		],
@@ -149,9 +151,10 @@ async function getContributors(
 
 	return {
 		data: {
-			contributors: buckets.map(({frequency}, index) => ({
+			contributors: buckets.map(({frequency, term}, index) => ({
 				frequency,
 				name: userAccounts[index].data?.name ?? null,
+				userId: Number(term),
 			})),
 			totalCount: data.totalCount,
 		},

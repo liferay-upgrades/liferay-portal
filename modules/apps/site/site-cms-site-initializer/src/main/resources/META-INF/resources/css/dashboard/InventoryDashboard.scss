@@ -14,4 +14,19 @@
 			margin-top: 0;
 		}
 	}
+
+	&__top-contributors {
+		.progress {
+			height: 6px;
+		}
+
+		.text-truncate {
+			flex: 0 0 30%;
+		}
+
+		&__count {
+			font-variant-numeric: tabular-nums;
+			min-width: 5rem;
+		}
+	}
 }
