@@ -321,6 +321,27 @@ public class AssetLibrary implements Cloneable, Serializable {
 
 	protected Map<String, String> name_i18n;
 
+	public Integer getNumberOfAssets() {
+		return numberOfAssets;
+	}
+
+	public void setNumberOfAssets(Integer numberOfAssets) {
+		this.numberOfAssets = numberOfAssets;
+	}
+
+	public void setNumberOfAssets(
+		UnsafeSupplier<Integer, Exception> numberOfAssetsUnsafeSupplier) {
+
+		try {
+			numberOfAssets = numberOfAssetsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Integer numberOfAssets;
+
 	public Integer getNumberOfConnectedSites() {
 		return numberOfConnectedSites;
 	}
@@ -591,4 +612,4 @@ public class AssetLibrary implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:279296314
+// LIFERAY-REST-BUILDER-HASH:-1384472534
