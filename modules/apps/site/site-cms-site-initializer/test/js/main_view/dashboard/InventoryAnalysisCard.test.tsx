@@ -19,6 +19,7 @@ const mockContextValue: State = {
 	changeLanguage: jest.fn(),
 	changeSpace: jest.fn(),
 	constants: {},
+	contentProgressFilter: '',
 	filters: {
 		language: {label: 'English', value: 'en_US'} as Item,
 		space: {label: 'Global', value: '1'} as Item,
