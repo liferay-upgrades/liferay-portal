@@ -1,0 +1,26 @@
+@import '_atlas-custom-properties-variables';
+
+.cms-scheduled-content-quick-filters {
+	.cms-scheduled-content-quick-filter-button {
+		border-color: $secondary-l2;
+		height: 100%;
+		padding-bottom: 0.75rem;
+		padding-top: 0.75rem;
+		text-align: left;
+		width: 100%;
+
+		&:hover {
+			background-color: $light-l1;
+			border-color: $secondary-l0;
+		}
+
+		&.active {
+			background-color: $light;
+			border-color: $dark;
+		}
+	}
+
+	.sticker-info {
+		background-color: $info-l2;
+	}
+}

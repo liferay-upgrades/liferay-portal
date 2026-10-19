@@ -46,6 +46,13 @@
 						"friendlyURL": "/files",
 						"privateLayout": false,
 						"type": "layout"
+					},
+					{
+						"displayIcon": "calendar",
+						"externalReferenceCode": "CMSPRIMARYNAVIGATION11",
+						"friendlyURL": "/scheduled-content",
+						"privateLayout": false,
+						"type": "layout"
 					}
 				],
 				"name_i18n": {

@@ -86,6 +86,7 @@ export {default as MembersFDSPropsTransformer} from './main_view/props_transform
 export {default as PendingWorkflowsFDSPropsTransformer} from './main_view/props_transformer/PendingWorkflowsFDSPropsTransformer';
 export {default as RecycleBinFDSPropsTransformer} from './main_view/props_transformer/RecycleBinFDSPropsTransformer';
 export {default as RelatedAssetsFDSPropsTransformer} from './main_view/props_transformer/RelatedAssetsFDSPropsTransformer';
+export {default as ScheduledContentFDSPropsTransformer} from './main_view/props_transformer/ScheduledContentFDSPropsTransformer';
 export {default as SharedWithMeFDSPropsTransformer} from './main_view/props_transformer/SharedWithMeFDSPropsTransformer';
 export {default as SitesFDSPropsTransformer} from './main_view/props_transformer/SitesFDSPropsTransformer';
 export {default as StructureUsagesFDSPropsTransformer} from './main_view/props_transformer/StructureUsagesFDSPropsTransformer';
@@ -107,6 +108,8 @@ export {default as styleDeleteAction} from './main_view/props_transformer/utils/
 export {default as transformFDSBulkActions} from './main_view/props_transformer/utils/transformFDSBulkActions';
 export {default as AllQuickFilters} from './main_view/quick_filters/AllQuickFilters';
 export {default as RecycleBinToolbar} from './main_view/recycle_bin/RecycleBinToolbar';
+export {default as ScheduledContentQuickFilters} from './main_view/scheduled_content/ScheduledContentQuickFilters';
+export {default as UpcomingPublicationsAlert} from './main_view/scheduled_content/UpcomingPublicationsAlert';
 export {default as AddSpaceMembers} from './main_view/spaces/AddSpaceMembers';
 export {default as NewSpace} from './main_view/spaces/NewSpace';
 export {default as SpaceSettings} from './main_view/spaces/SpaceSettings';

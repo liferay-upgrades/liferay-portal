@@ -67,6 +67,10 @@ public class CMSSiteInitializerFDSNames {
 		CMSSiteInitializerConstants.BUNDLE_SYMBOLIC_NAME +
 			"-relatedAssetsSection";
 
+	public static final String SCHEDULED_CONTENT_SECTION =
+		CMSSiteInitializerConstants.BUNDLE_SYMBOLIC_NAME +
+			"-scheduledContentSection";
+
 	public static final String SHARED_WITH_ME =
 		CMSSiteInitializerConstants.BUNDLE_SYMBOLIC_NAME + "-sharedWithMe";
 

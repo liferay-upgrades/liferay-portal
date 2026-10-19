@@ -95,6 +95,7 @@ export type ItemSelectorItemType =
 
 export const CMSSiteInitializerFDSNames = {
 	ALL_SECTION: '-allSection',
+	SCHEDULED_CONTENT_SECTION: '-scheduledContentSection',
 } as const;
 
 export const WORKFLOW_STATUS = {
@@ -109,6 +110,7 @@ export type WorkflowStatus =
 	(typeof WORKFLOW_STATUS)[keyof typeof WORKFLOW_STATUS];
 
 export const FDS_FILTER_ID = {
+	DATE_DISPLAY: 'dateDisplay',
 	DATE_EXPIRATION: 'dateExpiration',
 	DATE_MODIFIED: 'dateModified',
 	DATE_REVIEW: 'dateReview',
