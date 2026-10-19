@@ -26,6 +26,19 @@ async function addSpace({
 	);
 }
 
+async function getRecentSpaces(signal?: AbortSignal) {
+	const urlParams = new URLSearchParams({
+		filter: "type eq 'Space'",
+		pageSize: '4',
+		sort: 'dateModified:desc',
+	});
+
+	return await ApiHelper.get<{items: Space[]; totalCount: number}>(
+		`/o/headless-asset-library/v1.0/asset-libraries?${urlParams.toString()}`,
+		signal
+	);
+}
+
 async function getSpace(externalReferenceCode: string): Promise<Space> {
 	const url = `/o/headless-asset-library/v1.0/asset-libraries/${externalReferenceCode}`;
 
@@ -39,6 +52,21 @@ async function getSpace(externalReferenceCode: string): Promise<Space> {
 }
 
 const spaceCache = new Map<string, Promise<Space>>();
+
+async function getSpaceAssetsCount(
+	assetLibraryId: number,
+	signal?: AbortSignal
+) {
+	const urlParams = new URLSearchParams({
+		assetLibraryId: String(assetLibraryId),
+		fields: 'totalCount',
+	});
+
+	return await ApiHelper.get<{totalCount: number}>(
+		`/o/headless-cms/v1.0/asset-statistics?${urlParams.toString()}`,
+		signal
+	);
+}
 
 async function getSpaceWithCache(
 	externalReferenceCode: string,
@@ -102,7 +130,9 @@ async function updateSpace(externalReferenceCode: string, body: any) {
 
 export default {
 	addSpace,
+	getRecentSpaces,
 	getSpace,
+	getSpaceAssetsCount,
 	getSpaceContents,
 	getSpaceWithCache,
 	getSpaces,

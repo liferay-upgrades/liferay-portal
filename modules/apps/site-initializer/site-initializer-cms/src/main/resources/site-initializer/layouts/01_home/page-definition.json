@@ -186,6 +186,36 @@
 							}
 						],
 						"type": "Row"
+					},
+					{
+						"definition": {
+							"indexed": true,
+							"layout": {
+							}
+						},
+						"id": "0c965ee8-f2a5-47d8-92b0-36ffe25a4359",
+						"pageElements": [
+							{
+								"definition": {
+									"fragment": {
+										"key": "com.liferay.site.cms.site.initializer.internal.fragment.renderer.ViewHomeMySpacesJSPSectionFragmentRenderer"
+									},
+									"fragmentConfig": {
+									},
+									"fragmentFields": [
+									],
+									"fragmentStyle": {
+										"borderColor": "rgb(205, 206, 217)",
+										"borderRadius": "10px",
+										"borderWidth": "0.05rem",
+										"marginTop": "3"
+									},
+									"indexed": true
+								},
+								"type": "Fragment"
+							}
+						],
+						"type": "Section"
 					}
 				],
 				"type": "Section"

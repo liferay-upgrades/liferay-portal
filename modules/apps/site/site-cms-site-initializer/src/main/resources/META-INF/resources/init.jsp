@@ -34,6 +34,7 @@ page import="com.liferay.site.cms.site.initializer.internal.display.context.View
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewDashboardDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewFilesSectionDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewFolderSectionDisplayContext" %><%@
+page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewHomeMySpacesDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewHomeQuickActionsDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewHomeRecentAssetsSectionDisplayContext" %><%@
 page import="com.liferay.site.cms.site.initializer.internal.display.context.ViewHomeSearchBarDisplayContext" %><%@

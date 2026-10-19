@@ -1,0 +1,15 @@
+@import '_atlas-custom-properties-variables';
+
+.my-spaces {
+	.my-spaces-tile {
+		border: 1px solid $secondary-l2;
+		border-radius: 6px;
+		min-width: 0;
+		padding: 12px;
+
+		&:hover,
+		&:focus {
+			background-color: $light-l1;
+		}
+	}
+}

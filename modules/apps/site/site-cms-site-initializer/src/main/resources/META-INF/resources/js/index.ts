@@ -58,6 +58,7 @@ export {default as EditVocabulary} from './main_view/categorization/vocabularies
 export {default as Dashboards} from './main_view/dashboard/Dashboards';
 
 export {default as EditFolder} from './main_view/folders/EditFolder';
+export {default as MySpaces} from './main_view/home/MySpaces';
 export {default as QuickActions} from './main_view/home/QuickActions';
 export {default as SearchBar} from './main_view/home/SearchBar';
 
