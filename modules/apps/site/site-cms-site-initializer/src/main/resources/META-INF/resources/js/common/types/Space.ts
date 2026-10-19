@@ -18,6 +18,7 @@ export type LogoColor =
 export type Space = {
 	assetLibraryKey: string;
 	creatorUserId: string;
+	dateModified?: string;
 	description: string;
 	externalReferenceCode: string;
 	friendlyURL: string;
