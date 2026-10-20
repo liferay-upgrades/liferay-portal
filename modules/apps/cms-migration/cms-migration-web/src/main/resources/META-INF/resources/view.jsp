@@ -52,15 +52,15 @@ boolean inProgress = false;
 				</aui:select>
 
 				<%
-				List<DepotEntry> spaces = cmsMigrationDisplayContext.getSpaces();
+				List<DepotEntry> depotEntries = cmsMigrationDisplayContext.getDepotEntries();
 				%>
 
 				<aui:select label="cms-migration-target-space" name="depotEntryId">
-					<aui:option label="cms-migration-create-new-space" selected="<%= spaces.isEmpty() %>" value="0" />
+					<aui:option label="cms-migration-create-new-space" selected="<%= depotEntries.isEmpty() %>" value="0" />
 
 					<%
-					for (int i = 0; i < spaces.size(); i++) {
-						DepotEntry depotEntry = spaces.get(i);
+					for (int i = 0; i < depotEntries.size(); i++) {
+						DepotEntry depotEntry = depotEntries.get(i);
 
 						Group depotGroup = depotEntry.getGroup();
 					%>
@@ -73,8 +73,8 @@ boolean inProgress = false;
 
 				</aui:select>
 
-				<div class="<%= spaces.isEmpty() ? StringPool.BLANK : "d-none" %>" id="<portlet:namespace />spaceNameContainer">
-					<aui:input label="cms-migration-new-space-name" name="spaceName" type="text" />
+				<div class="<%= depotEntries.isEmpty() ? StringPool.BLANK : "d-none" %>" id="<portlet:namespace />depotEntryNameContainer">
+					<aui:input label="cms-migration-new-space-name" name="depotEntryName" type="text" />
 				</div>
 			</clay:sheet-section>
 
@@ -257,12 +257,12 @@ boolean inProgress = false;
 	const depotEntryIdSelect = document.getElementById(
 		'<portlet:namespace />depotEntryId'
 	);
-	const spaceNameContainer = document.getElementById(
-		'<portlet:namespace />spaceNameContainer'
+	const depotEntryNameContainer = document.getElementById(
+		'<portlet:namespace />depotEntryNameContainer'
 	);
 
 	depotEntryIdSelect.addEventListener('change', () => {
-		spaceNameContainer.classList.toggle(
+		depotEntryNameContainer.classList.toggle(
 			'd-none',
 			depotEntryIdSelect.value !== '0'
 		);

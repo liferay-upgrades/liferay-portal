@@ -5,26 +5,21 @@
 
 package com.liferay.cms.migration.web.internal.display.context;
 
+import com.liferay.cms.migration.manager.CMSMigrationManager;
 import com.liferay.cms.migration.report.CMSMigrationReport;
-import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusRegistryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.portlet.RenderRequest;
@@ -41,13 +36,13 @@ import java.util.List;
 public class CMSMigrationDisplayContext {
 
 	public CMSMigrationDisplayContext(
-		BackgroundTaskManager backgroundTaskManager,
+		CMSMigrationManager cmsMigrationManager,
 		DepotEntryLocalService depotEntryLocalService,
 		GroupLocalService groupLocalService,
 		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
 		RenderResponse renderResponse) {
 
-		_backgroundTaskManager = backgroundTaskManager;
+		_cmsMigrationManager = cmsMigrationManager;
 		_depotEntryLocalService = depotEntryLocalService;
 		_groupLocalService = groupLocalService;
 		_renderRequest = renderRequest;
@@ -58,39 +53,19 @@ public class CMSMigrationDisplayContext {
 	}
 
 	public List<BackgroundTask> getBackgroundTasks() {
-		return ListUtil.sort(
-			_backgroundTaskManager.getBackgroundTasks(
-				_themeDisplay.getCompanyGroupId(),
-				CMSMigrationBackgroundTaskExecutor.class.getName()),
-			(backgroundTask1, backgroundTask2) -> Long.compare(
-				backgroundTask2.getBackgroundTaskId(),
-				backgroundTask1.getBackgroundTaskId()));
+		return _cmsMigrationManager.getCMSMigrationBackgroundTasks(
+			_themeDisplay.getCompanyId());
 	}
 
 	public CMSMigrationReport getCMSMigrationReport(
 		BackgroundTask backgroundTask) {
 
-		String statusMessage = backgroundTask.getStatusMessage();
+		return _cmsMigrationManager.getCMSMigrationReport(backgroundTask);
+	}
 
-		if (Validator.isNull(statusMessage)) {
-			return new CMSMigrationReport();
-		}
-
-		try {
-			return CMSMigrationReport.of(
-				JSONFactoryUtil.createJSONObject(statusMessage));
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception);
-			}
-
-			CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
-
-			cmsMigrationReport.addError(statusMessage);
-
-			return cmsMigrationReport;
-		}
+	public List<DepotEntry> getDepotEntries() {
+		return _depotEntryLocalService.getDepotEntries(
+			_themeDisplay.getCompanyId(), DepotConstants.TYPE_SPACE);
 	}
 
 	public List<Group> getGroups() {
@@ -141,11 +116,6 @@ public class CMSMigrationDisplayContext {
 		return _renderResponse;
 	}
 
-	public List<DepotEntry> getSpaces() {
-		return _depotEntryLocalService.getDepotEntries(
-			_themeDisplay.getCompanyId(), DepotConstants.TYPE_SPACE);
-	}
-
 	public JSONObject getStatusJSONObject(BackgroundTask backgroundTask)
 		throws Exception {
 
@@ -161,10 +131,7 @@ public class CMSMigrationDisplayContext {
 			backgroundTaskStatus.getAttributesJSON());
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		CMSMigrationDisplayContext.class);
-
-	private final BackgroundTaskManager _backgroundTaskManager;
+	private final CMSMigrationManager _cmsMigrationManager;
 	private final DepotEntryLocalService _depotEntryLocalService;
 	private final GroupLocalService _groupLocalService;
 	private final RenderRequest _renderRequest;
