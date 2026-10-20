@@ -288,6 +288,63 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithBlogsEntryReferencingAttachment()
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
+
+		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
+			RandomTestUtil.randomBytes(), null, null, null, serviceContext);
+
+		_assertSuccessful(_execute(_group.getGroupId(), false));
+
+		ObjectEntry objectEntry = _getObjectEntry(
+			CMSMigrationConstants.
+				EXTERNAL_REFERENCE_CODE_PREFIX_DL_FILE_ENTRY_TYPE +
+					DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT,
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_FILE_ENTRY +
+				fileEntry.getFileEntryId());
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		BlogsEntry blogsEntry = _blogsEntryLocalService.addEntry(
+			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
+			StringBundler.concat(
+				"<p><img data-fileentryid=\"",
+				GetterUtil.getLong(
+					values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE)),
+				"\" /></p>"),
+			serviceContext);
+
+		_assertSuccessful(_execute(_group.getGroupId(), false));
+
+		Assert.assertEquals(
+			1,
+			_objectEntryLocalService.getObjectEntriesCount(
+				_depotEntry.getGroupId(), objectEntry.getObjectDefinitionId()));
+
+		objectEntry = _getObjectEntry(
+			CMSMigrationConstants.
+				OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY,
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_BLOGS_ENTRY +
+				blogsEntry.getEntryId());
+
+		values = objectEntry.getValues();
+
+		Map<String, String> contentMap = (Map<String, String>)values.get(
+			CMSMigrationConstants.OBJECT_FIELD_NAME_CONTENT + "_i18n");
+
+		Assert.assertEquals(
+			blogsEntry.getContent(),
+			contentMap.get(
+				LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault())));
+	}
+
+	@Test
 	public void testExecuteWithBlogsEntryWithoutReadingTimeEntry()
 		throws Exception {
 
