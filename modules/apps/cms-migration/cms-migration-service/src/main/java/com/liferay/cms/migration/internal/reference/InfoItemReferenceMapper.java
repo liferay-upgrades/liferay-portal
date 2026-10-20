@@ -27,7 +27,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -37,6 +36,9 @@ import com.liferay.portal.kernel.util.Validator;
 import java.util.Map;
 import java.util.Objects;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Translates references to classic content, as pages store them, into
  * references to the migrated object entries: item identity, mapped field IDs,
@@ -44,6 +46,7 @@ import java.util.Objects;
  *
  * @author Lino Alves
  */
+@Component(service = InfoItemReferenceMapper.class)
 public class InfoItemReferenceMapper {
 
 	public long getClassPK(
@@ -451,12 +454,6 @@ public class InfoItemReferenceMapper {
 	private static final Log _log = LogFactoryUtil.getLog(
 		InfoItemReferenceMapper.class);
 
-	private static final Snapshot<BlogsEntryLocalService>
-		_blogsEntryLocalServiceSnapshot = new Snapshot<>(
-			InfoItemReferenceMapper.class, BlogsEntryLocalService.class);
-	private static final Snapshot<DLFileEntryLocalService>
-		_dlFileEntryLocalServiceSnapshot = new Snapshot<>(
-			InfoItemReferenceMapper.class, DLFileEntryLocalService.class);
 	private static final Map<String, String> _fileFieldSuffixes =
 		HashMapBuilder.put(
 			"downloadURL", "#downloadURL"
@@ -473,15 +470,6 @@ public class InfoItemReferenceMapper {
 		).put(
 			"size", "#size"
 		).build();
-	private static final Snapshot<GroupLocalService>
-		_groupLocalServiceSnapshot = new Snapshot<>(
-			InfoItemReferenceMapper.class, GroupLocalService.class);
-	private static final Snapshot<JournalArticleLocalService>
-		_journalArticleLocalServiceSnapshot = new Snapshot<>(
-			InfoItemReferenceMapper.class, JournalArticleLocalService.class);
-	private static final Snapshot<ObjectDefinitionLocalService>
-		_objectDefinitionLocalServiceSnapshot = new Snapshot<>(
-			InfoItemReferenceMapper.class, ObjectDefinitionLocalService.class);
 	private static final Map<String, String> _objectEntryFieldNames =
 		HashMapBuilder.put(
 			"authorName", "author"
@@ -502,11 +490,6 @@ public class InfoItemReferenceMapper {
 		).put(
 			"publishDate", "publishDate"
 		).build();
-	private static final Snapshot<ObjectFieldLocalService>
-		_objectFieldLocalServiceSnapshot = new Snapshot<>(
-			InfoItemReferenceMapper.class, ObjectFieldLocalService.class);
-	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
-		InfoItemReferenceMapper.class, Portal.class);
 	private static final Map<String, String> _rendererStyles =
 		HashMapBuilder.put(
 			"BlogsEntryAbstractInfoItemRenderer",
@@ -528,18 +511,25 @@ public class InfoItemReferenceMapper {
 			CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_TITLE
 		).build();
 
-	private final BlogsEntryLocalService _blogsEntryLocalService =
-		_blogsEntryLocalServiceSnapshot.get();
-	private final DLFileEntryLocalService _dlFileEntryLocalService =
-		_dlFileEntryLocalServiceSnapshot.get();
-	private final GroupLocalService _groupLocalService =
-		_groupLocalServiceSnapshot.get();
-	private final JournalArticleLocalService _journalArticleLocalService =
-		_journalArticleLocalServiceSnapshot.get();
-	private final ObjectDefinitionLocalService _objectDefinitionLocalService =
-		_objectDefinitionLocalServiceSnapshot.get();
-	private final ObjectFieldLocalService _objectFieldLocalService =
-		_objectFieldLocalServiceSnapshot.get();
-	private final Portal _portal = _portalSnapshot.get();
+	@Reference
+	private BlogsEntryLocalService _blogsEntryLocalService;
+
+	@Reference
+	private DLFileEntryLocalService _dlFileEntryLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private JournalArticleLocalService _journalArticleLocalService;
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Reference
+	private Portal _portal;
 
 }

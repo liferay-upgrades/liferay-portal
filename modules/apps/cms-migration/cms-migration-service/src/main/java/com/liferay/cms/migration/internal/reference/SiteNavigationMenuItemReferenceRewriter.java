@@ -9,7 +9,6 @@ import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
@@ -18,12 +17,16 @@ import com.liferay.site.navigation.model.SiteNavigationMenuItem;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalService;
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalService;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Repoints the navigation menu items that link to the display page of classic
  * content.
  *
  * @author Lino Alves
  */
+@Component(service = SiteNavigationMenuItemReferenceRewriter.class)
 public class SiteNavigationMenuItemReferenceRewriter {
 
 	public void rewrite(CMSMigrationContext cmsMigrationContext) {
@@ -123,22 +126,14 @@ public class SiteNavigationMenuItemReferenceRewriter {
 		);
 	}
 
-	private static final Snapshot<SiteNavigationMenuItemLocalService>
-		_siteNavigationMenuItemLocalServiceSnapshot = new Snapshot<>(
-			SiteNavigationMenuItemReferenceRewriter.class,
-			SiteNavigationMenuItemLocalService.class);
-	private static final Snapshot<SiteNavigationMenuLocalService>
-		_siteNavigationMenuLocalServiceSnapshot = new Snapshot<>(
-			SiteNavigationMenuItemReferenceRewriter.class,
-			SiteNavigationMenuLocalService.class);
+	@Reference
+	private InfoItemReferenceMapper _infoItemReferenceMapper;
 
-	private final InfoItemReferenceMapper _infoItemReferenceMapper =
-		new InfoItemReferenceMapper();
-	private final SiteNavigationMenuItemLocalService
-		_siteNavigationMenuItemLocalService =
-			_siteNavigationMenuItemLocalServiceSnapshot.get();
-	private final SiteNavigationMenuLocalService
-		_siteNavigationMenuLocalService =
-			_siteNavigationMenuLocalServiceSnapshot.get();
+	@Reference
+	private SiteNavigationMenuItemLocalService
+		_siteNavigationMenuItemLocalService;
+
+	@Reference
+	private SiteNavigationMenuLocalService _siteNavigationMenuLocalService;
 
 }

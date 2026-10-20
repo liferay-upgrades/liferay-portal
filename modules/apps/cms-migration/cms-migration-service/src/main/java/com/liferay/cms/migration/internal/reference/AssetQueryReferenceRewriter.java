@@ -14,7 +14,6 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -28,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Rewrites the asset type filters of dynamic asset queries, as Asset
  * Publisher preferences and dynamic collections store them, so the queries
@@ -35,6 +37,7 @@ import java.util.Set;
  *
  * @author Lino Alves
  */
+@Component(service = AssetQueryReferenceRewriter.class)
 public class AssetQueryReferenceRewriter {
 
 	/**
@@ -227,9 +230,6 @@ public class AssetQueryReferenceRewriter {
 		return splitValues.toArray(new String[0]);
 	}
 
-	private static final Snapshot<DDMStructureLocalService>
-		_ddmStructureLocalServiceSnapshot = new Snapshot<>(
-			AssetQueryReferenceRewriter.class, DDMStructureLocalService.class);
 	private static final Map<String, String> _factoryNames = HashMapBuilder.put(
 		BlogsEntry.class.getName(), "BlogsEntryAssetRendererFactory"
 	).put(
@@ -237,13 +237,14 @@ public class AssetQueryReferenceRewriter {
 	).put(
 		JournalArticle.class.getName(), "JournalArticleAssetRendererFactory"
 	).build();
-	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
-		AssetQueryReferenceRewriter.class, Portal.class);
 
-	private final DDMStructureLocalService _ddmStructureLocalService =
-		_ddmStructureLocalServiceSnapshot.get();
-	private final InfoItemReferenceMapper _infoItemReferenceMapper =
-		new InfoItemReferenceMapper();
-	private final Portal _portal = _portalSnapshot.get();
+	@Reference
+	private DDMStructureLocalService _ddmStructureLocalService;
+
+	@Reference
+	private InfoItemReferenceMapper _infoItemReferenceMapper;
+
+	@Reference
+	private Portal _portal;
 
 }

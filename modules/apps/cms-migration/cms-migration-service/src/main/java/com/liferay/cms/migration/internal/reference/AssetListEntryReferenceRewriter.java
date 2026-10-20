@@ -22,7 +22,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
@@ -33,6 +32,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Repoints the collections of a site: manual collections select the migrated
  * entries, and dynamic collections query the migrated object definitions in
@@ -40,6 +42,7 @@ import java.util.Set;
  *
  * @author Lino Alves
  */
+@Component(service = AssetListEntryReferenceRewriter.class)
 public class AssetListEntryReferenceRewriter {
 
 	public void rewrite(CMSMigrationContext cmsMigrationContext) {
@@ -259,36 +262,24 @@ public class AssetListEntryReferenceRewriter {
 			assetListEntry.getAssetListEntryId(), referenceScope);
 	}
 
-	private static final Snapshot<AssetEntryLocalService>
-		_assetEntryLocalServiceSnapshot = new Snapshot<>(
-			AssetListEntryReferenceRewriter.class,
-			AssetEntryLocalService.class);
-	private static final Snapshot<AssetListEntryAssetEntryRelLocalService>
-		_assetListEntryAssetEntryRelLocalServiceSnapshot = new Snapshot<>(
-			AssetListEntryReferenceRewriter.class,
-			AssetListEntryAssetEntryRelLocalService.class);
-	private static final Snapshot<AssetListEntryLocalService>
-		_assetListEntryLocalServiceSnapshot = new Snapshot<>(
-			AssetListEntryReferenceRewriter.class,
-			AssetListEntryLocalService.class);
-	private static final Snapshot<AssetListEntrySegmentsEntryRelLocalService>
-		_assetListEntrySegmentsEntryRelLocalServiceSnapshot = new Snapshot<>(
-			AssetListEntryReferenceRewriter.class,
-			AssetListEntrySegmentsEntryRelLocalService.class);
+	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
 
-	private final AssetEntryLocalService _assetEntryLocalService =
-		_assetEntryLocalServiceSnapshot.get();
-	private final AssetListEntryAssetEntryRelLocalService
-		_assetListEntryAssetEntryRelLocalService =
-			_assetListEntryAssetEntryRelLocalServiceSnapshot.get();
-	private final AssetListEntryLocalService _assetListEntryLocalService =
-		_assetListEntryLocalServiceSnapshot.get();
-	private final AssetListEntrySegmentsEntryRelLocalService
-		_assetListEntrySegmentsEntryRelLocalService =
-			_assetListEntrySegmentsEntryRelLocalServiceSnapshot.get();
-	private final AssetQueryReferenceRewriter _assetQueryReferenceRewriter =
-		new AssetQueryReferenceRewriter();
-	private final InfoItemReferenceMapper _infoItemReferenceMapper =
-		new InfoItemReferenceMapper();
+	@Reference
+	private AssetListEntryAssetEntryRelLocalService
+		_assetListEntryAssetEntryRelLocalService;
+
+	@Reference
+	private AssetListEntryLocalService _assetListEntryLocalService;
+
+	@Reference
+	private AssetListEntrySegmentsEntryRelLocalService
+		_assetListEntrySegmentsEntryRelLocalService;
+
+	@Reference
+	private AssetQueryReferenceRewriter _assetQueryReferenceRewriter;
+
+	@Reference
+	private InfoItemReferenceMapper _infoItemReferenceMapper;
 
 }

@@ -24,7 +24,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -38,12 +37,16 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Rewrites the links and file URLs that HTML content stores as plain text, so
  * migrated content and page editables stop pointing at classic content.
  *
  * @author Lino Alves
  */
+@Component(service = HTMLReferenceRewriter.class)
 public class HTMLReferenceRewriter {
 
 	public String getFileEntryURL(FileEntry fileEntry) {
@@ -348,16 +351,8 @@ public class HTMLReferenceRewriter {
 
 	private static final Pattern _adaptiveMediaPattern = Pattern.compile(
 		"/o/adaptive-media/image/(\\d+)/[^\"'\\s)]*");
-	private static final Snapshot<BlogsEntryLocalService>
-		_blogsEntryLocalServiceSnapshot = new Snapshot<>(
-			HTMLReferenceRewriter.class, BlogsEntryLocalService.class);
 	private static final Pattern _blogsEntryPattern = Pattern.compile(
 		"/b/([^/\"'?#\\s)]+)");
-	private static final Snapshot<DLAppLocalService>
-		_dlAppLocalServiceSnapshot = new Snapshot<>(
-			HTMLReferenceRewriter.class, DLAppLocalService.class);
-	private static final Snapshot<DLURLHelper> _dlURLHelperSnapshot =
-		new Snapshot<>(HTMLReferenceRewriter.class, DLURLHelper.class);
 	private static final Pattern _documentsFriendlyURLPattern = Pattern.compile(
 		"/documents/d/([^/\"'?#\\s)]+)/([^/\"'?#\\s)]+)");
 	private static final Pattern _documentsUUIDPattern = Pattern.compile(
@@ -365,36 +360,31 @@ public class HTMLReferenceRewriter {
 			"[^\"'\\s)]*");
 	private static final Pattern _fileEntryIdAttributePattern = Pattern.compile(
 		"data-fileentryid=\"(\\d+)\"");
-	private static final Snapshot<FriendlyURLEntryLocalService>
-		_friendlyURLEntryLocalServiceSnapshot = new Snapshot<>(
-			HTMLReferenceRewriter.class, FriendlyURLEntryLocalService.class);
-	private static final Snapshot<GroupLocalService>
-		_groupLocalServiceSnapshot = new Snapshot<>(
-			HTMLReferenceRewriter.class, GroupLocalService.class);
-	private static final Snapshot<JournalArticleLocalService>
-		_journalArticleLocalServiceSnapshot = new Snapshot<>(
-			HTMLReferenceRewriter.class, JournalArticleLocalService.class);
 	private static final Pattern _journalArticlePattern = Pattern.compile(
 		"/w/([^/\"'?#\\s)]+)");
-	private static final Snapshot<ObjectDefinitionLocalService>
-		_objectDefinitionLocalServiceSnapshot = new Snapshot<>(
-			HTMLReferenceRewriter.class, ObjectDefinitionLocalService.class);
-	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
-		HTMLReferenceRewriter.class, Portal.class);
 
-	private final BlogsEntryLocalService _blogsEntryLocalService =
-		_blogsEntryLocalServiceSnapshot.get();
-	private final DLAppLocalService _dlAppLocalService =
-		_dlAppLocalServiceSnapshot.get();
-	private final DLURLHelper _dlURLHelper = _dlURLHelperSnapshot.get();
-	private final FriendlyURLEntryLocalService _friendlyURLEntryLocalService =
-		_friendlyURLEntryLocalServiceSnapshot.get();
-	private final GroupLocalService _groupLocalService =
-		_groupLocalServiceSnapshot.get();
-	private final JournalArticleLocalService _journalArticleLocalService =
-		_journalArticleLocalServiceSnapshot.get();
-	private final ObjectDefinitionLocalService _objectDefinitionLocalService =
-		_objectDefinitionLocalServiceSnapshot.get();
-	private final Portal _portal = _portalSnapshot.get();
+	@Reference
+	private BlogsEntryLocalService _blogsEntryLocalService;
+
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private DLURLHelper _dlURLHelper;
+
+	@Reference
+	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private JournalArticleLocalService _journalArticleLocalService;
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private Portal _portal;
 
 }
