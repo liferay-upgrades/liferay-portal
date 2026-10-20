@@ -361,6 +361,9 @@ public class DisplayPageTemplateMigrator {
 		_layoutPageTemplateEntryLocalServiceSnapshot = new Snapshot<>(
 			DisplayPageTemplateMigrator.class,
 			LayoutPageTemplateEntryLocalService.class);
+	private static final Snapshot<ObjectDefinitionMigrator>
+		_objectDefinitionMigratorSnapshot = new Snapshot<>(
+			DisplayPageTemplateMigrator.class, ObjectDefinitionMigrator.class);
 	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
 		DisplayPageTemplateMigrator.class, Portal.class);
 
@@ -381,7 +384,7 @@ public class DisplayPageTemplateMigrator {
 	private final LayoutReferenceRewriter _layoutReferenceRewriter =
 		new LayoutReferenceRewriter();
 	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		new ObjectDefinitionMigrator();
+		_objectDefinitionMigratorSnapshot.get();
 	private final Portal _portal = _portalSnapshot.get();
 
 }

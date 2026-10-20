@@ -41,7 +41,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -56,6 +55,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Creates the CMS object definitions that replace Web Content structures,
  * Blogs, and Documents and Media file entry types. Each definition is keyed by
@@ -64,6 +66,7 @@ import java.util.Set;
  *
  * @author Lino Alves
  */
+@Component(service = ObjectDefinitionMigrator.class)
 public class ObjectDefinitionMigrator {
 
 	public ObjectDefinition getExternalVideoObjectDefinition(
@@ -610,50 +613,29 @@ public class ObjectDefinitionMigrator {
 				false));
 	}
 
-	private static final Snapshot<DDMStructureLocalService>
-		_ddmStructureLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class, DDMStructureLocalService.class);
-	private static final Snapshot<Language> _languageSnapshot = new Snapshot<>(
-		ObjectDefinitionMigrator.class, Language.class);
-	private static final Snapshot<ListTypeDefinitionLocalService>
-		_listTypeDefinitionLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class,
-			ListTypeDefinitionLocalService.class);
-	private static final Snapshot<ObjectDefinitionLocalService>
-		_objectDefinitionLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class, ObjectDefinitionLocalService.class);
-	private static final Snapshot<ObjectDefinitionSettingLocalService>
-		_objectDefinitionSettingLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class,
-			ObjectDefinitionSettingLocalService.class);
-	private static final Snapshot<ObjectFieldLocalService>
-		_objectFieldLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class, ObjectFieldLocalService.class);
-	private static final Snapshot<ObjectFieldSettingLocalService>
-		_objectFieldSettingLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class,
-			ObjectFieldSettingLocalService.class);
-	private static final Snapshot<ObjectFolderLocalService>
-		_objectFolderLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class, ObjectFolderLocalService.class);
+	@Reference
+	private DDMStructureLocalService _ddmStructureLocalService;
 
-	private final DDMStructureLocalService _ddmStructureLocalService =
-		_ddmStructureLocalServiceSnapshot.get();
-	private final Language _language = _languageSnapshot.get();
-	private final ListTypeDefinitionLocalService
-		_listTypeDefinitionLocalService =
-			_listTypeDefinitionLocalServiceSnapshot.get();
-	private final ObjectDefinitionLocalService _objectDefinitionLocalService =
-		_objectDefinitionLocalServiceSnapshot.get();
-	private final ObjectDefinitionSettingLocalService
-		_objectDefinitionSettingLocalService =
-			_objectDefinitionSettingLocalServiceSnapshot.get();
-	private final ObjectFieldLocalService _objectFieldLocalService =
-		_objectFieldLocalServiceSnapshot.get();
-	private final ObjectFieldSettingLocalService
-		_objectFieldSettingLocalService =
-			_objectFieldSettingLocalServiceSnapshot.get();
-	private final ObjectFolderLocalService _objectFolderLocalService =
-		_objectFolderLocalServiceSnapshot.get();
+	@Reference
+	private Language _language;
+
+	@Reference
+	private ListTypeDefinitionLocalService _listTypeDefinitionLocalService;
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectDefinitionSettingLocalService
+		_objectDefinitionSettingLocalService;
+
+	@Reference
+	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Reference
+	private ObjectFieldSettingLocalService _objectFieldSettingLocalService;
+
+	@Reference
+	private ObjectFolderLocalService _objectFolderLocalService;
 
 }

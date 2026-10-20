@@ -368,6 +368,9 @@ public class FileEntryMigrator {
 	private static final Snapshot<AttachmentManager>
 		_attachmentManagerSnapshot = new Snapshot<>(
 			FileEntryMigrator.class, AttachmentManager.class);
+	private static final Snapshot<DDMFormValuesConverter>
+		_ddmFormValuesConverterSnapshot = new Snapshot<>(
+			FileEntryMigrator.class, DDMFormValuesConverter.class);
 	private static final Snapshot<DDMStorageEngineManager>
 		_ddmStorageEngineManagerSnapshot = new Snapshot<>(
 			FileEntryMigrator.class, DDMStorageEngineManager.class);
@@ -392,6 +395,9 @@ public class FileEntryMigrator {
 	private static final Snapshot<FriendlyURLEntryLocalService>
 		_friendlyURLEntryLocalServiceSnapshot = new Snapshot<>(
 			FileEntryMigrator.class, FriendlyURLEntryLocalService.class);
+	private static final Snapshot<ObjectDefinitionMigrator>
+		_objectDefinitionMigratorSnapshot = new Snapshot<>(
+			FileEntryMigrator.class, ObjectDefinitionMigrator.class);
 	private static final Snapshot<ObjectFieldLocalService>
 		_objectFieldLocalServiceSnapshot = new Snapshot<>(
 			FileEntryMigrator.class, ObjectFieldLocalService.class);
@@ -401,7 +407,7 @@ public class FileEntryMigrator {
 	private final AttachmentManager _attachmentManager =
 		_attachmentManagerSnapshot.get();
 	private final DDMFormValuesConverter _ddmFormValuesConverter =
-		new DDMFormValuesConverter();
+		_ddmFormValuesConverterSnapshot.get();
 	private final DDMStorageEngineManager _ddmStorageEngineManager =
 		_ddmStorageEngineManagerSnapshot.get();
 	private final DDMStructureLocalService _ddmStructureLocalService =
@@ -421,7 +427,7 @@ public class FileEntryMigrator {
 	private final FriendlyURLEntryLocalService _friendlyURLEntryLocalService =
 		_friendlyURLEntryLocalServiceSnapshot.get();
 	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		new ObjectDefinitionMigrator();
+		_objectDefinitionMigratorSnapshot.get();
 	private final ObjectEntryWriter _objectEntryWriter =
 		new ObjectEntryWriter();
 	private final ObjectFieldLocalService _objectFieldLocalService =

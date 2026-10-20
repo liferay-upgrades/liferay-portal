@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -48,6 +47,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Converts Dynamic Data Mapping form values into object entry values. Field
  * references to documents and web content are repointed to the migrated
@@ -55,6 +57,7 @@ import java.util.Objects;
  *
  * @author Lino Alves
  */
+@Component(service = DDMFormValuesConverter.class)
 public class DDMFormValuesConverter {
 
 	public Map<String, Serializable> getValues(
@@ -572,26 +575,19 @@ public class DDMFormValuesConverter {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMFormValuesConverter.class);
 
-	private static final Snapshot<DLAppLocalService>
-		_dlAppLocalServiceSnapshot = new Snapshot<>(
-			DDMFormValuesConverter.class, DLAppLocalService.class);
-	private static final Snapshot<HTMLReferenceRewriter>
-		_htmlReferenceRewriterSnapshot = new Snapshot<>(
-			DDMFormValuesConverter.class, HTMLReferenceRewriter.class);
-	private static final Snapshot<JournalArticleLocalService>
-		_journalArticleLocalServiceSnapshot = new Snapshot<>(
-			DDMFormValuesConverter.class, JournalArticleLocalService.class);
-	private static final Snapshot<JSONFactory> _jsonFactorySnapshot =
-		new Snapshot<>(DDMFormValuesConverter.class, JSONFactory.class);
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
 
-	private final DLAppLocalService _dlAppLocalService =
-		_dlAppLocalServiceSnapshot.get();
-	private final HTMLReferenceRewriter _htmlReferenceRewriter =
-		_htmlReferenceRewriterSnapshot.get();
-	private final JournalArticleLocalService _journalArticleLocalService =
-		_journalArticleLocalServiceSnapshot.get();
-	private final JSONFactory _jsonFactory = _jsonFactorySnapshot.get();
-	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		new ObjectDefinitionMigrator();
+	@Reference
+	private HTMLReferenceRewriter _htmlReferenceRewriter;
+
+	@Reference
+	private JournalArticleLocalService _journalArticleLocalService;
+
+	@Reference
+	private JSONFactory _jsonFactory;
+
+	@Reference
+	private ObjectDefinitionMigrator _objectDefinitionMigrator;
 
 }

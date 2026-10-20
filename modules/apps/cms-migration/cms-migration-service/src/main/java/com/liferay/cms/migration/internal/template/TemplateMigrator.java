@@ -18,7 +18,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.template.model.TemplateEntry;
@@ -35,6 +34,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Turns the Web Content templates of every migrated structure into
  * information templates of the object definition that replaces the
@@ -43,6 +45,7 @@ import java.util.regex.Pattern;
  *
  * @author Lino Alves
  */
+@Component(service = TemplateMigrator.class)
 public class TemplateMigrator {
 
 	public String getScript(
@@ -288,14 +291,6 @@ public class TemplateMigrator {
 		"templatesPath", "viewMode"
 	};
 
-	private static final Snapshot<DDMTemplateLocalService>
-		_ddmTemplateLocalServiceSnapshot = new Snapshot<>(
-			TemplateMigrator.class, DDMTemplateLocalService.class);
-	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
-		TemplateMigrator.class, Portal.class);
-	private static final Snapshot<TemplateEntryLocalService>
-		_templateEntryLocalServiceSnapshot = new Snapshot<>(
-			TemplateMigrator.class, TemplateEntryLocalService.class);
 	private static final Pattern _tokenPattern = Pattern.compile(
 		"(?<!@)@([a-z_]+)@(?!@)");
 	private static final Set<String> _tokens = new LinkedHashSet<>(
@@ -310,10 +305,13 @@ public class TemplateMigrator {
 			"protocol", "root_path", "scope_group_id", "site_group_id",
 			"theme_image_path"));
 
-	private final DDMTemplateLocalService _ddmTemplateLocalService =
-		_ddmTemplateLocalServiceSnapshot.get();
-	private final Portal _portal = _portalSnapshot.get();
-	private final TemplateEntryLocalService _templateEntryLocalService =
-		_templateEntryLocalServiceSnapshot.get();
+	@Reference
+	private DDMTemplateLocalService _ddmTemplateLocalService;
+
+	@Reference
+	private Portal _portal;
+
+	@Reference
+	private TemplateEntryLocalService _templateEntryLocalService;
 
 }
