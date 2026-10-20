@@ -5,7 +5,7 @@
 
 package com.liferay.cms.migration.internal.content;
 
-import com.liferay.cms.migration.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.object.field.attachment.AttachmentManager;
 import com.liferay.object.model.ObjectDefinition;

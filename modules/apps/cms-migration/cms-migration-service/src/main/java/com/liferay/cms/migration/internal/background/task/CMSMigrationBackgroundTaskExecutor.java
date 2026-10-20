@@ -5,7 +5,8 @@
 
 package com.liferay.cms.migration.internal.background.task;
 
-import com.liferay.cms.migration.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
+import com.liferay.cms.migration.internal.migration.CMSMigrationBackgroundTaskStatusMessageSender;
 import com.liferay.cms.migration.internal.migration.CMSMigrator;
 import com.liferay.cms.migration.report.CMSMigrationReport;
 import com.liferay.depot.model.DepotEntry;

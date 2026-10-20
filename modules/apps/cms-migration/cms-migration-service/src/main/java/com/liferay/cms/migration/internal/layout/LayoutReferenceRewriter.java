@@ -3,9 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.cms.migration.internal.reference;
+package com.liferay.cms.migration.internal.layout;
 
-import com.liferay.cms.migration.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.ReferenceScope;
+import com.liferay.cms.migration.internal.reference.InfoItemReferenceMapper;
+import com.liferay.cms.migration.internal.reference.JSONReferenceRewriter;
 import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;

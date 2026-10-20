@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.cms.migration.internal.reference;
+package com.liferay.cms.migration.internal.layout;
 
 import com.liferay.asset.display.page.constants.AssetDisplayPageConstants;
 import com.liferay.asset.display.page.model.AssetDisplayPageEntry;
 import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.cms.migration.constants.CMSMigrationConstants;
-import com.liferay.cms.migration.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.ReferenceScope;
+import com.liferay.cms.migration.internal.reference.InfoItemReferenceMapper;
 import com.liferay.cms.migration.internal.structure.ObjectDefinitionMigrator;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
