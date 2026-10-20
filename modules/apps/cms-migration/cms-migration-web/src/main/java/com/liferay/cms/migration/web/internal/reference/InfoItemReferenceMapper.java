@@ -7,10 +7,9 @@ package com.liferay.cms.migration.web.internal.reference;
 
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
-import com.liferay.cms.migration.web.internal.info.item.renderer.CMSMigrationInfoItemRenderer;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.util.CMSMigrationDDMFormFieldUtil;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
-import com.liferay.cms.migration.web.internal.structure.CMSMigrationDDMFormFieldUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -46,10 +45,6 @@ import java.util.Objects;
  * @author Lino Alves
  */
 public class InfoItemReferenceMapper {
-
-	public static final String TEMPLATE_INFO_ITEM_RENDERER_KEY =
-		"com.liferay.template.internal.info.item.renderer." +
-			"TemplateInfoItemTemplatedRenderer";
 
 	public long getClassPK(
 		CMSMigrationContext cmsMigrationContext, String sourceClassName,
@@ -281,7 +276,8 @@ public class InfoItemReferenceMapper {
 			}
 
 			return new String[] {
-				TEMPLATE_INFO_ITEM_RENDERER_KEY, String.valueOf(templateEntryId)
+				CMSMigrationConstants.INFO_ITEM_RENDERER_KEY_TEMPLATE,
+				String.valueOf(templateEntryId)
 			};
 		}
 
@@ -292,7 +288,8 @@ public class InfoItemReferenceMapper {
 		}
 
 		return new String[] {
-			CMSMigrationInfoItemRenderer.getKey(style), StringPool.BLANK
+			CMSMigrationConstants.INFO_ITEM_RENDERER_KEY_PREFIX + style,
+			StringPool.BLANK
 		};
 	}
 
@@ -513,22 +510,22 @@ public class InfoItemReferenceMapper {
 	private static final Map<String, String> _rendererStyles =
 		HashMapBuilder.put(
 			"BlogsEntryAbstractInfoItemRenderer",
-			CMSMigrationInfoItemRenderer.STYLE_ABSTRACT
+			CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_ABSTRACT
 		).put(
 			"BlogsEntryFullContentInfoItemRenderer",
-			CMSMigrationInfoItemRenderer.STYLE_BLOGS_FULL_CONTENT
+			CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_BLOGS_FULL_CONTENT
 		).put(
 			"FileEntryAbstractInfoItemRenderer",
-			CMSMigrationInfoItemRenderer.STYLE_FILE_ABSTRACT
+			CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_FILE_ABSTRACT
 		).put(
 			"FileEntryTitleInfoItemRenderer",
-			CMSMigrationInfoItemRenderer.STYLE_FILE_TITLE
+			CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_FILE_TITLE
 		).put(
 			"JournalArticleAbstractInfoItemRenderer",
-			CMSMigrationInfoItemRenderer.STYLE_ABSTRACT
+			CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_ABSTRACT
 		).put(
 			"JournalArticleTitleInfoItemRenderer",
-			CMSMigrationInfoItemRenderer.STYLE_TITLE
+			CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_TITLE
 		).build();
 
 	private final BlogsEntryLocalService _blogsEntryLocalService =

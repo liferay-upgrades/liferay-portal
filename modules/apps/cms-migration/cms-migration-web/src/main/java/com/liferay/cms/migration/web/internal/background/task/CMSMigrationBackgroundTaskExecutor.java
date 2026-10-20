@@ -5,9 +5,9 @@
 
 package com.liferay.cms.migration.web.internal.background.task;
 
+import com.liferay.cms.migration.report.CMSMigrationReport;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationManager;
-import com.liferay.cms.migration.web.internal.migration.CMSMigrationReport;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;

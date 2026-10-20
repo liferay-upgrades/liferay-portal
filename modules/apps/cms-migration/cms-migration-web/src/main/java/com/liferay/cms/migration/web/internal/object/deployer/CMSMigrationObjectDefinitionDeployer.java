@@ -5,7 +5,7 @@
 
 package com.liferay.cms.migration.web.internal.object.deployer;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.web.internal.info.item.renderer.CMSMigrationInfoItemRenderer;
 import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
@@ -59,11 +59,12 @@ public class CMSMigrationObjectDefinitionDeployer
 			serviceRegistrations.add(
 				_register(
 					objectDefinition,
-					CMSMigrationInfoItemRenderer.STYLE_ABSTRACT));
+					CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_ABSTRACT));
 			serviceRegistrations.add(
 				_register(
 					objectDefinition,
-					CMSMigrationInfoItemRenderer.STYLE_BLOGS_FULL_CONTENT));
+					CMSMigrationConstants.
+						INFO_ITEM_RENDERER_STYLE_BLOGS_FULL_CONTENT));
 		}
 		else if (externalReferenceCode.startsWith(
 					CMSMigrationConstants.
@@ -72,21 +73,22 @@ public class CMSMigrationObjectDefinitionDeployer
 			serviceRegistrations.add(
 				_register(
 					objectDefinition,
-					CMSMigrationInfoItemRenderer.STYLE_FILE_ABSTRACT));
+					CMSMigrationConstants.
+						INFO_ITEM_RENDERER_STYLE_FILE_ABSTRACT));
 			serviceRegistrations.add(
 				_register(
 					objectDefinition,
-					CMSMigrationInfoItemRenderer.STYLE_FILE_TITLE));
+					CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_FILE_TITLE));
 		}
 		else {
 			serviceRegistrations.add(
 				_register(
 					objectDefinition,
-					CMSMigrationInfoItemRenderer.STYLE_ABSTRACT));
+					CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_ABSTRACT));
 			serviceRegistrations.add(
 				_register(
 					objectDefinition,
-					CMSMigrationInfoItemRenderer.STYLE_TITLE));
+					CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_TITLE));
 		}
 
 		return serviceRegistrations;

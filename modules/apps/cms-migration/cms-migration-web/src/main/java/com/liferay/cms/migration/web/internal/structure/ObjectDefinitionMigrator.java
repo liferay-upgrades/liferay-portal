@@ -6,7 +6,8 @@
 package com.liferay.cms.migration.web.internal.structure;
 
 import com.liferay.blogs.model.BlogsEntry;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.util.CMSMigrationDDMFormFieldUtil;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryType;

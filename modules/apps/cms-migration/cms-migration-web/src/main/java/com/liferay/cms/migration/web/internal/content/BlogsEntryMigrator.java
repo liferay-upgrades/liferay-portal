@@ -7,7 +7,7 @@ package com.liferay.cms.migration.web.internal.content;
 
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.cms.migration.web.internal.reference.HTMLReferenceRewriter;
 import com.liferay.cms.migration.web.internal.structure.ObjectDefinitionMigrator;

@@ -5,8 +5,7 @@
 
 package com.liferay.cms.migration.web.internal.display.context;
 
-import com.liferay.cms.migration.web.internal.info.item.renderer.CMSMigrationInfoItemRenderer;
-import com.liferay.cms.migration.web.internal.reference.InfoItemReferenceMapper;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.info.item.renderer.InfoItemRenderer;
 import com.liferay.info.item.renderer.InfoItemRendererRegistry;
 import com.liferay.info.item.renderer.InfoItemTemplatedRenderer;
@@ -71,8 +70,7 @@ public class CMSContentDisplayDisplayContext {
 			InfoItemRenderer<Object> infoItemRenderer =
 				(InfoItemRenderer<Object>)
 					_infoItemRendererRegistry.getInfoItemRenderer(
-						InfoItemReferenceMapper.
-							TEMPLATE_INFO_ITEM_RENDERER_KEY);
+						CMSMigrationConstants.INFO_ITEM_RENDERER_KEY_TEMPLATE);
 
 			if (infoItemRenderer instanceof InfoItemTemplatedRenderer) {
 				InfoItemTemplatedRenderer<Object> infoItemTemplatedRenderer =
@@ -93,8 +91,9 @@ public class CMSContentDisplayDisplayContext {
 		InfoItemRenderer<Object> infoItemRenderer =
 			(InfoItemRenderer<Object>)
 				_infoItemRendererRegistry.getInfoItemRenderer(
-					CMSMigrationInfoItemRenderer.getKey(
-						CMSMigrationInfoItemRenderer.STYLE_ABSTRACT));
+					CMSMigrationConstants.INFO_ITEM_RENDERER_KEY_PREFIX +
+						CMSMigrationConstants.
+							INFO_ITEM_RENDERER_STYLE_ABSTRACT);
 
 		if ((objectDefinition != null) && (infoItemRenderer != null)) {
 			infoItemRenderer.render(

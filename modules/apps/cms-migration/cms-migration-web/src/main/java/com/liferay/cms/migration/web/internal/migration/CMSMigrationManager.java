@@ -5,8 +5,8 @@
 
 package com.liferay.cms.migration.web.internal.migration;
 
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskStatusMessageSender;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.web.internal.content.BlogsEntryMigrator;
 import com.liferay.cms.migration.web.internal.content.FileEntryMigrator;
 import com.liferay.cms.migration.web.internal.content.FolderMigrator;

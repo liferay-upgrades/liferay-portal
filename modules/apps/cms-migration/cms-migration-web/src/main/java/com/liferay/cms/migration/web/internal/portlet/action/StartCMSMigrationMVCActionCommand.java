@@ -5,8 +5,8 @@
 
 package com.liferay.cms.migration.web.internal.portlet.action;
 
+import com.liferay.cms.migration.constants.CMSMigrationPortletKeys;
 import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationPortletKeys;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.exception.DepotEntryNameException;
 import com.liferay.depot.model.DepotEntry;

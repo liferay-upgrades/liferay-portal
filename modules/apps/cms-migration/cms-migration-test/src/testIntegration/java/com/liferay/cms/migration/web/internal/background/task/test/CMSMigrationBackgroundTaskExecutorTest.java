@@ -12,11 +12,14 @@ import com.liferay.asset.publisher.constants.AssetPublisherPortletKeys;
 import com.liferay.blogs.constants.BlogsPortletKeys;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationPortletKeys;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
@@ -143,8 +146,12 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	public void tearDown() throws Exception {
 		for (String externalReferenceCode :
 				new String[] {
-					"CMS_MIGRATION_BLOGS_ENTRY",
-					"CMS_MIGRATION_DL_FILE_ENTRY_TYPE_0"
+					CMSMigrationConstants.
+						OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY,
+					CMSMigrationConstants.
+						EXTERNAL_REFERENCE_CODE_PREFIX_DL_FILE_ENTRY_TYPE +
+							DLFileEntryTypeConstants.
+								FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT
 				}) {
 
 			ObjectDefinition objectDefinition =
@@ -162,8 +169,9 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			ObjectDefinition objectDefinition =
 				_objectDefinitionLocalService.
 					fetchObjectDefinitionByExternalReferenceCode(
-						"CMS_MIGRATION_DDM_STRUCTURE_" +
-							_journalArticle.getDDMStructureId(),
+						CMSMigrationConstants.
+							EXTERNAL_REFERENCE_CODE_PREFIX_DDM_STRUCTURE +
+								_journalArticle.getDDMStructureId(),
 						_group.getCompanyId());
 
 			if (objectDefinition != null) {
@@ -205,25 +213,32 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		_assertSuccessful(_execute(_group.getGroupId(), false));
 
 		ObjectEntry objectEntry = _getObjectEntry(
-			"CMS_MIGRATION_BLOGS_ENTRY",
-			"CMS_MIGRATION_BLOGS_ENTRY_" + blogsEntry.getEntryId());
+			CMSMigrationConstants.
+				OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY,
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_BLOGS_ENTRY +
+				blogsEntry.getEntryId());
 
 		Assert.assertEquals(
 			blogsEntry.getTitle(), objectEntry.getTitleValue("en_US"));
 
 		objectEntry = _getObjectEntry(
-			"CMS_MIGRATION_DL_FILE_ENTRY_TYPE_0",
-			"CMS_MIGRATION_FILE_ENTRY_" + fileEntry.getFileEntryId());
+			CMSMigrationConstants.
+				EXTERNAL_REFERENCE_CODE_PREFIX_DL_FILE_ENTRY_TYPE +
+					DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT,
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_FILE_ENTRY +
+				fileEntry.getFileEntryId());
 
 		Map<String, Serializable> values = objectEntry.getValues();
 
-		Assert.assertNotEquals(0L, values.get("file"));
+		Assert.assertNotEquals(
+			0L, values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE));
 
 		objectEntry = _getObjectEntry(
-			"CMS_MIGRATION_DDM_STRUCTURE_" +
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DDM_STRUCTURE +
 				_journalArticle.getDDMStructureId(),
-			"CMS_MIGRATION_JOURNAL_ARTICLE_" +
-				_journalArticle.getResourcePrimKey());
+			CMSMigrationConstants.
+				EXTERNAL_REFERENCE_CODE_PREFIX_JOURNAL_ARTICLE +
+					_journalArticle.getResourcePrimKey());
 
 		Assert.assertEquals(
 			_journalArticle.getTitle(LocaleUtil.getSiteDefault()),
@@ -235,10 +250,12 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		Assert.assertEquals(
 			objectEntry.getObjectEntryId(),
 			_getObjectEntry(
-				"CMS_MIGRATION_DDM_STRUCTURE_" +
-					_journalArticle.getDDMStructureId(),
-				"CMS_MIGRATION_JOURNAL_ARTICLE_" +
-					_journalArticle.getResourcePrimKey()
+				CMSMigrationConstants.
+					EXTERNAL_REFERENCE_CODE_PREFIX_DDM_STRUCTURE +
+						_journalArticle.getDDMStructureId(),
+				CMSMigrationConstants.
+					EXTERNAL_REFERENCE_CODE_PREFIX_JOURNAL_ARTICLE +
+						_journalArticle.getResourcePrimKey()
 			).getObjectEntryId());
 	}
 
@@ -254,8 +271,11 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		ReadingTimeEntry readingTimeEntry =
 			_readingTimeEntryLocalService.fetchReadingTimeEntry(
 				_getObjectEntry(
-					"CMS_MIGRATION_BLOGS_ENTRY",
-					"CMS_MIGRATION_BLOGS_ENTRY_" + blogsEntry.getEntryId()));
+					CMSMigrationConstants.
+						OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY,
+					CMSMigrationConstants.
+						EXTERNAL_REFERENCE_CODE_PREFIX_BLOGS_ENTRY +
+							blogsEntry.getEntryId()));
 
 		Assert.assertEquals(120000, readingTimeEntry.getReadingTime());
 	}
@@ -279,8 +299,11 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		ReadingTimeEntry readingTimeEntry =
 			_readingTimeEntryLocalService.fetchReadingTimeEntry(
 				_getObjectEntry(
-					"CMS_MIGRATION_BLOGS_ENTRY",
-					"CMS_MIGRATION_BLOGS_ENTRY_" + blogsEntry.getEntryId()));
+					CMSMigrationConstants.
+						OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY,
+					CMSMigrationConstants.
+						EXTERNAL_REFERENCE_CODE_PREFIX_BLOGS_ENTRY +
+							blogsEntry.getEntryId()));
 
 		Assert.assertEquals(120000, readingTimeEntry.getReadingTime());
 	}
@@ -309,10 +332,12 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			_assertSuccessful(_execute(companyGroup.getGroupId(), true));
 
 			ObjectEntry objectEntry = _getObjectEntry(
-				"CMS_MIGRATION_DDM_STRUCTURE_" +
-					_journalArticle.getDDMStructureId(),
-				"CMS_MIGRATION_JOURNAL_ARTICLE_" +
-					_journalArticle.getResourcePrimKey());
+				CMSMigrationConstants.
+					EXTERNAL_REFERENCE_CODE_PREFIX_DDM_STRUCTURE +
+						_journalArticle.getDDMStructureId(),
+				CMSMigrationConstants.
+					EXTERNAL_REFERENCE_CODE_PREFIX_JOURNAL_ARTICLE +
+						_journalArticle.getResourcePrimKey());
 
 			Assert.assertEquals(
 				_journalArticle.getTitle(LocaleUtil.getSiteDefault()),
@@ -327,7 +352,7 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			List<String> portletIds = layoutTypePortlet.getPortletIds();
 
 			String newPortletId = PortletIdCodec.encode(
-				_CMS_CONTENT_DISPLAY_PORTLET_NAME,
+				CMSMigrationPortletKeys.CMS_CONTENT_DISPLAY,
 				PortletIdCodec.decodeInstanceId(globalPortletId));
 
 			Assert.assertTrue(portletIds.contains(newPortletId));
@@ -379,7 +404,9 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			ObjectEntryFolder objectEntryFolder =
 				_objectEntryFolderLocalService.
 					getObjectEntryFolderByExternalReferenceCode(
-						"CMS_MIGRATION_DL_FOLDER_" + folder.getFolderId(),
+						CMSMigrationConstants.
+							EXTERNAL_REFERENCE_CODE_PREFIX_DL_FOLDER +
+								folder.getFolderId(),
 						_depotEntry.getGroupId(), _group.getCompanyId());
 
 			String suffix = StringPool.DASH + folder.getFolderId();
@@ -410,9 +437,11 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		_assertSuccessful(_execute(_group.getGroupId(), false));
 
 		ObjectEntry objectEntry = _getObjectEntry(
-			"CMS_MIGRATION_DDM_STRUCTURE_" + ddmStructure.getStructureId(),
-			"CMS_MIGRATION_JOURNAL_ARTICLE_" +
-				_journalArticle.getResourcePrimKey());
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DDM_STRUCTURE +
+				ddmStructure.getStructureId(),
+			CMSMigrationConstants.
+				EXTERNAL_REFERENCE_CODE_PREFIX_JOURNAL_ARTICLE +
+					_journalArticle.getResourcePrimKey());
 
 		ObjectField objectField = _objectFieldLocalService.getObjectField(
 			objectEntry.getObjectDefinitionId(), "numeric");
@@ -462,10 +491,11 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		_assertSuccessful(_execute(_group.getGroupId(), true));
 
 		ObjectEntry objectEntry = _getObjectEntry(
-			"CMS_MIGRATION_DDM_STRUCTURE_" +
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DDM_STRUCTURE +
 				_journalArticle.getDDMStructureId(),
-			"CMS_MIGRATION_JOURNAL_ARTICLE_" +
-				_journalArticle.getResourcePrimKey());
+			CMSMigrationConstants.
+				EXTERNAL_REFERENCE_CODE_PREFIX_JOURNAL_ARTICLE +
+					_journalArticle.getResourcePrimKey());
 
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.getObjectDefinition(
@@ -501,7 +531,7 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			(LayoutTypePortlet)portletLayout.getLayoutType();
 
 		String newPortletId = PortletIdCodec.encode(
-			_CMS_CONTENT_DISPLAY_PORTLET_NAME,
+			CMSMigrationPortletKeys.CMS_CONTENT_DISPLAY,
 			PortletIdCodec.decodeInstanceId(portletId));
 
 		Assert.assertTrue(
@@ -777,8 +807,10 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			WebKeys.THEME_DISPLAY, themeDisplay);
 
 		ObjectEntry objectEntry = _getObjectEntry(
-			"CMS_MIGRATION_BLOGS_ENTRY",
-			"CMS_MIGRATION_BLOGS_ENTRY_" + blogsEntry.getEntryId());
+			CMSMigrationConstants.
+				OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY,
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_BLOGS_ENTRY +
+				blogsEntry.getEntryId());
 
 		Map<String, Object> contextObjects = new HashMap<>();
 
@@ -807,10 +839,6 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			_group.getGroupId(), mockHttpServletRequest,
 			new MockHttpServletResponse(), false);
 	}
-
-	private static final String _CMS_CONTENT_DISPLAY_PORTLET_NAME =
-		"com_liferay_cms_migration_web_internal_portlet_" +
-			"CMSContentDisplayPortlet";
 
 	private static final String _PID_BLOGS_PORTLET_INSTANCE_CONFIGURATION =
 		"com.liferay.blogs.web.internal.configuration." +
