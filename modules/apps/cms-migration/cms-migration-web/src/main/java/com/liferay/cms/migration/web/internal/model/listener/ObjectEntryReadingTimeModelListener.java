@@ -5,7 +5,7 @@
 
 package com.liferay.cms.migration.web.internal.model.listener;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;

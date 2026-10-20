@@ -8,7 +8,7 @@ package com.liferay.cms.migration.web.internal.application.list;
 import com.liferay.application.list.BasePanelApp;
 import com.liferay.application.list.PanelApp;
 import com.liferay.application.list.constants.PanelCategoryKeys;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationPortletKeys;
+import com.liferay.cms.migration.constants.CMSMigrationPortletKeys;
 import com.liferay.portal.kernel.model.Portlet;
 
 import org.osgi.service.component.annotations.Component;

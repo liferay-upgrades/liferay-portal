@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.cms.migration.web.internal.structure;
+package com.liferay.cms.migration.util;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.object.constants.ObjectFieldConstants;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -193,12 +193,6 @@ public class CMSMigrationDDMFormFieldUtil {
 		return name;
 	}
 
-	public static boolean isAttachmentField(DDMFormField ddmFormField) {
-		return Objects.equals(
-			getBusinessType(ddmFormField),
-			ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT);
-	}
-
 	public static boolean isIgnoredField(DDMFormField ddmFormField) {
 		if (ddmFormField.isTransient() &&
 			!Objects.equals(
@@ -228,10 +222,6 @@ public class CMSMigrationDDMFormFieldUtil {
 		}
 
 		return false;
-	}
-
-	public static boolean isNested(DDMFormField ddmFormField) {
-		return ListUtil.isNotEmpty(ddmFormField.getNestedDDMFormFields());
 	}
 
 	public static boolean isOptionsField(DDMFormField ddmFormField) {
@@ -264,12 +254,14 @@ public class CMSMigrationDDMFormFieldUtil {
 			return StringPool.BLANK;
 		}
 
-		StringBuilder sb = new StringBuilder(s.length());
+		StringBundler sb = new StringBundler(s.length());
 
 		for (char c : s.toCharArray()) {
-			if (Validator.isChar(c) || Validator.isDigit(c)) {
-				sb.append(c);
+			if (!Validator.isChar(c) && !Validator.isDigit(c)) {
+				continue;
 			}
+
+			sb.append(c);
 		}
 
 		return sb.toString();

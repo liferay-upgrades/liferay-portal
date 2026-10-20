@@ -9,7 +9,7 @@ import com.liferay.asset.display.page.constants.AssetDisplayPageConstants;
 import com.liferay.asset.display.page.model.AssetDisplayPageEntry;
 import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
 import com.liferay.blogs.model.BlogsEntry;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.cms.migration.web.internal.structure.ObjectDefinitionMigrator;
 import com.liferay.document.library.kernel.model.DLFileEntry;

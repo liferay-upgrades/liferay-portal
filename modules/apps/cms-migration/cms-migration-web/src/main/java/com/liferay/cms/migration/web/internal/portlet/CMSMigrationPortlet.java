@@ -5,7 +5,7 @@
 
 package com.liferay.cms.migration.web.internal.portlet;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationPortletKeys;
+import com.liferay.cms.migration.constants.CMSMigrationPortletKeys;
 import com.liferay.cms.migration.web.internal.display.context.CMSMigrationDisplayContext;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;

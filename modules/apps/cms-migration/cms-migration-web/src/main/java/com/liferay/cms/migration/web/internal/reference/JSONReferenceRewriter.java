@@ -5,7 +5,7 @@
 
 package com.liferay.cms.migration.web.internal.reference;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLAppLocalService;

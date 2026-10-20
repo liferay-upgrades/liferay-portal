@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.cms.migration.web.internal.constants;
+package com.liferay.cms.migration.constants;
 
 /**
  * @author Lino Alves
@@ -48,6 +48,27 @@ public class CMSMigrationConstants {
 	public static final String EXTERNAL_REFERENCE_CODE_PREFIX_WIDGET_TEMPLATE =
 		EXTERNAL_REFERENCE_CODE_PREFIX + "WIDGET_TEMPLATE_";
 
+	public static final String INFO_ITEM_RENDERER_KEY_PREFIX =
+		"com.liferay.cms.migration.web.internal.info.item.renderer." +
+			"CMSMigrationInfoItemRenderer#";
+
+	public static final String INFO_ITEM_RENDERER_KEY_TEMPLATE =
+		"com.liferay.template.internal.info.item.renderer." +
+			"TemplateInfoItemTemplatedRenderer";
+
+	public static final String INFO_ITEM_RENDERER_STYLE_ABSTRACT = "abstract";
+
+	public static final String INFO_ITEM_RENDERER_STYLE_BLOGS_FULL_CONTENT =
+		"blogs-full-content";
+
+	public static final String INFO_ITEM_RENDERER_STYLE_FILE_ABSTRACT =
+		"file-abstract";
+
+	public static final String INFO_ITEM_RENDERER_STYLE_FILE_TITLE =
+		"file-title";
+
+	public static final String INFO_ITEM_RENDERER_STYLE_TITLE = "title";
+
 	public static final String
 		OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY =
 			EXTERNAL_REFERENCE_CODE_PREFIX + "BLOGS_ENTRY";
@@ -86,8 +107,6 @@ public class CMSMigrationConstants {
 	public static final String PHASE_JOURNAL_ARTICLES = "journal-articles";
 
 	public static final String PHASE_PAGES = "pages";
-
-	public static final String PHASE_STRUCTURES = "structures";
 
 	public static final String PHASE_TEMPLATES = "templates";
 

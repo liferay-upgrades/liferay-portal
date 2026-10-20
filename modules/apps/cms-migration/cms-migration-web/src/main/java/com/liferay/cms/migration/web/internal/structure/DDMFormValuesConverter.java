@@ -5,7 +5,8 @@
 
 package com.liferay.cms.migration.web.internal.structure;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.util.CMSMigrationDDMFormFieldUtil;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.cms.migration.web.internal.reference.HTMLReferenceRewriter;
 import com.liferay.document.library.kernel.service.DLAppLocalService;

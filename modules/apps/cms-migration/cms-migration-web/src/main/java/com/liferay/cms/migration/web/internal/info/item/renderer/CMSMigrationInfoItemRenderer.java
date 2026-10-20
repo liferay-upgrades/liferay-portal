@@ -5,7 +5,7 @@
 
 package com.liferay.cms.migration.web.internal.info.item.renderer;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.info.item.renderer.InfoItemRenderer;
@@ -44,21 +44,6 @@ import java.util.Map;
 public class CMSMigrationInfoItemRenderer
 	implements InfoItemRenderer<ObjectEntry> {
 
-	public static final String STYLE_ABSTRACT = "abstract";
-
-	public static final String STYLE_BLOGS_FULL_CONTENT = "blogs-full-content";
-
-	public static final String STYLE_FILE_ABSTRACT = "file-abstract";
-
-	public static final String STYLE_FILE_TITLE = "file-title";
-
-	public static final String STYLE_TITLE = "title";
-
-	public static String getKey(String style) {
-		return CMSMigrationInfoItemRenderer.class.getName() + StringPool.POUND +
-			style;
-	}
-
 	public CMSMigrationInfoItemRenderer(
 		DLAppLocalService dlAppLocalService, DLURLHelper dlURLHelper,
 		Language language, String style) {
@@ -71,17 +56,22 @@ public class CMSMigrationInfoItemRenderer
 
 	@Override
 	public String getKey() {
-		return getKey(_style);
+		return CMSMigrationConstants.INFO_ITEM_RENDERER_KEY_PREFIX + _style;
 	}
 
 	@Override
 	public String getLabel(Locale locale) {
-		if (_style.equals(STYLE_ABSTRACT) ||
-			_style.equals(STYLE_FILE_ABSTRACT)) {
+		if (_style.equals(
+				CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_ABSTRACT) ||
+			_style.equals(
+				CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_FILE_ABSTRACT)) {
 
 			return _language.get(locale, "abstract");
 		}
-		else if (_style.equals(STYLE_BLOGS_FULL_CONTENT)) {
+		else if (_style.equals(
+					CMSMigrationConstants.
+						INFO_ITEM_RENDERER_STYLE_BLOGS_FULL_CONTENT)) {
+
 			return _language.get(locale, "full-content");
 		}
 
@@ -136,14 +126,21 @@ public class CMSMigrationInfoItemRenderer
 
 		String title = objectEntry.getTitleValue(languageId);
 
-		if (_style.equals(STYLE_FILE_TITLE)) {
+		if (_style.equals(
+				CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_FILE_TITLE)) {
+
 			return "<div>" + HtmlUtil.escape(title) + "</div>";
 		}
-		else if (_style.equals(STYLE_TITLE)) {
+		else if (_style.equals(
+					CMSMigrationConstants.INFO_ITEM_RENDERER_STYLE_TITLE)) {
+
 			return "<div class=\"asset-summary\">" + HtmlUtil.escape(title) +
 				"</div>";
 		}
-		else if (_style.equals(STYLE_FILE_ABSTRACT)) {
+		else if (_style.equals(
+					CMSMigrationConstants.
+						INFO_ITEM_RENDERER_STYLE_FILE_ABSTRACT)) {
+
 			return _getImageDivHTML(
 				"aspect-ratio aspect-ratio-8-to-3 aspect-ratio-bg-cover " +
 					"cover-image mb-4",
@@ -154,7 +151,10 @@ public class CMSMigrationInfoItemRenderer
 							CMSMigrationConstants.OBJECT_FIELD_NAME_FILE)),
 					"&imagePreview=1"));
 		}
-		else if (_style.equals(STYLE_BLOGS_FULL_CONTENT)) {
+		else if (_style.equals(
+					CMSMigrationConstants.
+						INFO_ITEM_RENDERER_STYLE_BLOGS_FULL_CONTENT)) {
+
 			return StringBundler.concat(
 				"<div class=\"widget-mode-simple\"><div class=\"",
 				"widget-mode-simple-entry\"><div class=\"widget-content\" ",
@@ -214,7 +214,7 @@ public class CMSMigrationInfoItemRenderer
 						languageId,
 						CMSMigrationConstants.OBJECT_FIELD_NAME_CONTENT,
 						values)),
-				_ABSTRACT_LENGTH);
+				200);
 		}
 
 		sb.append(HtmlUtil.escape(summary));
@@ -267,8 +267,6 @@ public class CMSMigrationInfoItemRenderer
 
 		return GetterUtil.getString(values.get(name));
 	}
-
-	private static final int _ABSTRACT_LENGTH = 200;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CMSMigrationInfoItemRenderer.class);
