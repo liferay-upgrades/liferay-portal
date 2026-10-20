@@ -361,6 +361,9 @@ public class CMSMigrator {
 	private static final Snapshot<DepotEntryGroupRelLocalService>
 		_depotEntryGroupRelLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, DepotEntryGroupRelLocalService.class);
+	private static final Snapshot<DisplayPageTemplateMigrator>
+		_displayPageTemplateMigratorSnapshot = new Snapshot<>(
+			CMSMigrator.class, DisplayPageTemplateMigrator.class);
 	private static final Snapshot<FileEntryMigrator>
 		_fileEntryMigratorSnapshot = new Snapshot<>(
 			CMSMigrator.class, FileEntryMigrator.class);
@@ -378,6 +381,9 @@ public class CMSMigrator {
 	private static final Snapshot<LayoutLocalService>
 		_layoutLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, LayoutLocalService.class);
+	private static final Snapshot<LayoutReferenceRewriter>
+		_layoutReferenceRewriterSnapshot = new Snapshot<>(
+			CMSMigrator.class, LayoutReferenceRewriter.class);
 	private static final Snapshot<ObjectEntryLocalService>
 		_objectEntryLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, ObjectEntryLocalService.class);
@@ -405,7 +411,7 @@ public class CMSMigrator {
 		_depotEntryGroupRelLocalService =
 			_depotEntryGroupRelLocalServiceSnapshot.get();
 	private final DisplayPageTemplateMigrator _displayPageTemplateMigrator =
-		new DisplayPageTemplateMigrator();
+		_displayPageTemplateMigratorSnapshot.get();
 	private final FileEntryMigrator _fileEntryMigrator =
 		_fileEntryMigratorSnapshot.get();
 	private final FolderMigrator _folderMigrator =
@@ -419,7 +425,7 @@ public class CMSMigrator {
 	private final LayoutLocalService _layoutLocalService =
 		_layoutLocalServiceSnapshot.get();
 	private final LayoutReferenceRewriter _layoutReferenceRewriter =
-		new LayoutReferenceRewriter();
+		_layoutReferenceRewriterSnapshot.get();
 	private final ObjectEntryLocalService _objectEntryLocalService =
 		_objectEntryLocalServiceSnapshot.get();
 	private final ObjectFieldLocalService _objectFieldLocalService =
