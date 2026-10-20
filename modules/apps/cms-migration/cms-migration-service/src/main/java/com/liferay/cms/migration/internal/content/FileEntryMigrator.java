@@ -6,7 +6,7 @@
 package com.liferay.cms.migration.internal.content;
 
 import com.liferay.cms.migration.constants.CMSMigrationConstants;
-import com.liferay.cms.migration.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.cms.migration.internal.structure.DDMFormValuesConverter;
 import com.liferay.cms.migration.internal.structure.ObjectDefinitionMigrator;
 import com.liferay.document.library.kernel.model.DLFileEntry;

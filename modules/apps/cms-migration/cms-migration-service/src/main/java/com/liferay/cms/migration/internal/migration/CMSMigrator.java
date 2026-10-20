@@ -6,15 +6,15 @@
 package com.liferay.cms.migration.internal.migration;
 
 import com.liferay.cms.migration.constants.CMSMigrationConstants;
-import com.liferay.cms.migration.internal.background.task.CMSMigrationBackgroundTaskStatusMessageSender;
 import com.liferay.cms.migration.internal.content.BlogsEntryMigrator;
 import com.liferay.cms.migration.internal.content.FileEntryMigrator;
 import com.liferay.cms.migration.internal.content.FolderMigrator;
 import com.liferay.cms.migration.internal.content.JournalArticleMigrator;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
+import com.liferay.cms.migration.internal.layout.DisplayPageTemplateMigrator;
+import com.liferay.cms.migration.internal.layout.LayoutReferenceRewriter;
 import com.liferay.cms.migration.internal.reference.AssetListEntryReferenceRewriter;
-import com.liferay.cms.migration.internal.reference.DisplayPageTemplateMigrator;
 import com.liferay.cms.migration.internal.reference.HTMLReferenceRewriter;
-import com.liferay.cms.migration.internal.reference.LayoutReferenceRewriter;
 import com.liferay.cms.migration.internal.reference.PortletReferenceRewriter;
 import com.liferay.cms.migration.internal.reference.SiteNavigationMenuItemReferenceRewriter;
 import com.liferay.cms.migration.internal.template.TemplateMigrator;

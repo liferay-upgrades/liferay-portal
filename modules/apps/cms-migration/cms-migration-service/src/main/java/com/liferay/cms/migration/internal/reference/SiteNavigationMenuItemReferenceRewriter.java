@@ -5,7 +5,7 @@
 
 package com.liferay.cms.migration.internal.reference;
 
-import com.liferay.cms.migration.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.petra.string.StringBundler;

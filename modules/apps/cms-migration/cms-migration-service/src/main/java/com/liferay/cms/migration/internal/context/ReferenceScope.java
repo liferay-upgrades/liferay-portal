@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.cms.migration.internal.reference;
+package com.liferay.cms.migration.internal.context;
 
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.object.model.ObjectDefinition;

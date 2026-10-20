@@ -7,7 +7,7 @@ package com.liferay.cms.migration.internal.content;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
-import com.liferay.cms.migration.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectEntryLocalService;

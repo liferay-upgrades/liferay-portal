@@ -6,7 +6,7 @@
 package com.liferay.cms.migration.internal.template;
 
 import com.liferay.cms.migration.constants.CMSMigrationConstants;
-import com.liferay.cms.migration.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.dynamic.data.mapping.constants.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
