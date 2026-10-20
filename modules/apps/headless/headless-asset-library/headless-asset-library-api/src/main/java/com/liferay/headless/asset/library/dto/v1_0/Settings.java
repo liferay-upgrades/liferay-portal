@@ -185,6 +185,90 @@ public class Settings implements Serializable {
 	private Supplier<String> _defaultLanguageIdSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public Boolean getDraftNotificationEnabled() {
+		if (_draftNotificationEnabledSupplier != null) {
+			draftNotificationEnabled = _draftNotificationEnabledSupplier.get();
+
+			_draftNotificationEnabledSupplier = null;
+		}
+
+		return draftNotificationEnabled;
+	}
+
+	public void setDraftNotificationEnabled(Boolean draftNotificationEnabled) {
+		this.draftNotificationEnabled = draftNotificationEnabled;
+
+		_draftNotificationEnabledSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setDraftNotificationEnabled(
+		UnsafeSupplier<Boolean, Exception>
+			draftNotificationEnabledUnsafeSupplier) {
+
+		_draftNotificationEnabledSupplier = () -> {
+			try {
+				return draftNotificationEnabledUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean draftNotificationEnabled;
+
+	@JsonIgnore
+	private Supplier<Boolean> _draftNotificationEnabledSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	public Integer getDraftNotificationMaxAge() {
+		if (_draftNotificationMaxAgeSupplier != null) {
+			draftNotificationMaxAge = _draftNotificationMaxAgeSupplier.get();
+
+			_draftNotificationMaxAgeSupplier = null;
+		}
+
+		return draftNotificationMaxAge;
+	}
+
+	public void setDraftNotificationMaxAge(Integer draftNotificationMaxAge) {
+		this.draftNotificationMaxAge = draftNotificationMaxAge;
+
+		_draftNotificationMaxAgeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setDraftNotificationMaxAge(
+		UnsafeSupplier<Integer, Exception>
+			draftNotificationMaxAgeUnsafeSupplier) {
+
+		_draftNotificationMaxAgeSupplier = () -> {
+			try {
+				return draftNotificationMaxAgeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Integer draftNotificationMaxAge;
+
+	@JsonIgnore
+	private Supplier<Integer> _draftNotificationMaxAgeSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public String getGoogleMapsAPIKey() {
 		if (_googleMapsAPIKeySupplier != null) {
 			googleMapsAPIKey = _googleMapsAPIKeySupplier.get();
@@ -613,6 +697,30 @@ public class Settings implements Serializable {
 			sb.append("\"");
 		}
 
+		Boolean draftNotificationEnabled = getDraftNotificationEnabled();
+
+		if (draftNotificationEnabled != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"draftNotificationEnabled\": ");
+
+			sb.append(draftNotificationEnabled);
+		}
+
+		Integer draftNotificationMaxAge = getDraftNotificationMaxAge();
+
+		if (draftNotificationMaxAge != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"draftNotificationMaxAge\": ");
+
+			sb.append(draftNotificationMaxAge);
+		}
+
 		String googleMapsAPIKey = getGoogleMapsAPIKey();
 
 		if (googleMapsAPIKey != null) {
@@ -889,4 +997,4 @@ public class Settings implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1662262419
+// LIFERAY-REST-BUILDER-HASH:-1948072327
