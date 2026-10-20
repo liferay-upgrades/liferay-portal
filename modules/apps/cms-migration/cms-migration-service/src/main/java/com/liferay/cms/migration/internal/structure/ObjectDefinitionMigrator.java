@@ -11,11 +11,11 @@ import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.cms.migration.util.CMSMigrationDDMFormFieldUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
+import com.liferay.document.library.util.DLFileEntryTypeUtil;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
-import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.list.type.entry.util.ListTypeEntryUtil;
 import com.liferay.list.type.model.ListTypeDefinition;
@@ -41,7 +41,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -56,6 +55,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Creates the CMS object definitions that replace Web Content structures,
  * Blogs, and Documents and Media file entry types. Each definition is keyed by
@@ -64,6 +66,7 @@ import java.util.Set;
  *
  * @author Lino Alves
  */
+@Component(service = ObjectDefinitionMigrator.class)
 public class ObjectDefinitionMigrator {
 
 	public ObjectDefinition getExternalVideoObjectDefinition(
@@ -206,12 +209,8 @@ public class ObjectDefinitionMigrator {
 		if (dlFileEntryType != null) {
 			List<DDMFormField> ddmFormFields = new ArrayList<>();
 
-			for (com.liferay.dynamic.data.mapping.kernel.DDMStructure
-					kernelDDMStructure : dlFileEntryType.getDDMStructures()) {
-
-				DDMStructure ddmStructure =
-					_ddmStructureLocalService.getDDMStructure(
-						kernelDDMStructure.getStructureId());
+			for (DDMStructure ddmStructure :
+					DLFileEntryTypeUtil.getDDMStructures(dlFileEntryType)) {
 
 				ddmFormFields.addAll(ddmStructure.getDDMFormFields(false));
 			}
@@ -462,9 +461,11 @@ public class ObjectDefinitionMigrator {
 					localizedValue.getValues(
 					).entrySet()) {
 
-				if (Validator.isNotNull(entry.getValue())) {
-					labelMap.put(entry.getKey(), entry.getValue());
+				if (Validator.isNull(entry.getValue())) {
+					continue;
 				}
+
+				labelMap.put(entry.getKey(), entry.getValue());
 			}
 		}
 
@@ -638,50 +639,26 @@ public class ObjectDefinitionMigrator {
 				false));
 	}
 
-	private static final Snapshot<DDMStructureLocalService>
-		_ddmStructureLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class, DDMStructureLocalService.class);
-	private static final Snapshot<Language> _languageSnapshot = new Snapshot<>(
-		ObjectDefinitionMigrator.class, Language.class);
-	private static final Snapshot<ListTypeDefinitionLocalService>
-		_listTypeDefinitionLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class,
-			ListTypeDefinitionLocalService.class);
-	private static final Snapshot<ObjectDefinitionLocalService>
-		_objectDefinitionLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class, ObjectDefinitionLocalService.class);
-	private static final Snapshot<ObjectDefinitionSettingLocalService>
-		_objectDefinitionSettingLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class,
-			ObjectDefinitionSettingLocalService.class);
-	private static final Snapshot<ObjectFieldLocalService>
-		_objectFieldLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class, ObjectFieldLocalService.class);
-	private static final Snapshot<ObjectFieldSettingLocalService>
-		_objectFieldSettingLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class,
-			ObjectFieldSettingLocalService.class);
-	private static final Snapshot<ObjectFolderLocalService>
-		_objectFolderLocalServiceSnapshot = new Snapshot<>(
-			ObjectDefinitionMigrator.class, ObjectFolderLocalService.class);
+	@Reference
+	private Language _language;
 
-	private final DDMStructureLocalService _ddmStructureLocalService =
-		_ddmStructureLocalServiceSnapshot.get();
-	private final Language _language = _languageSnapshot.get();
-	private final ListTypeDefinitionLocalService
-		_listTypeDefinitionLocalService =
-			_listTypeDefinitionLocalServiceSnapshot.get();
-	private final ObjectDefinitionLocalService _objectDefinitionLocalService =
-		_objectDefinitionLocalServiceSnapshot.get();
-	private final ObjectDefinitionSettingLocalService
-		_objectDefinitionSettingLocalService =
-			_objectDefinitionSettingLocalServiceSnapshot.get();
-	private final ObjectFieldLocalService _objectFieldLocalService =
-		_objectFieldLocalServiceSnapshot.get();
-	private final ObjectFieldSettingLocalService
-		_objectFieldSettingLocalService =
-			_objectFieldSettingLocalServiceSnapshot.get();
-	private final ObjectFolderLocalService _objectFolderLocalService =
-		_objectFolderLocalServiceSnapshot.get();
+	@Reference
+	private ListTypeDefinitionLocalService _listTypeDefinitionLocalService;
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectDefinitionSettingLocalService
+		_objectDefinitionSettingLocalService;
+
+	@Reference
+	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Reference
+	private ObjectFieldSettingLocalService _objectFieldSettingLocalService;
+
+	@Reference
+	private ObjectFolderLocalService _objectFolderLocalService;
 
 }

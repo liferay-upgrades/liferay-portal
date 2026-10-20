@@ -228,6 +228,9 @@ public class JournalArticleMigrator {
 
 	private static final int _TITLE_MAX_LENGTH = 280;
 
+	private static final Snapshot<DDMFormValuesConverter>
+		_ddmFormValuesConverterSnapshot = new Snapshot<>(
+			JournalArticleMigrator.class, DDMFormValuesConverter.class);
 	private static final Snapshot<JournalArticleLocalService>
 		_journalArticleLocalServiceSnapshot = new Snapshot<>(
 			JournalArticleMigrator.class, JournalArticleLocalService.class);
@@ -235,17 +238,20 @@ public class JournalArticleMigrator {
 		_journalArticleResourceLocalServiceSnapshot = new Snapshot<>(
 			JournalArticleMigrator.class,
 			JournalArticleResourceLocalService.class);
+	private static final Snapshot<ObjectDefinitionMigrator>
+		_objectDefinitionMigratorSnapshot = new Snapshot<>(
+			JournalArticleMigrator.class, ObjectDefinitionMigrator.class);
 
 	private final AttachmentCopier _attachmentCopier = new AttachmentCopier();
 	private final DDMFormValuesConverter _ddmFormValuesConverter =
-		new DDMFormValuesConverter();
+		_ddmFormValuesConverterSnapshot.get();
 	private final JournalArticleLocalService _journalArticleLocalService =
 		_journalArticleLocalServiceSnapshot.get();
 	private final JournalArticleResourceLocalService
 		_journalArticleResourceLocalService =
 			_journalArticleResourceLocalServiceSnapshot.get();
 	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		new ObjectDefinitionMigrator();
+		_objectDefinitionMigratorSnapshot.get();
 	private final ObjectEntryWriter _objectEntryWriter =
 		new ObjectEntryWriter();
 

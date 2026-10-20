@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -48,6 +47,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Converts Dynamic Data Mapping form values into object entry values. Field
  * references to documents and web content are repointed to the migrated
@@ -55,6 +57,7 @@ import java.util.Objects;
  *
  * @author Lino Alves
  */
+@Component(service = DDMFormValuesConverter.class)
 public class DDMFormValuesConverter {
 
 	public Map<String, Serializable> getValues(
@@ -71,64 +74,6 @@ public class DDMFormValuesConverter {
 			ddmFormValues.getDefaultLocale(), values);
 
 		return values;
-	}
-
-	/**
-	 * Returns the data that Web Content templates see for a reference field
-	 * after its target was migrated. The format matches the original field
-	 * data, so FreeMarker code that parses it keeps working.
-	 */
-	public String rewriteReferenceData(
-		CMSMigrationContext cmsMigrationContext, String data, String type) {
-
-		if (Validator.isNull(data) || !JSONUtil.isJSONObject(data)) {
-			return data;
-		}
-
-		try {
-			JSONObject jsonObject = _jsonFactory.createJSONObject(data);
-
-			if (type.equals(DDMFormFieldTypeConstants.DDM_IMAGE) ||
-				type.equals(DDMFormFieldTypeConstants.DOCUMENT_LIBRARY) ||
-				type.equals(DDMFormFieldTypeConstants.IMAGE)) {
-
-				FileEntry fileEntry = _getAttachmentFileEntry(
-					cmsMigrationContext, jsonObject);
-
-				if (fileEntry == null) {
-					return data;
-				}
-
-				jsonObject.put(
-					"fileEntryId", fileEntry.getFileEntryId()
-				).put(
-					"groupId", fileEntry.getGroupId()
-				).put(
-					"uuid", fileEntry.getUuid()
-				);
-
-				if (jsonObject.has("classPK")) {
-					jsonObject.put("classPK", fileEntry.getFileEntryId());
-				}
-
-				return jsonObject.toString();
-			}
-
-			if (type.equals(DDMFormFieldTypeConstants.JOURNAL_ARTICLE)) {
-				return _rewriteJournalArticleData(
-					cmsMigrationContext, jsonObject, data);
-			}
-		}
-		catch (Exception exception) {
-			cmsMigrationContext.getCMSMigrationReport(
-			).addWarning(
-				StringBundler.concat(
-					"Unable to rewrite reference ", data, ": ",
-					exception.getMessage())
-			);
-		}
-
-		return data;
 	}
 
 	private FileEntry _getAttachmentFileEntry(
@@ -278,7 +223,7 @@ public class DDMFormValuesConverter {
 				cmsMigrationContext, data);
 		}
 
-		return rewriteReferenceData(
+		return _rewriteReferenceData(
 			cmsMigrationContext, data, ddmFormField.getType());
 	}
 
@@ -297,9 +242,11 @@ public class DDMFormValuesConverter {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				String optionValue = jsonArray.getString(i);
 
-				if (Validator.isNotNull(optionValue)) {
-					optionValues.add(optionValue);
+				if (Validator.isNull(optionValue)) {
+					continue;
 				}
+
+				optionValues.add(optionValue);
 			}
 		}
 		catch (Exception exception) {
@@ -340,7 +287,7 @@ public class DDMFormValuesConverter {
 
 				valuesJSONObject.put(
 					LocaleUtil.toLanguageId(entry.getKey()),
-					rewriteReferenceData(
+					_rewriteReferenceData(
 						cmsMigrationContext, entry.getValue(), type));
 			}
 
@@ -438,11 +385,12 @@ public class DDMFormValuesConverter {
 				Serializable objectFieldValue = _getObjectFieldValue(
 					cmsMigrationContext, ddmFormField, entry.getValue());
 
-				if (objectFieldValue != null) {
-					localizedValues.put(
-						LocaleUtil.toLanguageId(entry.getKey()),
-						objectFieldValue);
+				if (objectFieldValue == null) {
+					continue;
 				}
+
+				localizedValues.put(
+					LocaleUtil.toLanguageId(entry.getKey()), objectFieldValue);
 			}
 
 			values.put(name + "_i18n", (Serializable)localizedValues);
@@ -569,29 +517,80 @@ public class DDMFormValuesConverter {
 		).toString();
 	}
 
+	/**
+	 * Returns the data that Web Content templates see for a reference field
+	 * after its target was migrated. The format matches the original field
+	 * data, so FreeMarker code that parses it keeps working.
+	 */
+	private String _rewriteReferenceData(
+		CMSMigrationContext cmsMigrationContext, String data, String type) {
+
+		if (Validator.isNull(data) || !JSONUtil.isJSONObject(data)) {
+			return data;
+		}
+
+		try {
+			JSONObject jsonObject = _jsonFactory.createJSONObject(data);
+
+			if (type.equals(DDMFormFieldTypeConstants.DDM_IMAGE) ||
+				type.equals(DDMFormFieldTypeConstants.DOCUMENT_LIBRARY) ||
+				type.equals(DDMFormFieldTypeConstants.IMAGE)) {
+
+				FileEntry fileEntry = _getAttachmentFileEntry(
+					cmsMigrationContext, jsonObject);
+
+				if (fileEntry == null) {
+					return data;
+				}
+
+				jsonObject.put(
+					"fileEntryId", fileEntry.getFileEntryId()
+				).put(
+					"groupId", fileEntry.getGroupId()
+				).put(
+					"uuid", fileEntry.getUuid()
+				);
+
+				if (jsonObject.has("classPK")) {
+					jsonObject.put("classPK", fileEntry.getFileEntryId());
+				}
+
+				return jsonObject.toString();
+			}
+
+			if (type.equals(DDMFormFieldTypeConstants.JOURNAL_ARTICLE)) {
+				return _rewriteJournalArticleData(
+					cmsMigrationContext, jsonObject, data);
+			}
+		}
+		catch (Exception exception) {
+			cmsMigrationContext.getCMSMigrationReport(
+			).addWarning(
+				StringBundler.concat(
+					"Unable to rewrite reference ", data, ": ",
+					exception.getMessage())
+			);
+		}
+
+		return data;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMFormValuesConverter.class);
 
-	private static final Snapshot<DLAppLocalService>
-		_dlAppLocalServiceSnapshot = new Snapshot<>(
-			DDMFormValuesConverter.class, DLAppLocalService.class);
-	private static final Snapshot<HTMLReferenceRewriter>
-		_htmlReferenceRewriterSnapshot = new Snapshot<>(
-			DDMFormValuesConverter.class, HTMLReferenceRewriter.class);
-	private static final Snapshot<JournalArticleLocalService>
-		_journalArticleLocalServiceSnapshot = new Snapshot<>(
-			DDMFormValuesConverter.class, JournalArticleLocalService.class);
-	private static final Snapshot<JSONFactory> _jsonFactorySnapshot =
-		new Snapshot<>(DDMFormValuesConverter.class, JSONFactory.class);
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
 
-	private final DLAppLocalService _dlAppLocalService =
-		_dlAppLocalServiceSnapshot.get();
-	private final HTMLReferenceRewriter _htmlReferenceRewriter =
-		_htmlReferenceRewriterSnapshot.get();
-	private final JournalArticleLocalService _journalArticleLocalService =
-		_journalArticleLocalServiceSnapshot.get();
-	private final JSONFactory _jsonFactory = _jsonFactorySnapshot.get();
-	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		new ObjectDefinitionMigrator();
+	@Reference
+	private HTMLReferenceRewriter _htmlReferenceRewriter;
+
+	@Reference
+	private JournalArticleLocalService _journalArticleLocalService;
+
+	@Reference
+	private JSONFactory _jsonFactory;
+
+	@Reference
+	private ObjectDefinitionMigrator _objectDefinitionMigrator;
 
 }

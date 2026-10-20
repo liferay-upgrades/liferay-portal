@@ -379,6 +379,8 @@ public class CMSMigrator {
 	private static final Snapshot<SiteNavigationMenuItemReferenceRewriter>
 		_siteNavigationMenuItemReferenceRewriterSnapshot = new Snapshot<>(
 			CMSMigrator.class, SiteNavigationMenuItemReferenceRewriter.class);
+	private static final Snapshot<TemplateMigrator> _templateMigratorSnapshot =
+		new Snapshot<>(CMSMigrator.class, TemplateMigrator.class);
 
 	private final AssetListEntryReferenceRewriter
 		_assetListEntryReferenceRewriter =
@@ -415,6 +417,7 @@ public class CMSMigrator {
 	private final SiteNavigationMenuItemReferenceRewriter
 		_siteNavigationMenuItemReferenceRewriter =
 			_siteNavigationMenuItemReferenceRewriterSnapshot.get();
-	private final TemplateMigrator _templateMigrator = new TemplateMigrator();
+	private final TemplateMigrator _templateMigrator =
+		_templateMigratorSnapshot.get();
 
 }
