@@ -10,6 +10,7 @@ import {initialSpace} from '../common/SpacePicker';
 type Item = {
 	externalReferenceCode?: string;
 	label: string;
+	siteId?: number;
 	value: string;
 };
 
@@ -19,6 +20,7 @@ export type State = {
 	constants: {
 		[key: string]: string;
 	};
+	contentProgressFilter: string;
 	filters: {
 		[key: string]: Item;
 	};
@@ -43,6 +45,7 @@ const initialState: State = {
 	changeLanguage: () => {},
 	changeSpace: () => {},
 	constants: {},
+	contentProgressFilter: '',
 	filters: {
 		language: initialLanguage,
 		space: initialSpace,
