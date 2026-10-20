@@ -5,6 +5,7 @@
 
 package com.liferay.cms.migration.internal.background.task;
 
+import com.liferay.cms.migration.internal.background.task.display.CMSMigrationBackgroundTaskDisplay;
 import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.cms.migration.internal.migration.CMSMigrationBackgroundTaskStatusMessageSender;
 import com.liferay.cms.migration.internal.migration.CMSMigrator;
@@ -134,7 +135,7 @@ public class CMSMigrationBackgroundTaskExecutor
 	public BackgroundTaskDisplay getBackgroundTaskDisplay(
 		BackgroundTask backgroundTask) {
 
-		return null;
+		return new CMSMigrationBackgroundTaskDisplay(backgroundTask);
 	}
 
 	@Override
