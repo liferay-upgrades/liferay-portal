@@ -7,7 +7,7 @@ package com.liferay.cms.migration.web.internal.background.task;
 
 import com.liferay.cms.migration.report.CMSMigrationReport;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
-import com.liferay.cms.migration.web.internal.migration.CMSMigrationManager;
+import com.liferay.cms.migration.web.internal.migration.CMSMigrator;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
@@ -86,7 +86,7 @@ public class CMSMigrationBackgroundTaskExecutor
 		CMSMigrationBackgroundTaskStatusMessageSender
 			cmsMigrationBackgroundTaskStatusMessageSender =
 				new CMSMigrationBackgroundTaskStatusMessageSender();
-		CMSMigrationManager cmsMigrationManager = new CMSMigrationManager();
+		CMSMigrator cmsMigrator = new CMSMigrator();
 		CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
 
 		try {
@@ -95,7 +95,7 @@ public class CMSMigrationBackgroundTaskExecutor
 				_permissionCheckerFactory.create(user));
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-			cmsMigrationManager.migrate(
+			cmsMigrator.migrate(
 				new CMSMigrationContext(
 					depotEntry, depotEntry.getGroup(),
 					GetterUtil.getBoolean(

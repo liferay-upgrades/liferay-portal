@@ -53,7 +53,7 @@ import java.util.Objects;
  *
  * @author Lino Alves
  */
-public class CMSMigrationManager {
+public class CMSMigrator {
 
 	public void migrate(CMSMigrationContext cmsMigrationContext)
 		throws Exception {
@@ -354,19 +354,19 @@ public class CMSMigrationManager {
 
 	private static final Snapshot<DepotEntryGroupRelLocalService>
 		_depotEntryGroupRelLocalServiceSnapshot = new Snapshot<>(
-			CMSMigrationManager.class, DepotEntryGroupRelLocalService.class);
+			CMSMigrator.class, DepotEntryGroupRelLocalService.class);
 	private static final Snapshot<GroupLocalService>
 		_groupLocalServiceSnapshot = new Snapshot<>(
-			CMSMigrationManager.class, GroupLocalService.class);
+			CMSMigrator.class, GroupLocalService.class);
 	private static final Snapshot<LayoutLocalService>
 		_layoutLocalServiceSnapshot = new Snapshot<>(
-			CMSMigrationManager.class, LayoutLocalService.class);
+			CMSMigrator.class, LayoutLocalService.class);
 	private static final Snapshot<ObjectEntryLocalService>
 		_objectEntryLocalServiceSnapshot = new Snapshot<>(
-			CMSMigrationManager.class, ObjectEntryLocalService.class);
+			CMSMigrator.class, ObjectEntryLocalService.class);
 	private static final Snapshot<ObjectFieldLocalService>
 		_objectFieldLocalServiceSnapshot = new Snapshot<>(
-			CMSMigrationManager.class, ObjectFieldLocalService.class);
+			CMSMigrator.class, ObjectFieldLocalService.class);
 
 	private final AssetListEntryReferenceRewriter
 		_assetListEntryReferenceRewriter =
