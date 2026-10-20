@@ -19,7 +19,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -37,6 +36,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Migrates the blog entries of a site to the CMS migration blog object
  * definition, keeping the cover image, the small image, the friendly URL, and
@@ -44,6 +46,7 @@ import java.util.Map;
  *
  * @author Lino Alves
  */
+@Component(service = BlogsEntryMigrator.class)
 public class BlogsEntryMigrator {
 
 	public List<BlogsEntry> getBlogsEntries(
@@ -217,37 +220,28 @@ public class BlogsEntryMigrator {
 
 	private static final int _TITLE_MAX_LENGTH = 280;
 
-	private static final Snapshot<BlogsEntryLocalService>
-		_blogsEntryLocalServiceSnapshot = new Snapshot<>(
-			BlogsEntryMigrator.class, BlogsEntryLocalService.class);
-	private static final Snapshot<HTMLReferenceRewriter>
-		_htmlReferenceRewriterSnapshot = new Snapshot<>(
-			BlogsEntryMigrator.class, HTMLReferenceRewriter.class);
-	private static final Snapshot<ObjectDefinitionMigrator>
-		_objectDefinitionMigratorSnapshot = new Snapshot<>(
-			BlogsEntryMigrator.class, ObjectDefinitionMigrator.class);
-	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
-		BlogsEntryMigrator.class, Portal.class);
-	private static final Snapshot<ReadingTimeCalculator>
-		_readingTimeCalculatorSnapshot = new Snapshot<>(
-			BlogsEntryMigrator.class, ReadingTimeCalculator.class);
-	private static final Snapshot<ReadingTimeEntryLocalService>
-		_readingTimeEntryLocalServiceSnapshot = new Snapshot<>(
-			BlogsEntryMigrator.class, ReadingTimeEntryLocalService.class);
+	@Reference
+	private AttachmentCopier _attachmentCopier;
 
-	private final AttachmentCopier _attachmentCopier = new AttachmentCopier();
-	private final BlogsEntryLocalService _blogsEntryLocalService =
-		_blogsEntryLocalServiceSnapshot.get();
-	private final HTMLReferenceRewriter _htmlReferenceRewriter =
-		_htmlReferenceRewriterSnapshot.get();
-	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		_objectDefinitionMigratorSnapshot.get();
-	private final ObjectEntryWriter _objectEntryWriter =
-		new ObjectEntryWriter();
-	private final Portal _portal = _portalSnapshot.get();
-	private final ReadingTimeCalculator _readingTimeCalculator =
-		_readingTimeCalculatorSnapshot.get();
-	private final ReadingTimeEntryLocalService _readingTimeEntryLocalService =
-		_readingTimeEntryLocalServiceSnapshot.get();
+	@Reference
+	private BlogsEntryLocalService _blogsEntryLocalService;
+
+	@Reference
+	private HTMLReferenceRewriter _htmlReferenceRewriter;
+
+	@Reference
+	private ObjectDefinitionMigrator _objectDefinitionMigrator;
+
+	@Reference
+	private ObjectEntryWriter _objectEntryWriter;
+
+	@Reference
+	private Portal _portal;
+
+	@Reference
+	private ReadingTimeCalculator _readingTimeCalculator;
+
+	@Reference
+	private ReadingTimeEntryLocalService _readingTimeEntryLocalService;
 
 }

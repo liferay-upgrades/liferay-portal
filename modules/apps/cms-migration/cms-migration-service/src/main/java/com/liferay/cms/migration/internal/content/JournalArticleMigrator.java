@@ -20,7 +20,6 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
@@ -30,6 +29,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Migrates the latest version of every web content article of a site. An
  * article with an approved version migrates that version; an article that was
@@ -37,6 +39,7 @@ import java.util.Map;
  *
  * @author Lino Alves
  */
+@Component(service = JournalArticleMigrator.class)
 public class JournalArticleMigrator {
 
 	public List<JournalArticleResource> getJournalArticleResources(
@@ -228,31 +231,23 @@ public class JournalArticleMigrator {
 
 	private static final int _TITLE_MAX_LENGTH = 280;
 
-	private static final Snapshot<DDMFormValuesConverter>
-		_ddmFormValuesConverterSnapshot = new Snapshot<>(
-			JournalArticleMigrator.class, DDMFormValuesConverter.class);
-	private static final Snapshot<JournalArticleLocalService>
-		_journalArticleLocalServiceSnapshot = new Snapshot<>(
-			JournalArticleMigrator.class, JournalArticleLocalService.class);
-	private static final Snapshot<JournalArticleResourceLocalService>
-		_journalArticleResourceLocalServiceSnapshot = new Snapshot<>(
-			JournalArticleMigrator.class,
-			JournalArticleResourceLocalService.class);
-	private static final Snapshot<ObjectDefinitionMigrator>
-		_objectDefinitionMigratorSnapshot = new Snapshot<>(
-			JournalArticleMigrator.class, ObjectDefinitionMigrator.class);
+	@Reference
+	private AttachmentCopier _attachmentCopier;
 
-	private final AttachmentCopier _attachmentCopier = new AttachmentCopier();
-	private final DDMFormValuesConverter _ddmFormValuesConverter =
-		_ddmFormValuesConverterSnapshot.get();
-	private final JournalArticleLocalService _journalArticleLocalService =
-		_journalArticleLocalServiceSnapshot.get();
-	private final JournalArticleResourceLocalService
-		_journalArticleResourceLocalService =
-			_journalArticleResourceLocalServiceSnapshot.get();
-	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		_objectDefinitionMigratorSnapshot.get();
-	private final ObjectEntryWriter _objectEntryWriter =
-		new ObjectEntryWriter();
+	@Reference
+	private DDMFormValuesConverter _ddmFormValuesConverter;
+
+	@Reference
+	private JournalArticleLocalService _journalArticleLocalService;
+
+	@Reference
+	private JournalArticleResourceLocalService
+		_journalArticleResourceLocalService;
+
+	@Reference
+	private ObjectDefinitionMigrator _objectDefinitionMigrator;
+
+	@Reference
+	private ObjectEntryWriter _objectEntryWriter;
 
 }

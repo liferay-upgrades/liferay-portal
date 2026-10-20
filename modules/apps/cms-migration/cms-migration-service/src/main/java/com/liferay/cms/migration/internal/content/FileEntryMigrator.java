@@ -18,10 +18,10 @@ import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryMetadataLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
+import com.liferay.document.library.util.DLFileEntryTypeUtil;
 import com.liferay.document.library.video.external.shortcut.DLVideoExternalShortcut;
 import com.liferay.document.library.video.external.shortcut.resolver.DLVideoExternalShortcutResolver;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
-import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.DDMStorageEngineManager;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
@@ -36,7 +36,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -54,6 +53,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Migrates Documents and Media file entries. Regular files become entries of
  * the object definition that replaces their file entry type, and external
@@ -61,6 +63,7 @@ import java.util.Objects;
  *
  * @author Lino Alves
  */
+@Component(service = FileEntryMigrator.class)
 public class FileEntryMigrator {
 
 	public int getCount(CMSMigrationContext cmsMigrationContext) {
@@ -104,16 +107,13 @@ public class FileEntryMigrator {
 			cmsMigrationContext, fileEntry, fileVersion);
 
 		if (dlFileEntryType != null) {
-			for (com.liferay.dynamic.data.mapping.kernel.DDMStructure
-					kernelDDMStructure : dlFileEntryType.getDDMStructures()) {
+			for (DDMStructure ddmStructure :
+					DLFileEntryTypeUtil.getDDMStructures(dlFileEntryType)) {
 
 				values.putAll(
 					_ddmFormValuesConverter.getValues(
 						cmsMigrationContext,
-						_getDDMFormValues(
-							_ddmStructureLocalService.getDDMStructure(
-								kernelDDMStructure.getStructureId()),
-							fileVersion)));
+						_getDDMFormValues(ddmStructure, fileVersion)));
 			}
 		}
 
@@ -365,73 +365,43 @@ public class FileEntryMigrator {
 	private static final Log _log = LogFactoryUtil.getLog(
 		FileEntryMigrator.class);
 
-	private static final Snapshot<AttachmentManager>
-		_attachmentManagerSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, AttachmentManager.class);
-	private static final Snapshot<DDMFormValuesConverter>
-		_ddmFormValuesConverterSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, DDMFormValuesConverter.class);
-	private static final Snapshot<DDMStorageEngineManager>
-		_ddmStorageEngineManagerSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, DDMStorageEngineManager.class);
-	private static final Snapshot<DDMStructureLocalService>
-		_ddmStructureLocalServiceSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, DDMStructureLocalService.class);
-	private static final Snapshot<DLAppLocalService>
-		_dlAppLocalServiceSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, DLAppLocalService.class);
-	private static final Snapshot<DLFileEntryLocalService>
-		_dlFileEntryLocalServiceSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, DLFileEntryLocalService.class);
-	private static final Snapshot<DLFileEntryMetadataLocalService>
-		_dlFileEntryMetadataLocalServiceSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, DLFileEntryMetadataLocalService.class);
-	private static final Snapshot<DLFileEntryTypeLocalService>
-		_dlFileEntryTypeLocalServiceSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, DLFileEntryTypeLocalService.class);
-	private static final Snapshot<DLVideoExternalShortcutResolver>
-		_dlVideoExternalShortcutResolverSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, DLVideoExternalShortcutResolver.class);
-	private static final Snapshot<FriendlyURLEntryLocalService>
-		_friendlyURLEntryLocalServiceSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, FriendlyURLEntryLocalService.class);
-	private static final Snapshot<ObjectDefinitionMigrator>
-		_objectDefinitionMigratorSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, ObjectDefinitionMigrator.class);
-	private static final Snapshot<ObjectFieldLocalService>
-		_objectFieldLocalServiceSnapshot = new Snapshot<>(
-			FileEntryMigrator.class, ObjectFieldLocalService.class);
-	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
-		FileEntryMigrator.class, Portal.class);
+	@Reference
+	private AttachmentManager _attachmentManager;
 
-	private final AttachmentManager _attachmentManager =
-		_attachmentManagerSnapshot.get();
-	private final DDMFormValuesConverter _ddmFormValuesConverter =
-		_ddmFormValuesConverterSnapshot.get();
-	private final DDMStorageEngineManager _ddmStorageEngineManager =
-		_ddmStorageEngineManagerSnapshot.get();
-	private final DDMStructureLocalService _ddmStructureLocalService =
-		_ddmStructureLocalServiceSnapshot.get();
-	private final DLAppLocalService _dlAppLocalService =
-		_dlAppLocalServiceSnapshot.get();
-	private final DLFileEntryLocalService _dlFileEntryLocalService =
-		_dlFileEntryLocalServiceSnapshot.get();
-	private final DLFileEntryMetadataLocalService
-		_dlFileEntryMetadataLocalService =
-			_dlFileEntryMetadataLocalServiceSnapshot.get();
-	private final DLFileEntryTypeLocalService _dlFileEntryTypeLocalService =
-		_dlFileEntryTypeLocalServiceSnapshot.get();
-	private final DLVideoExternalShortcutResolver
-		_dlVideoExternalShortcutResolver =
-			_dlVideoExternalShortcutResolverSnapshot.get();
-	private final FriendlyURLEntryLocalService _friendlyURLEntryLocalService =
-		_friendlyURLEntryLocalServiceSnapshot.get();
-	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		_objectDefinitionMigratorSnapshot.get();
-	private final ObjectEntryWriter _objectEntryWriter =
-		new ObjectEntryWriter();
-	private final ObjectFieldLocalService _objectFieldLocalService =
-		_objectFieldLocalServiceSnapshot.get();
-	private final Portal _portal = _portalSnapshot.get();
+	@Reference
+	private DDMFormValuesConverter _ddmFormValuesConverter;
+
+	@Reference
+	private DDMStorageEngineManager _ddmStorageEngineManager;
+
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private DLFileEntryLocalService _dlFileEntryLocalService;
+
+	@Reference
+	private DLFileEntryMetadataLocalService _dlFileEntryMetadataLocalService;
+
+	@Reference
+	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
+
+	@Reference
+	private DLVideoExternalShortcutResolver _dlVideoExternalShortcutResolver;
+
+	@Reference
+	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
+
+	@Reference
+	private ObjectDefinitionMigrator _objectDefinitionMigrator;
+
+	@Reference
+	private ObjectEntryWriter _objectEntryWriter;
+
+	@Reference
+	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Reference
+	private Portal _portal;
 
 }
