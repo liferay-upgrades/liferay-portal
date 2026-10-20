@@ -20,12 +20,14 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * Repoints the references that a content layout stores in its layout
@@ -34,6 +36,7 @@ import java.util.Objects;
  *
  * @author Lino Alves
  */
+@Component(service = LayoutReferenceRewriter.class)
 public class LayoutReferenceRewriter {
 
 	/**
@@ -266,38 +269,24 @@ public class LayoutReferenceRewriter {
 	private static final String _TYPE_INFO_LIST_ITEM_SELECTOR_RETURN_TYPE =
 		"com.liferay.item.selector.criteria.InfoListItemSelectorReturnType";
 
-	private static final Snapshot<FragmentEntryLinkLocalService>
-		_fragmentEntryLinkLocalServiceSnapshot = new Snapshot<>(
-			LayoutReferenceRewriter.class, FragmentEntryLinkLocalService.class);
-	private static final Snapshot<InfoItemReferenceMapper>
-		_infoItemReferenceMapperSnapshot = new Snapshot<>(
-			LayoutReferenceRewriter.class, InfoItemReferenceMapper.class);
-	private static final Snapshot<JSONFactory> _jsonFactorySnapshot =
-		new Snapshot<>(LayoutReferenceRewriter.class, JSONFactory.class);
-	private static final Snapshot<JSONReferenceRewriter>
-		_jsonReferenceRewriterSnapshot = new Snapshot<>(
-			LayoutReferenceRewriter.class, JSONReferenceRewriter.class);
-	private static final Snapshot<LayoutPageTemplateStructureLocalService>
-		_layoutPageTemplateStructureLocalServiceSnapshot = new Snapshot<>(
-			LayoutReferenceRewriter.class,
-			LayoutPageTemplateStructureLocalService.class);
-	private static final Snapshot<LayoutPageTemplateStructureRelLocalService>
-		_layoutPageTemplateStructureRelLocalServiceSnapshot = new Snapshot<>(
-			LayoutReferenceRewriter.class,
-			LayoutPageTemplateStructureRelLocalService.class);
+	@Reference
+	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
 
-	private final FragmentEntryLinkLocalService _fragmentEntryLinkLocalService =
-		_fragmentEntryLinkLocalServiceSnapshot.get();
-	private final InfoItemReferenceMapper _infoItemReferenceMapper =
-		_infoItemReferenceMapperSnapshot.get();
-	private final JSONFactory _jsonFactory = _jsonFactorySnapshot.get();
-	private final JSONReferenceRewriter _jsonReferenceRewriter =
-		_jsonReferenceRewriterSnapshot.get();
-	private final LayoutPageTemplateStructureLocalService
-		_layoutPageTemplateStructureLocalService =
-			_layoutPageTemplateStructureLocalServiceSnapshot.get();
-	private final LayoutPageTemplateStructureRelLocalService
-		_layoutPageTemplateStructureRelLocalService =
-			_layoutPageTemplateStructureRelLocalServiceSnapshot.get();
+	@Reference
+	private InfoItemReferenceMapper _infoItemReferenceMapper;
+
+	@Reference
+	private JSONFactory _jsonFactory;
+
+	@Reference
+	private JSONReferenceRewriter _jsonReferenceRewriter;
+
+	@Reference
+	private LayoutPageTemplateStructureLocalService
+		_layoutPageTemplateStructureLocalService;
+
+	@Reference
+	private LayoutPageTemplateStructureRelLocalService
+		_layoutPageTemplateStructureRelLocalService;
 
 }
