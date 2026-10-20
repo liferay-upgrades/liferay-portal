@@ -351,6 +351,9 @@ public class DisplayPageTemplateMigrator {
 		_dlFileEntryTypeLocalServiceSnapshot = new Snapshot<>(
 			DisplayPageTemplateMigrator.class,
 			DLFileEntryTypeLocalService.class);
+	private static final Snapshot<InfoItemReferenceMapper>
+		_infoItemReferenceMapperSnapshot = new Snapshot<>(
+			DisplayPageTemplateMigrator.class, InfoItemReferenceMapper.class);
 	private static final Snapshot<LayoutLocalService>
 		_layoutLocalServiceSnapshot = new Snapshot<>(
 			DisplayPageTemplateMigrator.class, LayoutLocalService.class);
@@ -369,7 +372,7 @@ public class DisplayPageTemplateMigrator {
 	private final DLFileEntryTypeLocalService _dlFileEntryTypeLocalService =
 		_dlFileEntryTypeLocalServiceSnapshot.get();
 	private final InfoItemReferenceMapper _infoItemReferenceMapper =
-		new InfoItemReferenceMapper();
+		_infoItemReferenceMapperSnapshot.get();
 	private final LayoutLocalService _layoutLocalService =
 		_layoutLocalServiceSnapshot.get();
 	private final LayoutPageTemplateEntryLocalService

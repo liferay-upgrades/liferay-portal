@@ -352,12 +352,18 @@ public class CMSMigrator {
 			phase, total);
 	}
 
+	private static final Snapshot<AssetListEntryReferenceRewriter>
+		_assetListEntryReferenceRewriterSnapshot = new Snapshot<>(
+			CMSMigrator.class, AssetListEntryReferenceRewriter.class);
 	private static final Snapshot<DepotEntryGroupRelLocalService>
 		_depotEntryGroupRelLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, DepotEntryGroupRelLocalService.class);
 	private static final Snapshot<GroupLocalService>
 		_groupLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, GroupLocalService.class);
+	private static final Snapshot<HTMLReferenceRewriter>
+		_htmlReferenceRewriterSnapshot = new Snapshot<>(
+			CMSMigrator.class, HTMLReferenceRewriter.class);
 	private static final Snapshot<LayoutLocalService>
 		_layoutLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, LayoutLocalService.class);
@@ -367,10 +373,16 @@ public class CMSMigrator {
 	private static final Snapshot<ObjectFieldLocalService>
 		_objectFieldLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, ObjectFieldLocalService.class);
+	private static final Snapshot<PortletReferenceRewriter>
+		_portletReferenceRewriterSnapshot = new Snapshot<>(
+			CMSMigrator.class, PortletReferenceRewriter.class);
+	private static final Snapshot<SiteNavigationMenuItemReferenceRewriter>
+		_siteNavigationMenuItemReferenceRewriterSnapshot = new Snapshot<>(
+			CMSMigrator.class, SiteNavigationMenuItemReferenceRewriter.class);
 
 	private final AssetListEntryReferenceRewriter
 		_assetListEntryReferenceRewriter =
-			new AssetListEntryReferenceRewriter();
+			_assetListEntryReferenceRewriterSnapshot.get();
 	private final BlogsEntryMigrator _blogsEntryMigrator =
 		new BlogsEntryMigrator();
 	private final CMSMigrationBackgroundTaskStatusMessageSender
@@ -387,7 +399,7 @@ public class CMSMigrator {
 	private final GroupLocalService _groupLocalService =
 		_groupLocalServiceSnapshot.get();
 	private final HTMLReferenceRewriter _htmlReferenceRewriter =
-		new HTMLReferenceRewriter();
+		_htmlReferenceRewriterSnapshot.get();
 	private final JournalArticleMigrator _journalArticleMigrator =
 		new JournalArticleMigrator();
 	private final LayoutLocalService _layoutLocalService =
@@ -399,10 +411,10 @@ public class CMSMigrator {
 	private final ObjectFieldLocalService _objectFieldLocalService =
 		_objectFieldLocalServiceSnapshot.get();
 	private final PortletReferenceRewriter _portletReferenceRewriter =
-		new PortletReferenceRewriter();
+		_portletReferenceRewriterSnapshot.get();
 	private final SiteNavigationMenuItemReferenceRewriter
 		_siteNavigationMenuItemReferenceRewriter =
-			new SiteNavigationMenuItemReferenceRewriter();
+			_siteNavigationMenuItemReferenceRewriterSnapshot.get();
 	private final TemplateMigrator _templateMigrator = new TemplateMigrator();
 
 }

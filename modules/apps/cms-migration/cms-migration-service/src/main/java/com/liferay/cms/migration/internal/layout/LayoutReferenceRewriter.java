@@ -269,8 +269,14 @@ public class LayoutReferenceRewriter {
 	private static final Snapshot<FragmentEntryLinkLocalService>
 		_fragmentEntryLinkLocalServiceSnapshot = new Snapshot<>(
 			LayoutReferenceRewriter.class, FragmentEntryLinkLocalService.class);
+	private static final Snapshot<InfoItemReferenceMapper>
+		_infoItemReferenceMapperSnapshot = new Snapshot<>(
+			LayoutReferenceRewriter.class, InfoItemReferenceMapper.class);
 	private static final Snapshot<JSONFactory> _jsonFactorySnapshot =
 		new Snapshot<>(LayoutReferenceRewriter.class, JSONFactory.class);
+	private static final Snapshot<JSONReferenceRewriter>
+		_jsonReferenceRewriterSnapshot = new Snapshot<>(
+			LayoutReferenceRewriter.class, JSONReferenceRewriter.class);
 	private static final Snapshot<LayoutPageTemplateStructureLocalService>
 		_layoutPageTemplateStructureLocalServiceSnapshot = new Snapshot<>(
 			LayoutReferenceRewriter.class,
@@ -283,10 +289,10 @@ public class LayoutReferenceRewriter {
 	private final FragmentEntryLinkLocalService _fragmentEntryLinkLocalService =
 		_fragmentEntryLinkLocalServiceSnapshot.get();
 	private final InfoItemReferenceMapper _infoItemReferenceMapper =
-		new InfoItemReferenceMapper();
+		_infoItemReferenceMapperSnapshot.get();
 	private final JSONFactory _jsonFactory = _jsonFactorySnapshot.get();
 	private final JSONReferenceRewriter _jsonReferenceRewriter =
-		new JSONReferenceRewriter();
+		_jsonReferenceRewriterSnapshot.get();
 	private final LayoutPageTemplateStructureLocalService
 		_layoutPageTemplateStructureLocalService =
 			_layoutPageTemplateStructureLocalServiceSnapshot.get();

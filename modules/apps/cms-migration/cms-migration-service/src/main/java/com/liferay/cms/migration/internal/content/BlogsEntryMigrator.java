@@ -220,6 +220,9 @@ public class BlogsEntryMigrator {
 	private static final Snapshot<BlogsEntryLocalService>
 		_blogsEntryLocalServiceSnapshot = new Snapshot<>(
 			BlogsEntryMigrator.class, BlogsEntryLocalService.class);
+	private static final Snapshot<HTMLReferenceRewriter>
+		_htmlReferenceRewriterSnapshot = new Snapshot<>(
+			BlogsEntryMigrator.class, HTMLReferenceRewriter.class);
 	private static final Snapshot<Portal> _portalSnapshot = new Snapshot<>(
 		BlogsEntryMigrator.class, Portal.class);
 	private static final Snapshot<ReadingTimeCalculator>
@@ -233,7 +236,7 @@ public class BlogsEntryMigrator {
 	private final BlogsEntryLocalService _blogsEntryLocalService =
 		_blogsEntryLocalServiceSnapshot.get();
 	private final HTMLReferenceRewriter _htmlReferenceRewriter =
-		new HTMLReferenceRewriter();
+		_htmlReferenceRewriterSnapshot.get();
 	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
 		new ObjectDefinitionMigrator();
 	private final ObjectEntryWriter _objectEntryWriter =

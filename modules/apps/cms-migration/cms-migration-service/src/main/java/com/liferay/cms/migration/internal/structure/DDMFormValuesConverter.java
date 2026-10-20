@@ -575,6 +575,9 @@ public class DDMFormValuesConverter {
 	private static final Snapshot<DLAppLocalService>
 		_dlAppLocalServiceSnapshot = new Snapshot<>(
 			DDMFormValuesConverter.class, DLAppLocalService.class);
+	private static final Snapshot<HTMLReferenceRewriter>
+		_htmlReferenceRewriterSnapshot = new Snapshot<>(
+			DDMFormValuesConverter.class, HTMLReferenceRewriter.class);
 	private static final Snapshot<JournalArticleLocalService>
 		_journalArticleLocalServiceSnapshot = new Snapshot<>(
 			DDMFormValuesConverter.class, JournalArticleLocalService.class);
@@ -584,7 +587,7 @@ public class DDMFormValuesConverter {
 	private final DLAppLocalService _dlAppLocalService =
 		_dlAppLocalServiceSnapshot.get();
 	private final HTMLReferenceRewriter _htmlReferenceRewriter =
-		new HTMLReferenceRewriter();
+		_htmlReferenceRewriterSnapshot.get();
 	private final JournalArticleLocalService _journalArticleLocalService =
 		_journalArticleLocalServiceSnapshot.get();
 	private final JSONFactory _jsonFactory = _jsonFactorySnapshot.get();
