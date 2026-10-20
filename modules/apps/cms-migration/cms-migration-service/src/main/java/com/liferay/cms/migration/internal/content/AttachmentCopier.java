@@ -13,18 +13,21 @@ import com.liferay.object.model.ObjectField;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.Image;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.util.FileUtil;
 
 import java.io.InputStream;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Copies classic images into attachment fields of migrated object entries.
  *
  * @author Lino Alves
  */
+@Component(service = AttachmentCopier.class)
 public class AttachmentCopier {
 
 	public long copy(
@@ -105,26 +108,16 @@ public class AttachmentCopier {
 		return fileEntry.getFileEntryId();
 	}
 
-	private static final Snapshot<AttachmentManager>
-		_attachmentManagerSnapshot = new Snapshot<>(
-			AttachmentCopier.class, AttachmentManager.class);
-	private static final Snapshot<DLAppLocalService>
-		_dlAppLocalServiceSnapshot = new Snapshot<>(
-			AttachmentCopier.class, DLAppLocalService.class);
-	private static final Snapshot<ImageLocalService>
-		_imageLocalServiceSnapshot = new Snapshot<>(
-			AttachmentCopier.class, ImageLocalService.class);
-	private static final Snapshot<ObjectFieldLocalService>
-		_objectFieldLocalServiceSnapshot = new Snapshot<>(
-			AttachmentCopier.class, ObjectFieldLocalService.class);
+	@Reference
+	private AttachmentManager _attachmentManager;
 
-	private final AttachmentManager _attachmentManager =
-		_attachmentManagerSnapshot.get();
-	private final DLAppLocalService _dlAppLocalService =
-		_dlAppLocalServiceSnapshot.get();
-	private final ImageLocalService _imageLocalService =
-		_imageLocalServiceSnapshot.get();
-	private final ObjectFieldLocalService _objectFieldLocalService =
-		_objectFieldLocalServiceSnapshot.get();
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private ImageLocalService _imageLocalService;
+
+	@Reference
+	private ObjectFieldLocalService _objectFieldLocalService;
 
 }

@@ -13,7 +13,6 @@ import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -25,6 +24,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Adds or updates the object entry that replaces a classic content item. The
  * entry is keyed by an external reference code derived from its source, so a
@@ -34,6 +36,7 @@ import java.util.Map;
  *
  * @author Lino Alves
  */
+@Component(service = ObjectEntryWriter.class)
 public class ObjectEntryWriter {
 
 	public ObjectEntry write(
@@ -116,20 +119,13 @@ public class ObjectEntryWriter {
 		return objectEntry;
 	}
 
-	private static final Snapshot<AssetEntryLocalService>
-		_assetEntryLocalServiceSnapshot = new Snapshot<>(
-			ObjectEntryWriter.class, AssetEntryLocalService.class);
-	private static final Snapshot<ObjectEntryLocalService>
-		_objectEntryLocalServiceSnapshot = new Snapshot<>(
-			ObjectEntryWriter.class, ObjectEntryLocalService.class);
-	private static final Snapshot<UserLocalService> _userLocalServiceSnapshot =
-		new Snapshot<>(ObjectEntryWriter.class, UserLocalService.class);
+	@Reference
+	private AssetEntryLocalService _assetEntryLocalService;
 
-	private final AssetEntryLocalService _assetEntryLocalService =
-		_assetEntryLocalServiceSnapshot.get();
-	private final ObjectEntryLocalService _objectEntryLocalService =
-		_objectEntryLocalServiceSnapshot.get();
-	private final UserLocalService _userLocalService =
-		_userLocalServiceSnapshot.get();
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

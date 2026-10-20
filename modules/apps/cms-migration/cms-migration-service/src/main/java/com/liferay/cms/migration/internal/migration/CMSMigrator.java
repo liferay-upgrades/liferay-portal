@@ -355,15 +355,26 @@ public class CMSMigrator {
 	private static final Snapshot<AssetListEntryReferenceRewriter>
 		_assetListEntryReferenceRewriterSnapshot = new Snapshot<>(
 			CMSMigrator.class, AssetListEntryReferenceRewriter.class);
+	private static final Snapshot<BlogsEntryMigrator>
+		_blogsEntryMigratorSnapshot = new Snapshot<>(
+			CMSMigrator.class, BlogsEntryMigrator.class);
 	private static final Snapshot<DepotEntryGroupRelLocalService>
 		_depotEntryGroupRelLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, DepotEntryGroupRelLocalService.class);
+	private static final Snapshot<FileEntryMigrator>
+		_fileEntryMigratorSnapshot = new Snapshot<>(
+			CMSMigrator.class, FileEntryMigrator.class);
+	private static final Snapshot<FolderMigrator> _folderMigratorSnapshot =
+		new Snapshot<>(CMSMigrator.class, FolderMigrator.class);
 	private static final Snapshot<GroupLocalService>
 		_groupLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, GroupLocalService.class);
 	private static final Snapshot<HTMLReferenceRewriter>
 		_htmlReferenceRewriterSnapshot = new Snapshot<>(
 			CMSMigrator.class, HTMLReferenceRewriter.class);
+	private static final Snapshot<JournalArticleMigrator>
+		_journalArticleMigratorSnapshot = new Snapshot<>(
+			CMSMigrator.class, JournalArticleMigrator.class);
 	private static final Snapshot<LayoutLocalService>
 		_layoutLocalServiceSnapshot = new Snapshot<>(
 			CMSMigrator.class, LayoutLocalService.class);
@@ -386,7 +397,7 @@ public class CMSMigrator {
 		_assetListEntryReferenceRewriter =
 			_assetListEntryReferenceRewriterSnapshot.get();
 	private final BlogsEntryMigrator _blogsEntryMigrator =
-		new BlogsEntryMigrator();
+		_blogsEntryMigratorSnapshot.get();
 	private final CMSMigrationBackgroundTaskStatusMessageSender
 		_cmsMigrationBackgroundTaskStatusMessageSender =
 			new CMSMigrationBackgroundTaskStatusMessageSender();
@@ -396,14 +407,15 @@ public class CMSMigrator {
 	private final DisplayPageTemplateMigrator _displayPageTemplateMigrator =
 		new DisplayPageTemplateMigrator();
 	private final FileEntryMigrator _fileEntryMigrator =
-		new FileEntryMigrator();
-	private final FolderMigrator _folderMigrator = new FolderMigrator();
+		_fileEntryMigratorSnapshot.get();
+	private final FolderMigrator _folderMigrator =
+		_folderMigratorSnapshot.get();
 	private final GroupLocalService _groupLocalService =
 		_groupLocalServiceSnapshot.get();
 	private final HTMLReferenceRewriter _htmlReferenceRewriter =
 		_htmlReferenceRewriterSnapshot.get();
 	private final JournalArticleMigrator _journalArticleMigrator =
-		new JournalArticleMigrator();
+		_journalArticleMigratorSnapshot.get();
 	private final LayoutLocalService _layoutLocalService =
 		_layoutLocalServiceSnapshot.get();
 	private final LayoutReferenceRewriter _layoutReferenceRewriter =

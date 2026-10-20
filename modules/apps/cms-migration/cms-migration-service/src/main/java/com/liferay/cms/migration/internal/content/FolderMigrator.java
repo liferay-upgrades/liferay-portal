@@ -19,9 +19,11 @@ import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * Recreates the Web Content and Documents and Media folder trees as object
@@ -29,6 +31,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
  *
  * @author Lino Alves
  */
+@Component(service = FolderMigrator.class)
 public class FolderMigrator {
 
 	public void migrateDLFolders(CMSMigrationContext cmsMigrationContext)
@@ -201,21 +204,13 @@ public class FolderMigrator {
 		return name.substring(0, maxLength - suffix.length()) + suffix;
 	}
 
-	private static final Snapshot<DLFolderLocalService>
-		_dlFolderLocalServiceSnapshot = new Snapshot<>(
-			FolderMigrator.class, DLFolderLocalService.class);
-	private static final Snapshot<JournalFolderLocalService>
-		_journalFolderLocalServiceSnapshot = new Snapshot<>(
-			FolderMigrator.class, JournalFolderLocalService.class);
-	private static final Snapshot<ObjectEntryFolderLocalService>
-		_objectEntryFolderLocalServiceSnapshot = new Snapshot<>(
-			FolderMigrator.class, ObjectEntryFolderLocalService.class);
+	@Reference
+	private DLFolderLocalService _dlFolderLocalService;
 
-	private final DLFolderLocalService _dlFolderLocalService =
-		_dlFolderLocalServiceSnapshot.get();
-	private final JournalFolderLocalService _journalFolderLocalService =
-		_journalFolderLocalServiceSnapshot.get();
-	private final ObjectEntryFolderLocalService _objectEntryFolderLocalService =
-		_objectEntryFolderLocalServiceSnapshot.get();
+	@Reference
+	private JournalFolderLocalService _journalFolderLocalService;
+
+	@Reference
+	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
 
 }
