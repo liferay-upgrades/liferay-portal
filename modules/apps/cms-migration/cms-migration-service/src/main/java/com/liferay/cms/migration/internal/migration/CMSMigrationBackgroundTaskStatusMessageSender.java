@@ -9,11 +9,14 @@ import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusMessageSende
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocal;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.messaging.Message;
-import com.liferay.portal.kernel.module.service.Snapshot;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Lino Alves
  */
+@Component(service = CMSMigrationBackgroundTaskStatusMessageSender.class)
 public class CMSMigrationBackgroundTaskStatusMessageSender {
 
 	public void sendItemStatusMessage(String itemTitle) {
@@ -46,13 +49,8 @@ public class CMSMigrationBackgroundTaskStatusMessageSender {
 		return message;
 	}
 
-	private static final Snapshot<BackgroundTaskStatusMessageSender>
-		_backgroundTaskStatusMessageSenderSnapshot = new Snapshot<>(
-			CMSMigrationBackgroundTaskStatusMessageSender.class,
-			BackgroundTaskStatusMessageSender.class);
-
-	private final BackgroundTaskStatusMessageSender
-		_backgroundTaskStatusMessageSender =
-			_backgroundTaskStatusMessageSenderSnapshot.get();
+	@Reference
+	private BackgroundTaskStatusMessageSender
+		_backgroundTaskStatusMessageSender;
 
 }

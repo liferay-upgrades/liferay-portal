@@ -84,10 +84,6 @@ public class CMSMigrationBackgroundTaskExecutor
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
-		CMSMigrationBackgroundTaskStatusMessageSender
-			cmsMigrationBackgroundTaskStatusMessageSender =
-				new CMSMigrationBackgroundTaskStatusMessageSender();
-		CMSMigrator cmsMigrator = new CMSMigrator();
 		CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
 
 		try {
@@ -96,7 +92,7 @@ public class CMSMigrationBackgroundTaskExecutor
 				_permissionCheckerFactory.create(user));
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-			cmsMigrator.migrate(
+			_cmsMigrator.migrate(
 				new CMSMigrationContext(
 					depotEntry, depotEntry.getGroup(),
 					GetterUtil.getBoolean(
@@ -108,7 +104,7 @@ public class CMSMigrationBackgroundTaskExecutor
 					cmsMigrationReport,
 					GetterUtil.getBoolean(taskContextMap.get("rewritePages")),
 					serviceContext, sourceGroup,
-					cmsMigrationBackgroundTaskStatusMessageSender::
+					_cmsMigrationBackgroundTaskStatusMessageSender::
 						sendItemStatusMessage,
 					user.getUserId()));
 		}
@@ -151,6 +147,13 @@ public class CMSMigrationBackgroundTaskExecutor
 	private final BackgroundTaskStatusMessageTranslator
 		_backgroundTaskStatusMessageTranslator =
 			new CMSMigrationBackgroundTaskStatusMessageTranslator();
+
+	@Reference
+	private CMSMigrationBackgroundTaskStatusMessageSender
+		_cmsMigrationBackgroundTaskStatusMessageSender;
+
+	@Reference
+	private CMSMigrator _cmsMigrator;
 
 	@Reference
 	private DepotEntryLocalService _depotEntryLocalService;
