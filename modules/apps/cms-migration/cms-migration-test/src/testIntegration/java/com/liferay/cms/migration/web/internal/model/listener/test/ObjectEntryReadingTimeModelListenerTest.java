@@ -211,7 +211,7 @@ public class ObjectEntryReadingTimeModelListenerTest {
 	}
 
 	@Inject(
-		filter = "background.task.executor.class.name=com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor"
+		filter = "background.task.executor.class.name=com.liferay.cms.migration.internal.background.task.CMSMigrationBackgroundTaskExecutor"
 	)
 	private BackgroundTaskExecutor _backgroundTaskExecutor;
 
