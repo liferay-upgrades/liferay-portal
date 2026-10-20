@@ -44,6 +44,10 @@ public abstract class BaseContentsSectionCMSTableFDSView
 			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
 				"authorTableCellRenderer")
 		).add(
+			"embedded.title_i18n", "translations",
+			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
+				"translationsTableCellRenderer")
+		).add(
 			addDateFDSTableSchemaField("dateModified", "modified")
 		).add(
 			"dateReview", "review-date",
