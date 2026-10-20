@@ -11,19 +11,13 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusRegistryUtil;
+import com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplay;
+import com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplayFactory;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-
-import jakarta.portlet.RenderRequest;
-import jakarta.portlet.RenderResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -36,20 +30,26 @@ import java.util.List;
 public class CMSMigrationDisplayContext {
 
 	public CMSMigrationDisplayContext(
+		BackgroundTaskDisplayFactory backgroundTaskDisplayFactory,
 		CMSMigrationManager cmsMigrationManager,
 		DepotEntryLocalService depotEntryLocalService,
 		GroupLocalService groupLocalService,
-		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
-		RenderResponse renderResponse) {
+		HttpServletRequest httpServletRequest) {
 
+		_backgroundTaskDisplayFactory = backgroundTaskDisplayFactory;
 		_cmsMigrationManager = cmsMigrationManager;
 		_depotEntryLocalService = depotEntryLocalService;
 		_groupLocalService = groupLocalService;
-		_renderRequest = renderRequest;
-		_renderResponse = renderResponse;
 
 		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
+	}
+
+	public BackgroundTaskDisplay getBackgroundTaskDisplay(
+		BackgroundTask backgroundTask) {
+
+		return _backgroundTaskDisplayFactory.getBackgroundTaskDisplay(
+			backgroundTask);
 	}
 
 	public List<BackgroundTask> getBackgroundTasks() {
@@ -86,56 +86,10 @@ public class CMSMigrationDisplayContext {
 		return groups;
 	}
 
-	public int getProgress(BackgroundTask backgroundTask) {
-		BackgroundTaskStatus backgroundTaskStatus =
-			BackgroundTaskStatusRegistryUtil.getBackgroundTaskStatus(
-				backgroundTask.getBackgroundTaskId());
-
-		if (backgroundTaskStatus == null) {
-			return 0;
-		}
-
-		long total = GetterUtil.getLong(
-			backgroundTaskStatus.getAttribute("total"));
-
-		if (total == 0) {
-			return 0;
-		}
-
-		long counter = GetterUtil.getLong(
-			backgroundTaskStatus.getAttribute("counter"));
-
-		return (int)Math.min(100, Math.round((double)counter / total * 100));
-	}
-
-	public RenderRequest getRenderRequest() {
-		return _renderRequest;
-	}
-
-	public RenderResponse getRenderResponse() {
-		return _renderResponse;
-	}
-
-	public JSONObject getStatusJSONObject(BackgroundTask backgroundTask)
-		throws Exception {
-
-		BackgroundTaskStatus backgroundTaskStatus =
-			BackgroundTaskStatusRegistryUtil.getBackgroundTaskStatus(
-				backgroundTask.getBackgroundTaskId());
-
-		if (backgroundTaskStatus == null) {
-			return JSONFactoryUtil.createJSONObject();
-		}
-
-		return JSONFactoryUtil.createJSONObject(
-			backgroundTaskStatus.getAttributesJSON());
-	}
-
+	private final BackgroundTaskDisplayFactory _backgroundTaskDisplayFactory;
 	private final CMSMigrationManager _cmsMigrationManager;
 	private final DepotEntryLocalService _depotEntryLocalService;
 	private final GroupLocalService _groupLocalService;
-	private final RenderRequest _renderRequest;
-	private final RenderResponse _renderResponse;
 	private final ThemeDisplay _themeDisplay;
 
 }
