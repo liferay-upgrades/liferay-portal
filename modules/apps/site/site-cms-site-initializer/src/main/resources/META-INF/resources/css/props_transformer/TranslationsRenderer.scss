@@ -1,0 +1,7 @@
+.cms-translations-cell {
+	font-variant-numeric: tabular-nums;
+
+	&[title]:hover {
+		text-decoration: underline dotted;
+	}
+}
