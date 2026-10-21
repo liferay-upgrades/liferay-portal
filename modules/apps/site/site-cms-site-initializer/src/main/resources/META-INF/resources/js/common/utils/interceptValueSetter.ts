@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-type EditableElement = HTMLInputElement | HTMLTextAreaElement;
+export type EditableElement = HTMLInputElement | HTMLTextAreaElement;
 
-const interceptedElements = new WeakSet<EditableElement>();
+const listeners = new WeakMap<EditableElement, Set<() => void>>();
 
 /**
  * Wraps the native `value` setter of an input or textarea so that
@@ -17,50 +17,56 @@ const interceptedElements = new WeakSet<EditableElement>();
  * fragments that update hidden/visible inputs imperatively.
  *
  * Scope is per-instance (only the passed element is affected),
- * so the global `HTMLInputElement.prototype` is not mutated. Calling
- * it more than once on the same element is a no-op.
+ * so the global `HTMLInputElement.prototype` is not mutated. The setter is
+ * wrapped only once per element, and every callback registered on it is
+ * invoked, so several consumers can observe the same element.
  *
  * @param element The input or textarea to patch.
  * @param onValueChanged Called whenever `.value` is assigned a value
  * different from the current one.
+ * @returns A function that unregisters `onValueChanged`.
  */
 export default function interceptValueSetter(
 	element: EditableElement,
 	onValueChanged: () => void
-): void {
-	if (interceptedElements.has(element)) {
-		return;
+): () => void {
+	const elementListeners = listeners.get(element) ?? new Set<() => void>();
+
+	if (!listeners.has(element)) {
+		const prototype =
+			element instanceof HTMLTextAreaElement
+				? HTMLTextAreaElement.prototype
+				: HTMLInputElement.prototype;
+
+		const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
+
+		if (!descriptor?.get || !descriptor?.set) {
+			return () => {};
+		}
+
+		const nativeGet = descriptor.get;
+		const nativeSet = descriptor.set;
+
+		listeners.set(element, elementListeners);
+
+		Object.defineProperty(element, 'value', {
+			configurable: true,
+			get() {
+				return nativeGet.call(this);
+			},
+			set(newValue) {
+				const oldValue = nativeGet.call(this);
+
+				nativeSet.call(this, newValue);
+
+				if (oldValue !== nativeGet.call(this)) {
+					elementListeners.forEach((listener) => listener());
+				}
+			},
+		});
 	}
 
-	const prototype =
-		element instanceof HTMLTextAreaElement
-			? HTMLTextAreaElement.prototype
-			: HTMLInputElement.prototype;
+	elementListeners.add(onValueChanged);
 
-	const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
-
-	if (!descriptor?.get || !descriptor?.set) {
-		return;
-	}
-
-	const nativeGet = descriptor.get;
-	const nativeSet = descriptor.set;
-
-	interceptedElements.add(element);
-
-	Object.defineProperty(element, 'value', {
-		configurable: true,
-		get() {
-			return nativeGet.call(this);
-		},
-		set(newValue) {
-			const oldValue = nativeGet.call(this);
-
-			nativeSet.call(this, newValue);
-
-			if (oldValue !== nativeGet.call(this)) {
-				onValueChanged();
-			}
-		},
-	});
+	return () => elementListeners.delete(onValueChanged);
 }
