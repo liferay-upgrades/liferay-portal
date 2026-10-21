@@ -30,6 +30,8 @@ export type Space = {
 export type SpaceSettings = {
 	availableLanguageIds?: string[];
 	defaultLanguageId?: string;
+	draftNotificationEnabled?: boolean;
+	draftNotificationMaxAge?: number;
 	logoColor?: LogoColor;
 	sharingEnabled?: boolean;
 	trashEnabled?: boolean;

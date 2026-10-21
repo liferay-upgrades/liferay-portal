@@ -63,6 +63,14 @@ export default function SpaceGeneralSettings({
 	} = useFormik({
 		initialValues: {
 			description: space.description,
+			draftNotificationEnabled:
+				space.settings?.draftNotificationEnabled ?? true,
+			draftNotificationMaxAge: String(
+				Math.round(
+					(space.settings?.draftNotificationMaxAge ?? 0) /
+						MINUTES_PER_DAY
+				)
+			),
 			erc: initialERC,
 			friendlyURL: initialFriendlyURL,
 			logoColor: space.settings?.logoColor as LogoColor,
@@ -78,6 +86,8 @@ export default function SpaceGeneralSettings({
 		onSubmit: async (values) => {
 			const {
 				description,
+				draftNotificationEnabled,
+				draftNotificationMaxAge,
 				erc,
 				friendlyURL,
 				logoColor = 'outline-0',
@@ -95,6 +105,9 @@ export default function SpaceGeneralSettings({
 					friendlyURL,
 					name,
 					settings: {
+						draftNotificationEnabled,
+						draftNotificationMaxAge:
+							Number(draftNotificationMaxAge) * MINUTES_PER_DAY,
 						logoColor,
 						sharingEnabled,
 						trashEnabled,
@@ -145,6 +158,9 @@ export default function SpaceGeneralSettings({
 		validate: (values): Errors =>
 			validate(
 				{
+					draftNotificationMaxAge: values.draftNotificationEnabled
+						? [minValue(1), required, validNumber]
+						: [],
 					erc: [maxLength(ERC_MAX_LENGTH), required],
 					friendlyURL: [
 						(value) =>
@@ -365,6 +381,53 @@ export default function SpaceGeneralSettings({
 							onChange={handleChange}
 							type="number"
 							value={String(values.trashEntriesMaxAge ?? '')}
+						/>
+					)}
+				</>
+			</SpacePanel>
+
+			<SpacePanel title={Liferay.Language.get('draft-notification')}>
+				<>
+					<p className="mb-4">
+						{Liferay.Language.get(
+							'enable-this-option-to-allow-users-to-receive-notification-of-draft-files'
+						)}
+					</p>
+
+					<ClayForm.Group>
+						<ClayCheckbox
+							checked={values.draftNotificationEnabled}
+							label={Liferay.Language.get(
+								'enable-draft-notification'
+							)}
+							onChange={({target: {checked}}) =>
+								setFieldValue(
+									'draftNotificationEnabled',
+									checked
+								)
+							}
+						/>
+					</ClayForm.Group>
+
+					{values.draftNotificationEnabled && (
+						<FieldText
+							errorMessage={
+								touched.draftNotificationMaxAge
+									? (errors?.draftNotificationMaxAge as string)
+									: undefined
+							}
+							formGroupProps={{className: 'col-12 col-sm-6 p-0'}}
+							helpIcon={Liferay.Language.get(
+								'draft-notification-max-age-in-days-help'
+							)}
+							label={Liferay.Language.get(
+								'draft-notification-max-age'
+							)}
+							name="draftNotificationMaxAge"
+							onBlur={handleBlur}
+							onChange={handleChange}
+							type="number"
+							value={String(values.draftNotificationMaxAge ?? '')}
 						/>
 					)}
 				</>
