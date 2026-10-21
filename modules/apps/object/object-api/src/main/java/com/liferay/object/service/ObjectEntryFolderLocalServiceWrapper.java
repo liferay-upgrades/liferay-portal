@@ -471,6 +471,14 @@ public class ObjectEntryFolderLocalServiceWrapper
 	}
 
 	@Override
+	public int getObjectEntryFoldersCount(
+		long groupId, String treePath, Integer[] statuses) {
+
+		return _objectEntryFolderLocalService.getObjectEntryFoldersCount(
+			groupId, treePath, statuses);
+	}
+
+	@Override
 	public com.liferay.object.model.ObjectEntryFolder
 			getOrAddEmptyObjectEntryFolder(
 				String externalReferenceCode, long groupId, long companyId,
@@ -640,4 +648,4 @@ public class ObjectEntryFolderLocalServiceWrapper
 	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:228768141
+// LIFERAY-SERVICE-BUILDER-HASH:279153784

@@ -415,6 +415,13 @@ public class ObjectEntryFolderLocalServiceUtil {
 			groupId, companyId, parentObjectEntryFolderId);
 	}
 
+	public static int getObjectEntryFoldersCount(
+		long groupId, String treePath, Integer[] statuses) {
+
+		return getService().getObjectEntryFoldersCount(
+			groupId, treePath, statuses);
+	}
+
 	public static ObjectEntryFolder getOrAddEmptyObjectEntryFolder(
 			String externalReferenceCode, long groupId, long companyId,
 			long userId,
@@ -551,4 +558,4 @@ public class ObjectEntryFolderLocalServiceUtil {
 			ObjectEntryFolderLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-446673031
+// LIFERAY-SERVICE-BUILDER-HASH:-234574075
