@@ -396,6 +396,10 @@ public interface ObjectEntryLocalService
 		long groupId, long objectDefinitionId, int status);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getObjectEntriesCount(
+		long groupId, String treePath, Integer[] statuses);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long getObjectEntriesCount(
 			long groupId, String languageId, ObjectDefinition objectDefinition,
 			Predicate predicate)
@@ -636,4 +640,4 @@ public interface ObjectEntryLocalService
 		throws PortalException;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:414147554
+// LIFERAY-SERVICE-BUILDER-HASH:1456136947

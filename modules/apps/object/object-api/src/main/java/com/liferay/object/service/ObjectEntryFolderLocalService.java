@@ -340,6 +340,10 @@ public interface ObjectEntryFolderLocalService
 	public int getObjectEntryFoldersCount(
 		long groupId, long companyId, long parentObjectEntryFolderId);
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getObjectEntryFoldersCount(
+		long groupId, String treePath, Integer[] statuses);
+
 	@Indexable(type = IndexableType.REINDEX)
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ObjectEntryFolder getOrAddEmptyObjectEntryFolder(
@@ -425,4 +429,4 @@ public interface ObjectEntryFolderLocalService
 		throws PortalException;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:854816535
+// LIFERAY-SERVICE-BUILDER-HASH:2078331985

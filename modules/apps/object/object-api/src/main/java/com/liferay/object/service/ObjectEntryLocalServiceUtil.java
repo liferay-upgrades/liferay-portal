@@ -519,6 +519,12 @@ public class ObjectEntryLocalServiceUtil {
 			groupId, objectDefinitionId, status);
 	}
 
+	public static int getObjectEntriesCount(
+		long groupId, String treePath, Integer[] statuses) {
+
+		return getService().getObjectEntriesCount(groupId, treePath, statuses);
+	}
+
 	public static long getObjectEntriesCount(
 			long groupId, String languageId,
 			com.liferay.object.model.ObjectDefinition objectDefinition,
@@ -923,4 +929,4 @@ public class ObjectEntryLocalServiceUtil {
 			ObjectEntryLocalServiceUtil.class, ObjectEntryLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1455848682
+// LIFERAY-SERVICE-BUILDER-HASH:465095492
