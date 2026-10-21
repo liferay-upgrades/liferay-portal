@@ -1428,6 +1428,35 @@ public class ObjectEntryLocalServiceImpl
 	}
 
 	@Override
+	public int getObjectEntriesCount(
+		long groupId, String treePath, Integer[] statuses) {
+
+		return objectEntryPersistence.dslQueryCount(
+			DSLQueryFactoryUtil.count(
+			).from(
+				ObjectEntryTable.INSTANCE
+			).where(
+				ObjectEntryTable.INSTANCE.groupId.eq(
+					groupId
+				).and(
+					ObjectEntryTable.INSTANCE.objectEntryId.eq(
+						ObjectEntryTable.INSTANCE.headObjectEntryId)
+				).and(
+					ObjectEntryTable.INSTANCE.rootObjectEntryId.eq(
+						ObjectEntryTable.INSTANCE.objectEntryId
+					).or(
+						ObjectEntryTable.INSTANCE.rootObjectEntryId.eq(0L)
+					).withParentheses()
+				).and(
+					ObjectEntryTable.INSTANCE.status.in(statuses)
+				).and(
+					ObjectEntryTable.INSTANCE.treePath.like(
+						treePath + StringPool.PERCENT)
+				)
+			));
+	}
+
+	@Override
 	public long getObjectEntriesCount(
 			long groupId, String languageId, ObjectDefinition objectDefinition,
 			Predicate predicate)

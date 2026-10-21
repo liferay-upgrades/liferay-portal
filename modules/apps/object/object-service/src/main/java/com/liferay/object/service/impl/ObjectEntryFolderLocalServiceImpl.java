@@ -357,6 +357,28 @@ public class ObjectEntryFolderLocalServiceImpl
 			groupId, companyId, parentObjectEntryFolderId);
 	}
 
+	@Override
+	public int getObjectEntryFoldersCount(
+		long groupId, String treePath, Integer[] statuses) {
+
+		return objectEntryFolderPersistence.dslQueryCount(
+			DSLQueryFactoryUtil.count(
+			).from(
+				ObjectEntryFolderTable.INSTANCE
+			).where(
+				ObjectEntryFolderTable.INSTANCE.groupId.eq(
+					groupId
+				).and(
+					ObjectEntryFolderTable.INSTANCE.status.in(statuses)
+				).and(
+					ObjectEntryFolderTable.INSTANCE.treePath.like(
+						treePath + StringPool.PERCENT)
+				).and(
+					ObjectEntryFolderTable.INSTANCE.treePath.neq(treePath)
+				)
+			));
+	}
+
 	@Indexable(type = IndexableType.REINDEX)
 	public ObjectEntryFolder getOrAddEmptyObjectEntryFolder(
 			String externalReferenceCode, long groupId, long companyId,
