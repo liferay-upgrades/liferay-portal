@@ -6,7 +6,6 @@
 package com.liferay.source.formatter.check;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.source.formatter.check.util.JavaSourceUtil;
 
@@ -54,9 +53,9 @@ public class UpgradeJavaGetFileMethodCheck extends BaseFileCheck {
 
 				content = _formatMethodCall(
 					content, methodCall, matcher.group(1));
-			}
 
-			replaced = true;
+				replaced = true;
+			}
 		}
 
 		if (replaced) {
@@ -77,28 +76,13 @@ public class UpgradeJavaGetFileMethodCheck extends BaseFileCheck {
 			return content;
 		}
 
+		String newMethodCall = StringBundler.concat(
+			variableName, "FileUtil.createTempFile(",
+			getVariableName(methodCall), ".getFileAsStream(",
+			StringUtil.merge(parameterNames, ", "), "))");
+
 		return StringUtil.replace(
-			content, variableName + methodCall,
-			_getNewMethodCall(methodCall, parameterNames, variableName));
-	}
-
-	private String _getNewMethodCall(
-		String methodCall, List<String> parameterNames, String variableName) {
-
-		StringBundler sb = new StringBundler(10);
-
-		sb.append("\t\tInputStream inputStream = ");
-		sb.append(getVariableName(methodCall));
-		sb.append(".getFileAsStream(");
-		sb.append(StringUtil.merge(parameterNames, ", "));
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-		sb.append(StringPool.SEMICOLON);
-		sb.append(StringPool.NEW_LINE);
-		sb.append(StringPool.NEW_LINE);
-		sb.append(variableName);
-		sb.append("FileUtil.createTempFile(inputStream)");
-
-		return sb.toString();
+			content, variableName + methodCall, newMethodCall);
 	}
 
 	private static final Pattern _getFilePattern = Pattern.compile(
