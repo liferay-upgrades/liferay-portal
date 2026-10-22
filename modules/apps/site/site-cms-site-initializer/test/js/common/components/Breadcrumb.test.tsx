@@ -222,7 +222,7 @@ describe('Breadcrumb', () => {
 		render(
 			<Breadcrumb
 				breadcrumbItems={testBreadcrumbItemsSingle}
-				description="drafts-you-created-that-are-not-published-yet"
+				description="this-page-lists-the-drafts-you-created-that-are-not-published-yet"
 			/>
 		);
 
@@ -230,7 +230,9 @@ describe('Breadcrumb', () => {
 			screen.getByRole('heading', {level: 2, name: 'My Space'})
 		).toBeInTheDocument();
 		expect(
-			screen.getByText('drafts-you-created-that-are-not-published-yet')
+			screen.getByText(
+				'this-page-lists-the-drafts-you-created-that-are-not-published-yet'
+			)
 		).toBeInTheDocument();
 		expect(screen.getByRole('region', {name: 'breadcrumb'})).toHaveClass(
 			'py-4'
@@ -249,12 +251,14 @@ describe('Breadcrumb', () => {
 		render(
 			<Breadcrumb
 				breadcrumbItems={testBreadcrumbItemsShort}
-				description="drafts-you-created-that-are-not-published-yet"
+				description="this-page-lists-the-drafts-you-created-that-are-not-published-yet"
 			/>
 		);
 
 		expect(
-			screen.queryByText('drafts-you-created-that-are-not-published-yet')
+			screen.queryByText(
+				'this-page-lists-the-drafts-you-created-that-are-not-published-yet'
+			)
 		).not.toBeInTheDocument();
 	});
 

@@ -83,7 +83,8 @@ public class ViewMyContentSectionDisplayContext
 			"description",
 			language.get(
 				httpServletRequest,
-				"drafts-you-created-that-are-not-published-yet"));
+				"this-page-lists-the-drafts-you-created-that-are-not-" +
+					"published-yet"));
 
 		return breadcrumbProps;
 	}
