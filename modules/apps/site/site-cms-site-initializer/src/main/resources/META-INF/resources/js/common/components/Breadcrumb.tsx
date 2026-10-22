@@ -7,6 +7,7 @@ import ClayBreadcrumb from '@clayui/breadcrumb';
 import {ClayButtonWithIcon} from '@clayui/button';
 import ClayDropDown, {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClaySticker from '@clayui/sticker';
+import classNames from 'classnames';
 import {FeatureIndicator, openToast} from 'frontend-js-components-web';
 import {navigate} from 'frontend-js-web';
 import React, {ComponentProps} from 'react';
@@ -51,6 +52,7 @@ interface Props extends Pick<React.ComponentProps<typeof ClaySticker>, 'size'> {
 	actionItems?: ComponentProps<typeof ClayDropDownWithItems>['items'] &
 		ActionDropdownItemProps;
 	breadcrumbItems: BreadcrumbItem[];
+	description?: string;
 	displayType?: LogoColor;
 	freeTier?: boolean;
 	hideSpace?: boolean;
@@ -209,6 +211,7 @@ function ActionDropdownItem({
 export default function Breadcrumb({
 	actionItems,
 	breadcrumbItems,
+	description,
 	displayType,
 	freeTier,
 	hideSpace,
@@ -219,7 +222,10 @@ export default function Breadcrumb({
 	return (
 		<section
 			aria-label={Liferay.Language.get('breadcrumb')}
-			className="autofit-row autofit-row-center cms-breadcrumb px-4"
+			className={classNames(
+				'autofit-row autofit-row-center cms-breadcrumb px-4',
+				{'py-4': isTitle && !!description}
+			)}
 		>
 			{!hideSpace && (
 				<div className="autofit-col mr-3">
@@ -234,15 +240,26 @@ export default function Breadcrumb({
 
 			<div className="autofit-col">
 				{isTitle ? (
-					<div className="c-gap-2 d-flex">
-						<h2 className="font-weight-semi-bold mb-0 text-7 text-dark">
-							{breadcrumbItems[0]?.label}
-						</h2>
+					<>
+						<div className="c-gap-2 d-flex">
+							<h2 className="font-weight-semi-bold mb-0 text-7 text-dark">
+								{breadcrumbItems[0]?.label}
+							</h2>
 
-						{freeTier && (
-							<FeatureIndicator interactive type="enterprise" />
+							{freeTier && (
+								<FeatureIndicator
+									interactive
+									type="enterprise"
+								/>
+							)}
+						</div>
+
+						{description && (
+							<p className="mb-0 text-3 text-secondary">
+								{description}
+							</p>
 						)}
-					</div>
+					</>
 				) : (
 					<ClayBreadcrumb className="p-0" items={breadcrumbItems} />
 				)}

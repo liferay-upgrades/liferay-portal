@@ -218,6 +218,50 @@ describe('Breadcrumb', () => {
 		expect(screen.queryByText('enterprise')).not.toBeInTheDocument();
 	});
 
+	it('renders the description below the title when there is a single breadcrumb item', () => {
+		render(
+			<Breadcrumb
+				breadcrumbItems={testBreadcrumbItemsSingle}
+				description="this-page-lists-the-drafts-you-created-that-are-not-published-yet"
+			/>
+		);
+
+		expect(
+			screen.getByRole('heading', {level: 2, name: 'My Space'})
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				'this-page-lists-the-drafts-you-created-that-are-not-published-yet'
+			)
+		).toBeInTheDocument();
+		expect(screen.getByRole('region', {name: 'breadcrumb'})).toHaveClass(
+			'py-4'
+		);
+	});
+
+	it('does not add vertical padding when there is no description', () => {
+		render(<Breadcrumb breadcrumbItems={testBreadcrumbItemsSingle} />);
+
+		expect(
+			screen.getByRole('region', {name: 'breadcrumb'})
+		).not.toHaveClass('py-4');
+	});
+
+	it('does not render the description when there are multiple breadcrumb items', () => {
+		render(
+			<Breadcrumb
+				breadcrumbItems={testBreadcrumbItemsShort}
+				description="this-page-lists-the-drafts-you-created-that-are-not-published-yet"
+			/>
+		);
+
+		expect(
+			screen.queryByText(
+				'this-page-lists-the-drafts-you-created-that-are-not-published-yet'
+			)
+		).not.toBeInTheDocument();
+	});
+
 	it('does not render the enterprise badge when there are multiple breadcrumb items', () => {
 		render(
 			<Breadcrumb breadcrumbItems={testBreadcrumbItemsShort} freeTier />
