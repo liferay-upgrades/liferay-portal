@@ -20,7 +20,10 @@ import org.osgi.service.component.annotations.Component;
  * @author Daniel Sanz
  */
 @Component(
-	property = "frontend.data.set.name=" + CMSSiteInitializerFDSNames.ALL_SECTION,
+	property = {
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.ALL_SECTION,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.MY_CONTENT_SECTION
+	},
 	service = FDSItemsActions.class
 )
 public class ViewAllSectionFDSItemsActions implements FDSItemsActions {
