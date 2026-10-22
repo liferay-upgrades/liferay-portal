@@ -5,10 +5,11 @@
 
 package com.liferay.cms.migration.web.internal.portlet;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationPortletKeys;
+import com.liferay.cms.migration.constants.CMSMigrationPortletKeys;
+import com.liferay.cms.migration.manager.CMSMigrationManager;
 import com.liferay.cms.migration.web.internal.display.context.CMSMigrationDisplayContext;
 import com.liferay.depot.service.DepotEntryLocalService;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
+import com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplayFactory;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.Portal;
@@ -16,8 +17,11 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.portlet.Portlet;
 import jakarta.portlet.PortletException;
+import jakarta.portlet.PortletRequest;
 import jakarta.portlet.RenderRequest;
 import jakarta.portlet.RenderResponse;
+import jakarta.portlet.ResourceRequest;
+import jakarta.portlet.ResourceResponse;
 
 import java.io.IOException;
 
@@ -50,19 +54,35 @@ public class CMSMigrationPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		renderRequest.setAttribute(
-			WebKeys.PORTLET_DISPLAY_CONTEXT,
-			new CMSMigrationDisplayContext(
-				_backgroundTaskManager, _depotEntryLocalService,
-				_groupLocalService,
-				_portal.getHttpServletRequest(renderRequest), renderRequest,
-				renderResponse));
+		_setDisplayContext(renderRequest);
 
 		super.render(renderRequest, renderResponse);
 	}
 
+	@Override
+	public void serveResource(
+			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+		throws IOException, PortletException {
+
+		_setDisplayContext(resourceRequest);
+
+		super.serveResource(resourceRequest, resourceResponse);
+	}
+
+	private void _setDisplayContext(PortletRequest portletRequest) {
+		portletRequest.setAttribute(
+			WebKeys.PORTLET_DISPLAY_CONTEXT,
+			new CMSMigrationDisplayContext(
+				_backgroundTaskDisplayFactory, _cmsMigrationManager,
+				_depotEntryLocalService, _groupLocalService,
+				_portal.getHttpServletRequest(portletRequest)));
+	}
+
 	@Reference
-	private BackgroundTaskManager _backgroundTaskManager;
+	private BackgroundTaskDisplayFactory _backgroundTaskDisplayFactory;
+
+	@Reference
+	private CMSMigrationManager _cmsMigrationManager;
 
 	@Reference
 	private DepotEntryLocalService _depotEntryLocalService;

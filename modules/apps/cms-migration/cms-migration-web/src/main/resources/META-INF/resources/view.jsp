@@ -9,9 +9,6 @@
 
 <%
 CMSMigrationDisplayContext cmsMigrationDisplayContext = (CMSMigrationDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
-
-Format dateTimeFormat = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
-boolean inProgress = false;
 %>
 
 <clay:container-fluid
@@ -52,15 +49,15 @@ boolean inProgress = false;
 				</aui:select>
 
 				<%
-				List<DepotEntry> spaces = cmsMigrationDisplayContext.getSpaces();
+				List<DepotEntry> depotEntries = cmsMigrationDisplayContext.getDepotEntries();
 				%>
 
 				<aui:select label="cms-migration-target-space" name="depotEntryId">
-					<aui:option label="cms-migration-create-new-space" selected="<%= spaces.isEmpty() %>" value="0" />
+					<aui:option label="cms-migration-create-new-space" selected="<%= depotEntries.isEmpty() %>" value="0" />
 
 					<%
-					for (int i = 0; i < spaces.size(); i++) {
-						DepotEntry depotEntry = spaces.get(i);
+					for (int i = 0; i < depotEntries.size(); i++) {
+						DepotEntry depotEntry = depotEntries.get(i);
 
 						Group depotGroup = depotEntry.getGroup();
 					%>
@@ -73,8 +70,8 @@ boolean inProgress = false;
 
 				</aui:select>
 
-				<div class="<%= spaces.isEmpty() ? StringPool.BLANK : "d-none" %>" id="<portlet:namespace />spaceNameContainer">
-					<aui:input label="cms-migration-new-space-name" name="spaceName" type="text" />
+				<div class="<%= depotEntries.isEmpty() ? StringPool.BLANK : "d-none" %>" id="<portlet:namespace />depotEntryNameContainer">
+					<aui:input label="cms-migration-new-space-name" name="depotEntryName" type="text" />
 				</div>
 			</clay:sheet-section>
 
@@ -106,173 +103,49 @@ boolean inProgress = false;
 		</clay:sheet-header>
 
 		<clay:sheet-section>
-
-			<%
-			List<BackgroundTask> backgroundTasks = cmsMigrationDisplayContext.getBackgroundTasks();
-			%>
-
-			<c:if test="<%= backgroundTasks.isEmpty() %>">
-				<div class="text-secondary">
-					<liferay-ui:message key="cms-migration-no-migrations" />
-				</div>
-			</c:if>
-
-			<%
-			for (BackgroundTask backgroundTask : backgroundTasks) {
-				CMSMigrationReport cmsMigrationReport = cmsMigrationDisplayContext.getCMSMigrationReport(backgroundTask);
-
-				if (backgroundTask.isInProgress()) {
-					inProgress = true;
-				}
-			%>
-
-				<div class="border-bottom mb-3 pb-3">
-					<div class="autofit-row">
-						<div class="autofit-col autofit-col-expand">
-							<h4>
-								<%= HtmlUtil.escape(backgroundTask.getName()) %>
-							</h4>
-
-							<div class="text-secondary">
-								<%= dateTimeFormat.format(backgroundTask.getCreateDate()) %>
-							</div>
-						</div>
-
-						<div class="autofit-col">
-							<clay:label
-								displayType="<%= BackgroundTaskConstants.getStatusCssClass(backgroundTask.getStatus()) %>"
-								label="<%= LanguageUtil.get(request, backgroundTask.getStatusLabel()) %>"
-							/>
-						</div>
-
-						<c:if test="<%= backgroundTask.isCompleted() %>">
-							<div class="autofit-col">
-								<portlet:actionURL name="/cms_migration/delete_cms_migration" var="deleteCMSMigrationURL">
-									<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
-									<portlet:param name="redirect" value="<%= themeDisplay.getURLCurrent() %>" />
-								</portlet:actionURL>
-
-								<clay:link
-									displayType="secondary"
-									href="<%= deleteCMSMigrationURL %>"
-									label="delete"
-									small="<%= true %>"
-									type="button"
-								/>
-							</div>
-						</c:if>
-					</div>
-
-					<c:if test="<%= backgroundTask.isInProgress() %>">
-
-						<%
-						JSONObject statusJSONObject = cmsMigrationDisplayContext.getStatusJSONObject(backgroundTask);
-						%>
-
-						<div class="mt-2">
-							<liferay-ui:message key='<%= "cms-migration-" + statusJSONObject.getString("phase") %>' />
-
-							<span class="text-secondary"><%= HtmlUtil.escape(statusJSONObject.getString("itemTitle")) %></span>
-						</div>
-
-						<clay:progressbar
-							value="<%= cmsMigrationDisplayContext.getProgress(backgroundTask) %>"
-						/>
-					</c:if>
-
-					<c:if test="<%= backgroundTask.isCompleted() %>">
-						<ul class="list-inline mt-2">
-
-							<%
-							for (Map.Entry<String, Long> entry :
-									cmsMigrationReport.getCounts(
-									).entrySet()) {
-							%>
-
-								<li class="list-inline-item">
-									<strong><%= entry.getValue() %></strong> <liferay-ui:message key='<%= "cms-migration-" + entry.getKey() %>' />
-								</li>
-
-							<%
-							}
-							%>
-
-						</ul>
-
-						<c:if test="<%= !cmsMigrationReport.getErrors().isEmpty() %>">
-							<details class="mt-2">
-								<summary class="text-danger">
-									<liferay-ui:message arguments="<%= cmsMigrationReport.getErrors().size() %>" key="cms-migration-x-errors" />
-								</summary>
-
-								<ul>
-
-									<%
-									for (String error : cmsMigrationReport.getErrors()) {
-									%>
-
-										<li><%= HtmlUtil.escape(error) %></li>
-
-									<%
-									}
-									%>
-
-								</ul>
-							</details>
-						</c:if>
-
-						<c:if test="<%= !cmsMigrationReport.getWarnings().isEmpty() %>">
-							<details class="mt-2">
-								<summary class="text-warning">
-									<liferay-ui:message arguments="<%= cmsMigrationReport.getWarnings().size() %>" key="cms-migration-x-warnings" />
-								</summary>
-
-								<ul>
-
-									<%
-									for (String warning : cmsMigrationReport.getWarnings()) {
-									%>
-
-										<li><%= HtmlUtil.escape(warning) %></li>
-
-									<%
-									}
-									%>
-
-								</ul>
-							</details>
-						</c:if>
-					</c:if>
-				</div>
-
-			<%
-			}
-			%>
-
+			<div id="<portlet:namespace />cmsMigrations">
+				<liferay-util:include page="/cms_migrations.jsp" servletContext="<%= application %>" />
+			</div>
 		</clay:sheet-section>
 	</clay:sheet>
 </clay:container-fluid>
+
+<portlet:resourceURL id="/cms_migration/get_cms_migrations" var="getCMSMigrationsURL" />
 
 <aui:script>
 	const depotEntryIdSelect = document.getElementById(
 		'<portlet:namespace />depotEntryId'
 	);
-	const spaceNameContainer = document.getElementById(
-		'<portlet:namespace />spaceNameContainer'
+	const depotEntryNameContainer = document.getElementById(
+		'<portlet:namespace />depotEntryNameContainer'
 	);
 
 	depotEntryIdSelect.addEventListener('change', () => {
-		spaceNameContainer.classList.toggle(
+		depotEntryNameContainer.classList.toggle(
 			'd-none',
 			depotEntryIdSelect.value !== '0'
 		);
 	});
-</aui:script>
 
-<c:if test="<%= inProgress %>">
-	<aui:script>
+	const cmsMigrations = document.getElementById(
+		'<portlet:namespace />cmsMigrations'
+	);
+
+	const refreshCMSMigrations = () => {
+		if (!cmsMigrations.querySelector('[data-in-progress="true"]')) {
+			return;
+		}
+
 		setTimeout(() => {
-			window.location.reload();
+			Liferay.Util.fetch('<%= getCMSMigrationsURL %>')
+				.then((response) => response.text())
+				.then((html) => {
+					cmsMigrations.innerHTML = html;
+
+					refreshCMSMigrations();
+				});
 		}, 5000);
-	</aui:script>
-</c:if>
+	};
+
+	refreshCMSMigrations();
+</aui:script>
