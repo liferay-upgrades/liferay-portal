@@ -70,6 +70,3 @@ public abstract class BaseContentsSectionCMSTableFDSView
 	protected FDSTableSchemaBuilderFactory fdsTableSchemaBuilderFactory;
 
 }
-
-// 'dataExpiration', "expiration-data"
-// expirationDateTableCellRenderer
