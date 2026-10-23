@@ -171,6 +171,25 @@ public class UpgradeSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testUpgradeJavaPortletProviderCheck() throws Exception {
+		test("upgrade/UpgradeJavaPortletProviderCheck.testjava");
+		test(
+			"upgrade/UpgradeJavaPortletProviderWithGenericClassCheck.testjava");
+		test(
+			"upgrade/UpgradeJavaPortletProviderWithGenericSuperclassCheck." +
+				"testjava");
+		test(
+			"upgrade/UpgradeJavaPortletProviderWithoutBaseClassCheck.testjava");
+		test(
+			"upgrade/UpgradeJavaPortletProviderWithoutComponentAttributes" +
+				"Check.testjava");
+		test("upgrade/UpgradeJavaPortletProviderWithoutServiceCheck.testjava");
+		test(
+			"upgrade/UpgradeJavaPortletProviderWithPrivateMembersCheck." +
+				"testjava");
+	}
+
+	@Test
 	public void testUpgradeJavaPortletSharedSearchSettingsCheck()
 		throws Exception {
 
