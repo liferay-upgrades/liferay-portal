@@ -6,6 +6,9 @@
 import StructureService from '../../common/services/StructureService';
 import {ObjectField} from '../../common/types/ObjectDefinition';
 
+const BLOCK_SELECTOR =
+	'blockquote, div, h1, h2, h3, h4, h5, h6, li, p, pre, td, th';
+
 const EDITED_CONTENT_BUSINESS_TYPES = new Set<ObjectField['businessType']>([
 	'LongText',
 	'MultiselectPicklist',
@@ -16,6 +19,18 @@ const EDITED_CONTENT_BUSINESS_TYPES = new Set<ObjectField['businessType']>([
 ]);
 
 const MAX_EDITED_CONTENT_LENGTH = 20000;
+
+const MULTILINE_BUSINESS_TYPES = new Set<ObjectField['businessType']>([
+	'LongText',
+	'RichText',
+]);
+
+const TEXT_BUSINESS_TYPES = new Set<ObjectField['businessType']>([
+	'LongText',
+	'RichText',
+	'String',
+	'Text',
+]);
 
 const objectFieldsPromises = new Map<string, Promise<ObjectField[] | null>>();
 
@@ -95,9 +110,6 @@ function getFieldLabel(field: ObjectField): string {
 		field.name
 	);
 }
-
-const BLOCK_SELECTOR =
-	'blockquote, div, h1, h2, h3, h4, h5, h6, li, p, pre, td, th';
 
 function convertHTMLToText(html: string): string {
 	const element = document.createElement('div');
@@ -204,15 +216,26 @@ function getFieldValue(
 	return '';
 }
 
-export default async function getEditedContent(
-	objectDefinitionExternalReferenceCode: string | undefined
-): Promise<string> {
-	const form =
+export function getContentForm(): Element | null {
+	return (
 		document.querySelector('.lfr-main-form-container') ||
-		document.querySelector('.lfr-layout-structure-item-form');
+		document.querySelector('.lfr-layout-structure-item-form')
+	);
+}
+
+type EditedField = {
+	businessType: ObjectField['businessType'];
+	label?: string;
+	value: string;
+};
+
+async function getEditedFields(
+	objectDefinitionExternalReferenceCode: string | undefined
+): Promise<EditedField[]> {
+	const form = getContentForm();
 
 	if (!form) {
-		return '';
+		return [];
 	}
 
 	const objectFields = objectDefinitionExternalReferenceCode
@@ -221,7 +244,7 @@ export default async function getEditedContent(
 
 	const richTextValues = getRichTextValues(form);
 
-	const parts: string[] = [];
+	const fields: EditedField[] = [];
 
 	if (objectFields) {
 		objectFields.forEach((field) => {
@@ -232,7 +255,11 @@ export default async function getEditedContent(
 			const value = getFieldValue(form, field, richTextValues);
 
 			if (value) {
-				parts.push(`${getFieldLabel(field)}: ${value}`);
+				fields.push({
+					businessType: field.businessType,
+					label: getFieldLabel(field),
+					value,
+				});
 			}
 		});
 	}
@@ -242,11 +269,42 @@ export default async function getEditedContent(
 			.find(Boolean);
 
 		if (title) {
-			parts.push(title);
+			fields.push({businessType: 'String', value: title});
 		}
 	}
 
-	parts.push(...richTextValues.filter(Boolean));
+	richTextValues.filter(Boolean).forEach((value) => {
+		fields.push({businessType: 'RichText', value});
+	});
 
-	return parts.join('\n\n').slice(0, MAX_EDITED_CONTENT_LENGTH);
+	return fields;
+}
+
+export type EditedTextField = {
+	multiline: boolean;
+	value: string;
+};
+
+export async function getEditedTextFields(
+	objectDefinitionExternalReferenceCode: string | undefined
+): Promise<EditedTextField[]> {
+	const fields = await getEditedFields(objectDefinitionExternalReferenceCode);
+
+	return fields
+		.filter(({businessType}) => TEXT_BUSINESS_TYPES.has(businessType))
+		.map(({businessType, value}) => ({
+			multiline: MULTILINE_BUSINESS_TYPES.has(businessType),
+			value,
+		}));
+}
+
+export default async function getEditedContent(
+	objectDefinitionExternalReferenceCode: string | undefined
+): Promise<string> {
+	const fields = await getEditedFields(objectDefinitionExternalReferenceCode);
+
+	return fields
+		.map(({label, value}) => (label ? `${label}: ${value}` : value))
+		.join('\n\n')
+		.slice(0, MAX_EDITED_CONTENT_LENGTH);
 }
