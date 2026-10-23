@@ -96,6 +96,21 @@ function getFieldLabel(field: ObjectField): string {
 	);
 }
 
+const BLOCK_SELECTOR =
+	'blockquote, div, h1, h2, h3, h4, h5, h6, li, p, pre, td, th';
+
+function convertHTMLToText(html: string): string {
+	const element = document.createElement('div');
+
+	element.innerHTML = html;
+
+	element
+		.querySelectorAll(BLOCK_SELECTOR)
+		.forEach((block) => block.append('\n'));
+
+	return (element.textContent ?? '').replace(/\n\s*\n/g, '\n').trim();
+}
+
 function getRichTextValues(form: Element): string[] {
 	return Array.from(
 		form.querySelectorAll<HTMLElement>('.ck-editor__editable')
@@ -107,11 +122,7 @@ function getRichTextValues(form: Element): string[] {
 		).ckeditorInstance;
 
 		if (editor) {
-			const element = document.createElement('div');
-
-			element.innerHTML = editor.getData();
-
-			return (element.textContent ?? '').trim();
+			return convertHTMLToText(editor.getData());
 		}
 
 		return (editable.innerText ?? editable.textContent ?? '').trim();
