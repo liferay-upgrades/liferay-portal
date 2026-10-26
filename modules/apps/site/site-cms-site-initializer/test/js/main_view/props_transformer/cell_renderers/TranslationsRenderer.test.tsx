@@ -7,7 +7,10 @@ import '@testing-library/jest-dom';
 import {render, screen} from '@testing-library/react';
 import React from 'react';
 
-import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../../../src/main/resources/META-INF/resources/js/common/utils/constants';
+import {
+	OBJECT_ENTRY_CLASS_NAME,
+	OBJECT_ENTRY_FOLDER_CLASS_NAME,
+} from '../../../../../src/main/resources/META-INF/resources/js/common/utils/constants';
 import TranslationsRenderer from '../../../../../src/main/resources/META-INF/resources/js/main_view/props_transformer/cell_renderers/TranslationsRenderer';
 
 jest.mock('frontend-js-web', () => ({
@@ -50,7 +53,10 @@ const AVAILABLE_LOCALES = SITE_LANGUAGE_IDS.map((languageId) => ({
 
 const PRIVACY_POLICY_LANGUAGE_IDS = ['en_US', 'es_ES', 'fr_FR', 'pt_BR', 'de_DE'];
 
-function getItemData(languageIds: string[], entryClassName?: string) {
+function getItemData(
+	languageIds: string[],
+	entryClassName = OBJECT_ENTRY_CLASS_NAME
+) {
 	return {
 		embedded: {
 			title_i18n: Object.fromEntries(
@@ -75,18 +81,19 @@ describe('TranslationsRenderer', () => {
 		['Summer Sale', '13 of 13', SITE_LANGUAGE_IDS],
 		['Privacy Policy', '5 of 13', PRIVACY_POLICY_LANGUAGE_IDS],
 		['Annual Report.pdf', '1 of 13', ['en_US']],
+		['an asset without translations', '0 of 13', []],
 	])('shows %s as %s', (_title, expected, languageIds) => {
 		renderTranslations(getItemData(languageIds));
 
 		expect(screen.getByText(expected)).toHaveClass('text-dark');
 	});
 
-	it('lists the translated languages in the tooltip', () => {
+	it('lists the translated languages in the site order', () => {
 		renderTranslations(getItemData(PRIVACY_POLICY_LANGUAGE_IDS));
 
 		expect(screen.getByText('5 of 13')).toHaveAttribute(
 			'title',
-			'en-US, es-ES, fr-FR, pt-BR, de-DE'
+			'de-DE, en-US, es-ES, fr-FR, pt-BR'
 		);
 	});
 
