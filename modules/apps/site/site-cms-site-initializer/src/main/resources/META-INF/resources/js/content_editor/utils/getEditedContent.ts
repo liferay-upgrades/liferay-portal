@@ -47,43 +47,98 @@ const TEXT_BUSINESS_TYPES = new Set<ObjectField['businessType']>([
 
 const objectFieldsPromises = new Map<string, Promise<ObjectField[] | null>>();
 
-function getObjectFields(
-	objectDefinitionExternalReferenceCode: string
-): Promise<ObjectField[] | null> {
-	let promise = objectFieldsPromises.get(
-		objectDefinitionExternalReferenceCode
+function convertHTMLToText(html: string): string {
+	const element = document.createElement('div');
+
+	element.innerHTML = html;
+
+	element
+		.querySelectorAll(BLOCK_SELECTOR)
+		.forEach((block) => block.append('\n'));
+
+	return (element.textContent ?? '').replace(/\n\s*\n/g, '\n').trim();
+}
+
+export function getContentForm(): Element | null {
+	return (
+		document.querySelector('.lfr-main-form-container') ||
+		document.querySelector('.lfr-layout-structure-item-form')
 	);
+}
 
-	if (!promise) {
-		promise = StructureService.getStructure(
-			objectDefinitionExternalReferenceCode
-		)
-			.then(({data, error}) => {
-				if (error || !data) {
-					objectFieldsPromises.delete(
-						objectDefinitionExternalReferenceCode
-					);
+export default async function getEditedContent(
+	objectDefinitionExternalReferenceCode: string | undefined
+): Promise<string> {
+	const fields = await getEditedFields(objectDefinitionExternalReferenceCode);
 
-					return null;
-				}
+	return fields
+		.map(({label, value}) => (label ? `${label}: ${value}` : value))
+		.join('\n\n')
+		.slice(0, MAX_EDITED_CONTENT_LENGTH);
+}
 
-				return data.objectFields ?? null;
-			})
-			.catch(() => {
-				objectFieldsPromises.delete(
-					objectDefinitionExternalReferenceCode
-				);
+async function getEditedFields(
+	objectDefinitionExternalReferenceCode: string | undefined
+): Promise<EditedField[]> {
+	const form = getContentForm();
 
-				return null;
-			});
-
-		objectFieldsPromises.set(
-			objectDefinitionExternalReferenceCode,
-			promise
-		);
+	if (!form) {
+		return [];
 	}
 
-	return promise;
+	const fields: EditedField[] = [];
+
+	const objectFields = objectDefinitionExternalReferenceCode
+		? await getObjectFields(objectDefinitionExternalReferenceCode)
+		: null;
+
+	const richTextValues = getRichTextValues(form);
+
+	if (objectFields) {
+		objectFields.forEach((field) => {
+			if (!EDITED_CONTENT_BUSINESS_TYPES.has(field.businessType)) {
+				return;
+			}
+
+			const value = getFieldValue(form, field, richTextValues);
+
+			if (value) {
+				fields.push({
+					businessType: field.businessType,
+					label: getFieldLabel(field),
+					value,
+				});
+			}
+		});
+	}
+	else {
+		const title = getFieldControls(form, 'title')
+			.map((control) => control.value.trim())
+			.find(Boolean);
+
+		if (title) {
+			fields.push({businessType: 'String', value: title});
+		}
+	}
+
+	richTextValues.filter(Boolean).forEach((value) => {
+		fields.push({businessType: 'RichText', value});
+	});
+
+	return fields;
+}
+
+export async function getEditedTextFields(
+	objectDefinitionExternalReferenceCode: string | undefined
+): Promise<EditedTextField[]> {
+	const fields = await getEditedFields(objectDefinitionExternalReferenceCode);
+
+	return fields
+		.filter(({businessType}) => TEXT_BUSINESS_TYPES.has(businessType))
+		.map(({businessType, value}) => ({
+			multiline: MULTILINE_BUSINESS_TYPES.has(businessType),
+			value,
+		}));
 }
 
 function getFieldControls(form: Element, fieldName: string): FieldControl[] {
@@ -120,36 +175,6 @@ function getFieldLabel(field: ObjectField): string {
 		Object.values(field.label)[0] ||
 		field.name
 	);
-}
-
-function convertHTMLToText(html: string): string {
-	const element = document.createElement('div');
-
-	element.innerHTML = html;
-
-	element
-		.querySelectorAll(BLOCK_SELECTOR)
-		.forEach((block) => block.append('\n'));
-
-	return (element.textContent ?? '').replace(/\n\s*\n/g, '\n').trim();
-}
-
-function getRichTextValues(form: Element): string[] {
-	return Array.from(
-		form.querySelectorAll<HTMLElement>('.ck-editor__editable')
-	).map((editable) => {
-		const editor = (
-			editable as HTMLElement & {
-				ckeditorInstance?: {getData: () => string};
-			}
-		).ckeditorInstance;
-
-		if (editor) {
-			return convertHTMLToText(editor.getData());
-		}
-
-		return (editable.innerText ?? editable.textContent ?? '').trim();
-	});
 }
 
 function getFieldValue(
@@ -227,84 +252,59 @@ function getFieldValue(
 	return '';
 }
 
-export function getContentForm(): Element | null {
-	return (
-		document.querySelector('.lfr-main-form-container') ||
-		document.querySelector('.lfr-layout-structure-item-form')
+function getObjectFields(
+	objectDefinitionExternalReferenceCode: string
+): Promise<ObjectField[] | null> {
+	let promise = objectFieldsPromises.get(
+		objectDefinitionExternalReferenceCode
 	);
+
+	if (!promise) {
+		promise = StructureService.getStructure(
+			objectDefinitionExternalReferenceCode
+		)
+			.then(({data, error}) => {
+				if (error || !data) {
+					objectFieldsPromises.delete(
+						objectDefinitionExternalReferenceCode
+					);
+
+					return null;
+				}
+
+				return data.objectFields ?? null;
+			})
+			.catch(() => {
+				objectFieldsPromises.delete(
+					objectDefinitionExternalReferenceCode
+				);
+
+				return null;
+			});
+
+		objectFieldsPromises.set(
+			objectDefinitionExternalReferenceCode,
+			promise
+		);
+	}
+
+	return promise;
 }
 
-async function getEditedFields(
-	objectDefinitionExternalReferenceCode: string | undefined
-): Promise<EditedField[]> {
-	const form = getContentForm();
-
-	if (!form) {
-		return [];
-	}
-
-	const objectFields = objectDefinitionExternalReferenceCode
-		? await getObjectFields(objectDefinitionExternalReferenceCode)
-		: null;
-
-	const richTextValues = getRichTextValues(form);
-
-	const fields: EditedField[] = [];
-
-	if (objectFields) {
-		objectFields.forEach((field) => {
-			if (!EDITED_CONTENT_BUSINESS_TYPES.has(field.businessType)) {
-				return;
+function getRichTextValues(form: Element): string[] {
+	return Array.from(
+		form.querySelectorAll<HTMLElement>('.ck-editor__editable')
+	).map((editable) => {
+		const editor = (
+			editable as HTMLElement & {
+				ckeditorInstance?: {getData: () => string};
 			}
+		).ckeditorInstance;
 
-			const value = getFieldValue(form, field, richTextValues);
-
-			if (value) {
-				fields.push({
-					businessType: field.businessType,
-					label: getFieldLabel(field),
-					value,
-				});
-			}
-		});
-	}
-	else {
-		const title = getFieldControls(form, 'title')
-			.map((control) => control.value.trim())
-			.find(Boolean);
-
-		if (title) {
-			fields.push({businessType: 'String', value: title});
+		if (editor) {
+			return convertHTMLToText(editor.getData());
 		}
-	}
 
-	richTextValues.filter(Boolean).forEach((value) => {
-		fields.push({businessType: 'RichText', value});
+		return (editable.innerText ?? editable.textContent ?? '').trim();
 	});
-
-	return fields;
-}
-
-export async function getEditedTextFields(
-	objectDefinitionExternalReferenceCode: string | undefined
-): Promise<EditedTextField[]> {
-	const fields = await getEditedFields(objectDefinitionExternalReferenceCode);
-
-	return fields
-		.filter(({businessType}) => TEXT_BUSINESS_TYPES.has(businessType))
-		.map(({businessType, value}) => ({
-			multiline: MULTILINE_BUSINESS_TYPES.has(businessType),
-			value,
-		}));
-}
-
-export default async function getEditedContent(
-	objectDefinitionExternalReferenceCode: string | undefined
-): Promise<string> {
-	const fields = await getEditedFields(objectDefinitionExternalReferenceCode);
-
-	return fields
-		.map(({label, value}) => (label ? `${label}: ${value}` : value))
-		.join('\n\n')
-		.slice(0, MAX_EDITED_CONTENT_LENGTH);
 }
