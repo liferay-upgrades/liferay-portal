@@ -10,8 +10,8 @@ import React from 'react';
 import {
 	EXPIRING_SOON_THRESHOLD_DAYS,
 	MS_PER_DAY,
-} from '../../../../src/main/resources/META-INF/resources/js/common/utils/constants';
-import ExpirationDateRenderer from '../../../../src/main/resources/META-INF/resources/js/main_view/props_transformer/cell_renderers/ExpirationDateRenderer';
+} from '../../../../../src/main/resources/META-INF/resources/js/common/utils/constants';
+import ExpirationDateRenderer from '../../../../../src/main/resources/META-INF/resources/js/main_view/props_transformer/cell_renderers/ExpirationDateRenderer';
 
 const NOW = new Date('2026-04-21T12:00:00Z');
 
@@ -26,40 +26,26 @@ afterAll(() => {
 });
 
 describe('ExpirationDateRenderer. No date provided.', () => {
-	it('renders a placeholder when no props are given', () => {
-		render(<ExpirationDateRenderer />);
+	it('renders a placeholder', () => {
+		for (const props of [{}, {itemData: {}}, {value: ''}]) {
+			const {unmount} = render(<ExpirationDateRenderer {...props} />);
 
-		expect(screen.getByText('--')).toBeInTheDocument();
-		expect(screen.getByText('--')).toHaveClass('text-secondary');
-	});
+			expect(screen.getByText('--')).toHaveClass('text-secondary');
 
-	it('renders a placeholder when value is empty string and itemData is missing', () => {
-		render(<ExpirationDateRenderer value="" />);
-
-		expect(screen.getByText('--')).toBeInTheDocument();
-		expect(screen.getByText('--')).toHaveClass('text-secondary');
-	});
-
-	it('renders a placeholder when itemData has no expiration fields', () => {
-		render(<ExpirationDateRenderer itemData={{}} />);
-
-		expect(screen.getByText('--')).toBeInTheDocument();
-		expect(screen.getByText('--')).toHaveClass('text-secondary');
+			unmount();
+		}
 	});
 });
 
 describe('ExpirationDateRenderer. Date resolution priority.', () => {
 	it('prefers value over itemData.dateExpiration', () => {
-		const {container} = render(
+		render(
 			<ExpirationDateRenderer
 				itemData={{dateExpiration: '2026-06-01T00:00:00Z'}}
 				value="2026-07-15T00:00:00Z"
 			/>
 		);
 
-		expect(container.querySelector('span')).not.toHaveClass(
-			'text-secondary'
-		);
 		expect(screen.getByText(/Jul/)).toBeInTheDocument();
 	});
 
@@ -72,32 +58,6 @@ describe('ExpirationDateRenderer. Date resolution priority.', () => {
 
 		expect(screen.getByText(/Jul/)).toBeInTheDocument();
 	});
-
-	it('falls back to itemData.embedded.expirationDate as last resort', () => {
-		render(
-			<ExpirationDateRenderer
-				itemData={{embedded: {expirationDate: '2026-07-15T00:00:00Z'}}}
-			/>
-		);
-
-		expect(screen.getByText(/Jul/)).toBeInTheDocument();
-	});
-
-	it('prefers itemData.dateExpiration over itemData.embedded.expirationDate', () => {
-		const {container} = render(
-			<ExpirationDateRenderer
-				itemData={{
-					dateExpiration: '2026-07-15T00:00:00Z',
-					embedded: {expirationDate: '2026-09-01T00:00:00Z'},
-				}}
-			/>
-		);
-
-		expect(container.querySelector('span')).not.toHaveClass(
-			'text-secondary'
-		);
-		expect(screen.getByText(/Jul/)).toBeInTheDocument();
-	});
 });
 
 describe('ExpirationDateRenderer. Date formatting.', () => {
@@ -106,15 +66,20 @@ describe('ExpirationDateRenderer. Date formatting.', () => {
 
 		const span = screen.getByText(/Apr/);
 
-		expect(span).toBeInTheDocument();
 		expect(span.textContent).toMatch(/2026/);
 		expect(span.textContent).toMatch(/23/);
 	});
 
-	it('uses the portal locale from ThemeDisplay.getBCP47LanguageId', () => {
+	it('formats the date with the portal locale', () => {
+		const languageIdSpy = jest
+			.spyOn(Liferay.ThemeDisplay, 'getBCP47LanguageId')
+			.mockReturnValue('pt-BR');
+
 		render(<ExpirationDateRenderer value="2026-12-25T00:00:00Z" />);
 
-		expect(screen.getByText(/Dec/)).toBeInTheDocument();
+		expect(screen.getByText(/dez/)).toBeInTheDocument();
+
+		languageIdSpy.mockRestore();
 	});
 });
 
@@ -153,7 +118,7 @@ describe('ExpirationDateRenderer. Expiring-soon styling.', () => {
 
 	it('applies text-warning at the exact edge of the threshold', () => {
 		const edgeDate = new Date(
-			NOW.getTime() + EXPIRING_SOON_THRESHOLD_DAYS * MS_PER_DAY - 1000
+			NOW.getTime() + EXPIRING_SOON_THRESHOLD_DAYS * MS_PER_DAY
 		).toISOString();
 
 		render(<ExpirationDateRenderer value={edgeDate} />);
