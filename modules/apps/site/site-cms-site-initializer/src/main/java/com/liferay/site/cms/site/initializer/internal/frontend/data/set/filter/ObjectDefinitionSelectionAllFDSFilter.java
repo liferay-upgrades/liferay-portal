@@ -27,6 +27,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 	property = {
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.ALL_RELATED_ASSETS_SECTION,
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.ALL_SECTION,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.RECENTLY_CREATED_SECTION,
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.RECYCLE_BIN_SECTION,
 		"service.ranking:Integer=100"
 	},

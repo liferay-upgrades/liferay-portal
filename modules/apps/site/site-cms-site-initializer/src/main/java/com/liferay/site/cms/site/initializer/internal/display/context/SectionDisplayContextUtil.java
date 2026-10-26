@@ -150,6 +150,15 @@ public class SectionDisplayContextUtil {
 		String filterString, HttpServletRequest httpServletRequest,
 		String rootObjectEntryFolderExternalReferenceCode) {
 
+		return getAdditionalAPIURLParameters(
+			filterString, httpServletRequest,
+			rootObjectEntryFolderExternalReferenceCode, "dateModified:desc");
+	}
+
+	public static String getAdditionalAPIURLParameters(
+		String filterString, HttpServletRequest httpServletRequest,
+		String rootObjectEntryFolderExternalReferenceCode, String sortString) {
+
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
@@ -189,8 +198,8 @@ public class SectionDisplayContextUtil {
 		sb.append("modifiedBy,numberOfObjectEntries,");
 		sb.append("numberOfObjectEntryFolders,");
 		sb.append("systemProperties.collaboratorBrief,");
-		sb.append("systemProperties.objectDefinitionBrief");
-		sb.append("&sort=dateModified:desc");
+		sb.append("systemProperties.objectDefinitionBrief&sort=");
+		sb.append(sortString);
 
 		return sb.toString();
 	}

@@ -1,0 +1,26 @@
+{
+	"friendlyURL": "/recently-created",
+	"hidden": false,
+	"name": "Recently Created",
+	"name_i18n": {
+		"en_US": "Recently Created"
+	},
+	"permissions": [
+		{
+			"actionIds": [
+				"VIEW"
+			],
+			"roleName": "CMS Administrator",
+			"scope": 4
+		},
+		{
+			"actionIds": [
+			],
+			"roleName": "Guest",
+			"scope": 4
+		}
+	],
+	"private": false,
+	"system": false,
+	"type": "Content"
+}

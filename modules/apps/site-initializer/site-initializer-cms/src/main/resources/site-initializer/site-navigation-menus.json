@@ -46,6 +46,13 @@
 						"friendlyURL": "/files",
 						"privateLayout": false,
 						"type": "layout"
+					},
+					{
+						"displayIcon": "time",
+						"externalReferenceCode": "CMSPRIMARYNAVIGATION12",
+						"friendlyURL": "/recently-created",
+						"privateLayout": false,
+						"type": "layout"
 					}
 				],
 				"name_i18n": {
