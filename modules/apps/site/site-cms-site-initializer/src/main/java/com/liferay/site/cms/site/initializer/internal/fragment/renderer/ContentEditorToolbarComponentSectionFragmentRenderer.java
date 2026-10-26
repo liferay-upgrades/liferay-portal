@@ -205,6 +205,8 @@ public class ContentEditorToolbarComponentSectionFragmentRenderer
 				Constants.ADD,
 				ParamUtil.getString(httpServletRequest, Constants.CMD))
 		).put(
+			"objectEntryId", objectEntry.getObjectEntryId()
+		).put(
 			"objectFields",
 			() -> {
 				if (objectDefinition == null) {
