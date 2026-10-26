@@ -13,48 +13,40 @@ import {
 
 import '../../../../css/props_transformer/TranslationsRenderer.scss';
 
-export interface TranslationLocale {
+interface TranslationLocale {
 	label: string;
 	languageId: string;
 }
 
 interface TranslationsItemData {
-	embedded?: {
-		title_i18n?: Record<string, string>;
+	embedded: {
+		title_i18n: Record<string, string>;
 	};
-	entryClassName?: string;
+	entryClassName: string;
 }
 
-export function getTranslatedLocales(
-	availableLocales: TranslationLocale[] = [],
-	titleI18n: Record<string, string> = {}
-): TranslationLocale[] {
-	return Object.keys(titleI18n)
-		.map((languageId) =>
-			availableLocales.find((locale) => locale.languageId === languageId)
-		)
-		.filter(Boolean) as TranslationLocale[];
+function getTranslatedLocales(
+	availableLocales: TranslationLocale[],
+	titleI18n: Record<string, string>
+) {
+	return availableLocales.filter(({languageId}) => languageId in titleI18n);
 }
 
 const TranslationsRenderer = ({
-	availableLocales = [],
+	availableLocales,
 	itemData,
 }: {
-	availableLocales?: TranslationLocale[];
-	itemData?: TranslationsItemData;
+	availableLocales: TranslationLocale[];
+	itemData: TranslationsItemData;
 }) => {
-	const titleI18n = itemData?.embedded?.title_i18n;
-
-	if (
-		itemData?.entryClassName === OBJECT_ENTRY_FOLDER_CLASS_NAME ||
-		!availableLocales.length ||
-		!titleI18n ||
-		!Object.keys(titleI18n).length
-	) {
+	if (itemData.entryClassName === OBJECT_ENTRY_FOLDER_CLASS_NAME) {
 		return <span className="text-secondary">{NO_VALUE}</span>;
 	}
 
-	const translatedLocales = getTranslatedLocales(availableLocales, titleI18n);
+	const translatedLocales = getTranslatedLocales(
+		availableLocales,
+		itemData.embedded.title_i18n
+	);
 
 	const tooltip = translatedLocales.map(({label}) => label).join(', ');
 
