@@ -6,6 +6,19 @@
 import StructureService from '../../common/services/StructureService';
 import {ObjectField} from '../../common/types/ObjectDefinition';
 
+type EditedField = {
+	businessType: ObjectField['businessType'];
+	label?: string;
+	value: string;
+};
+
+export type EditedTextField = {
+	multiline: boolean;
+	value: string;
+};
+
+type FieldControl = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
 const BLOCK_SELECTOR =
 	'blockquote, div, h1, h2, h3, h4, h5, h6, li, p, pre, td, th';
 
@@ -72,8 +85,6 @@ function getObjectFields(
 
 	return promise;
 }
-
-type FieldControl = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 function getFieldControls(form: Element, fieldName: string): FieldControl[] {
 	const prefix = `ObjectField_${fieldName}`;
@@ -223,12 +234,6 @@ export function getContentForm(): Element | null {
 	);
 }
 
-type EditedField = {
-	businessType: ObjectField['businessType'];
-	label?: string;
-	value: string;
-};
-
 async function getEditedFields(
 	objectDefinitionExternalReferenceCode: string | undefined
 ): Promise<EditedField[]> {
@@ -279,11 +284,6 @@ async function getEditedFields(
 
 	return fields;
 }
-
-export type EditedTextField = {
-	multiline: boolean;
-	value: string;
-};
 
 export async function getEditedTextFields(
 	objectDefinitionExternalReferenceCode: string | undefined
