@@ -8,8 +8,8 @@ package com.liferay.cms.migration.web.internal.template;
 import com.liferay.asset.display.page.portlet.AssetDisplayPageFriendlyURLProvider;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
-import com.liferay.cms.migration.web.internal.structure.CMSMigrationDDMFormFieldUtil;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.util.CMSMigrationDDMFormFieldUtil;
 import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
@@ -64,6 +64,8 @@ import com.liferay.reading.time.service.ReadingTimeEntryLocalService;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.Serializable;
+
+import java.nio.charset.StandardCharsets;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -242,7 +244,7 @@ public class CMSMigrationTemplateContextHelper {
 			GetterUtil.getLong(objectEntryId));
 
 		JSONObject settingsJSONObject = JSONFactoryUtil.createJSONObject(
-			new String(_decoder.decode(settings), StringPool.UTF8));
+			new String(_decoder.decode(settings), StandardCharsets.UTF_8));
 
 		DDMForm ddmForm = _ddmFormFunction.apply(
 			settingsJSONObject.getString("ddmForm"));

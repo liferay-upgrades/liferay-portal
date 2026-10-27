@@ -8,6 +8,7 @@ package com.liferay.cms.migration.web.internal.model.listener.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
+import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
@@ -84,7 +85,9 @@ public class ObjectEntryReadingTimeModelListenerTest {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.
 				fetchObjectDefinitionByExternalReferenceCode(
-					"CMS_MIGRATION_BLOGS_ENTRY", _group.getCompanyId());
+					CMSMigrationConstants.
+						OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY,
+					_group.getCompanyId());
 
 		if (objectDefinition != null) {
 			_objectDefinitionLocalService.deleteObjectDefinition(
@@ -197,15 +200,18 @@ public class ObjectEntryReadingTimeModelListenerTest {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
-					"CMS_MIGRATION_BLOGS_ENTRY", _group.getCompanyId());
+					CMSMigrationConstants.
+						OBJECT_DEFINITION_EXTERNAL_REFERENCE_CODE_BLOGS_ENTRY,
+					_group.getCompanyId());
 
 		return _objectEntryLocalService.getObjectEntry(
-			"CMS_MIGRATION_BLOGS_ENTRY_" + blogsEntry.getEntryId(),
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_BLOGS_ENTRY +
+				blogsEntry.getEntryId(),
 			_depotEntry.getGroupId(), objectDefinition.getObjectDefinitionId());
 	}
 
 	@Inject(
-		filter = "background.task.executor.class.name=com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor"
+		filter = "background.task.executor.class.name=com.liferay.cms.migration.internal.background.task.CMSMigrationBackgroundTaskExecutor"
 	)
 	private BackgroundTaskExecutor _backgroundTaskExecutor;
 

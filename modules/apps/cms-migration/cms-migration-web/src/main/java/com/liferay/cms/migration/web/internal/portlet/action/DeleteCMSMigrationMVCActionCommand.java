@@ -5,10 +5,8 @@
 
 package com.liferay.cms.migration.web.internal.portlet.action;
 
-import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor;
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationPortletKeys;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
+import com.liferay.cms.migration.constants.CMSMigrationPortletKeys;
+import com.liferay.cms.migration.manager.CMSMigrationManager;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
@@ -19,8 +17,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.portlet.ActionRequest;
 import jakarta.portlet.ActionResponse;
-
-import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -55,23 +51,11 @@ public class DeleteCMSMigrationMVCActionCommand extends BaseMVCActionCommand {
 				permissionChecker.getUserId());
 		}
 
-		BackgroundTask backgroundTask =
-			_backgroundTaskManager.getBackgroundTask(
-				ParamUtil.getLong(actionRequest, "backgroundTaskId"));
-
-		if (!Objects.equals(
-				backgroundTask.getTaskExecutorClassName(),
-				CMSMigrationBackgroundTaskExecutor.class.getName()) ||
-			(backgroundTask.getCompanyId() != themeDisplay.getCompanyId())) {
-
-			throw new PrincipalException();
-		}
-
-		_backgroundTaskManager.deleteBackgroundTask(
-			backgroundTask.getBackgroundTaskId());
+		_cmsMigrationManager.deleteCMSMigrationBackgroundTask(
+			ParamUtil.getLong(actionRequest, "backgroundTaskId"));
 	}
 
 	@Reference
-	private BackgroundTaskManager _backgroundTaskManager;
+	private CMSMigrationManager _cmsMigrationManager;
 
 }

@@ -1,0 +1,8 @@
+Bundle-Name: Liferay CMS Migration API
+Bundle-SymbolicName: com.liferay.cms.migration.api
+Bundle-Version: 1.0.0
+Export-Package:\
+	com.liferay.cms.migration.constants,\
+	com.liferay.cms.migration.manager,\
+	com.liferay.cms.migration.report,\
+	com.liferay.cms.migration.util

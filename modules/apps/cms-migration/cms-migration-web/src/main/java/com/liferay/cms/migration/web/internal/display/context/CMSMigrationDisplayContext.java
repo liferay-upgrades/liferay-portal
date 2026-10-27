@@ -5,30 +5,19 @@
 
 package com.liferay.cms.migration.web.internal.display.context;
 
-import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor;
-import com.liferay.cms.migration.web.internal.migration.CMSMigrationReport;
+import com.liferay.cms.migration.manager.CMSMigrationManager;
+import com.liferay.cms.migration.report.CMSMigrationReport;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusRegistryUtil;
+import com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplay;
+import com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplayFactory;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-
-import jakarta.portlet.RenderRequest;
-import jakarta.portlet.RenderResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -41,56 +30,42 @@ import java.util.List;
 public class CMSMigrationDisplayContext {
 
 	public CMSMigrationDisplayContext(
-		BackgroundTaskManager backgroundTaskManager,
+		BackgroundTaskDisplayFactory backgroundTaskDisplayFactory,
+		CMSMigrationManager cmsMigrationManager,
 		DepotEntryLocalService depotEntryLocalService,
 		GroupLocalService groupLocalService,
-		HttpServletRequest httpServletRequest, RenderRequest renderRequest,
-		RenderResponse renderResponse) {
+		HttpServletRequest httpServletRequest) {
 
-		_backgroundTaskManager = backgroundTaskManager;
+		_backgroundTaskDisplayFactory = backgroundTaskDisplayFactory;
+		_cmsMigrationManager = cmsMigrationManager;
 		_depotEntryLocalService = depotEntryLocalService;
 		_groupLocalService = groupLocalService;
-		_renderRequest = renderRequest;
-		_renderResponse = renderResponse;
 
 		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 	}
 
+	public BackgroundTaskDisplay getBackgroundTaskDisplay(
+		BackgroundTask backgroundTask) {
+
+		return _backgroundTaskDisplayFactory.getBackgroundTaskDisplay(
+			backgroundTask);
+	}
+
 	public List<BackgroundTask> getBackgroundTasks() {
-		return ListUtil.sort(
-			_backgroundTaskManager.getBackgroundTasks(
-				_themeDisplay.getCompanyGroupId(),
-				CMSMigrationBackgroundTaskExecutor.class.getName()),
-			(backgroundTask1, backgroundTask2) -> Long.compare(
-				backgroundTask2.getBackgroundTaskId(),
-				backgroundTask1.getBackgroundTaskId()));
+		return _cmsMigrationManager.getCMSMigrationBackgroundTasks(
+			_themeDisplay.getCompanyId());
 	}
 
 	public CMSMigrationReport getCMSMigrationReport(
 		BackgroundTask backgroundTask) {
 
-		String statusMessage = backgroundTask.getStatusMessage();
+		return _cmsMigrationManager.getCMSMigrationReport(backgroundTask);
+	}
 
-		if (Validator.isNull(statusMessage)) {
-			return new CMSMigrationReport();
-		}
-
-		try {
-			return CMSMigrationReport.of(
-				JSONFactoryUtil.createJSONObject(statusMessage));
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception);
-			}
-
-			CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
-
-			cmsMigrationReport.addError(statusMessage);
-
-			return cmsMigrationReport;
-		}
+	public List<DepotEntry> getDepotEntries() {
+		return _depotEntryLocalService.getDepotEntries(
+			_themeDisplay.getCompanyId(), DepotConstants.TYPE_SPACE);
 	}
 
 	public List<Group> getGroups() {
@@ -111,64 +86,10 @@ public class CMSMigrationDisplayContext {
 		return groups;
 	}
 
-	public int getProgress(BackgroundTask backgroundTask) {
-		BackgroundTaskStatus backgroundTaskStatus =
-			BackgroundTaskStatusRegistryUtil.getBackgroundTaskStatus(
-				backgroundTask.getBackgroundTaskId());
-
-		if (backgroundTaskStatus == null) {
-			return 0;
-		}
-
-		long total = GetterUtil.getLong(
-			backgroundTaskStatus.getAttribute("total"));
-
-		if (total == 0) {
-			return 0;
-		}
-
-		long counter = GetterUtil.getLong(
-			backgroundTaskStatus.getAttribute("counter"));
-
-		return (int)Math.min(100, Math.round((double)counter / total * 100));
-	}
-
-	public RenderRequest getRenderRequest() {
-		return _renderRequest;
-	}
-
-	public RenderResponse getRenderResponse() {
-		return _renderResponse;
-	}
-
-	public List<DepotEntry> getSpaces() {
-		return _depotEntryLocalService.getDepotEntries(
-			_themeDisplay.getCompanyId(), DepotConstants.TYPE_SPACE);
-	}
-
-	public JSONObject getStatusJSONObject(BackgroundTask backgroundTask)
-		throws Exception {
-
-		BackgroundTaskStatus backgroundTaskStatus =
-			BackgroundTaskStatusRegistryUtil.getBackgroundTaskStatus(
-				backgroundTask.getBackgroundTaskId());
-
-		if (backgroundTaskStatus == null) {
-			return JSONFactoryUtil.createJSONObject();
-		}
-
-		return JSONFactoryUtil.createJSONObject(
-			backgroundTaskStatus.getAttributesJSON());
-	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CMSMigrationDisplayContext.class);
-
-	private final BackgroundTaskManager _backgroundTaskManager;
+	private final BackgroundTaskDisplayFactory _backgroundTaskDisplayFactory;
+	private final CMSMigrationManager _cmsMigrationManager;
 	private final DepotEntryLocalService _depotEntryLocalService;
 	private final GroupLocalService _groupLocalService;
-	private final RenderRequest _renderRequest;
-	private final RenderResponse _renderResponse;
 	private final ThemeDisplay _themeDisplay;
 
 }

@@ -5,7 +5,7 @@
 
 package com.liferay.cms.migration.web.internal.portlet;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationPortletKeys;
+import com.liferay.cms.migration.constants.CMSMigrationPortletKeys;
 import com.liferay.cms.migration.web.internal.display.context.CMSContentDisplayDisplayContext;
 import com.liferay.info.item.renderer.InfoItemRendererRegistry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
