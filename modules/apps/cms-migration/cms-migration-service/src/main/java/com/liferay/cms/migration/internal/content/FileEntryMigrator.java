@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -65,6 +66,49 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = FileEntryMigrator.class)
 public class FileEntryMigrator {
+
+	/**
+	 * Returns the attachment that replaces the file entry in the CMS. A file
+	 * entry of the source group, or of any group while the source group's
+	 * references are rewritten, is migrated first. A file entry that is
+	 * already in the depot group is an attachment itself, so it has none.
+	 */
+	public FileEntry getAttachmentFileEntry(
+			CMSMigrationContext cmsMigrationContext, FileEntry fileEntry)
+		throws PortalException {
+
+		if (fileEntry.getGroupId() == cmsMigrationContext.getDepotGroupId()) {
+			return null;
+		}
+
+		ObjectEntry objectEntry = null;
+
+		if (cmsMigrationContext.isRewriteSourceGroup() ||
+			(fileEntry.getGroupId() ==
+				cmsMigrationContext.getSourceGroupId())) {
+
+			objectEntry = migrate(cmsMigrationContext, fileEntry);
+		}
+		else {
+			objectEntry = cmsMigrationContext.getObjectEntry(
+				DLFileEntry.class.getName(), fileEntry.getFileEntryId());
+		}
+
+		if (objectEntry == null) {
+			return null;
+		}
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		long attachmentFileEntryId = GetterUtil.getLong(
+			values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE));
+
+		if (attachmentFileEntryId == 0) {
+			return null;
+		}
+
+		return _dlAppLocalService.getFileEntry(attachmentFileEntryId);
+	}
 
 	public int getCount(CMSMigrationContext cmsMigrationContext) {
 		return _dlFileEntryLocalService.getGroupFileEntriesCount(

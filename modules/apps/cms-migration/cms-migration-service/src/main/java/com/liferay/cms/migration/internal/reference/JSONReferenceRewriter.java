@@ -5,7 +5,6 @@
 
 package com.liferay.cms.migration.internal.reference;
 
-import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.cms.migration.internal.context.ReferenceScope;
 import com.liferay.document.library.kernel.model.DLFileEntry;
@@ -22,15 +21,11 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 
-import java.io.Serializable;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
@@ -65,31 +60,8 @@ public class JSONReferenceRewriter {
 		CMSMigrationContext cmsMigrationContext, long fileEntryId) {
 
 		try {
-			FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
-
-			if (fileEntry.getGroupId() ==
-					cmsMigrationContext.getDepotGroupId()) {
-
-				return null;
-			}
-
-			ObjectEntry objectEntry = cmsMigrationContext.getOrMigrateFileEntry(
-				fileEntry);
-
-			if (objectEntry == null) {
-				return null;
-			}
-
-			Map<String, Serializable> values = objectEntry.getValues();
-
-			long attachmentFileEntryId = GetterUtil.getLong(
-				values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE));
-
-			if (attachmentFileEntryId == 0) {
-				return null;
-			}
-
-			return _dlAppLocalService.getFileEntry(attachmentFileEntryId);
+			return cmsMigrationContext.getAttachmentFileEntry(
+				_dlAppLocalService.getFileEntry(fileEntryId));
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {

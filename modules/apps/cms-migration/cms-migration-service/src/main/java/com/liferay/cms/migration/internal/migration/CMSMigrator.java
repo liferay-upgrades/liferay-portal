@@ -19,7 +19,6 @@ import com.liferay.cms.migration.internal.reference.PortletReferenceRewriter;
 import com.liferay.cms.migration.internal.reference.SiteNavigationMenuItemReferenceRewriter;
 import com.liferay.cms.migration.internal.template.TemplateMigrator;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
-import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
@@ -66,20 +65,9 @@ public class CMSMigrator {
 			).getDepotEntryId(),
 			cmsMigrationContext.getSourceGroupId());
 
-		cmsMigrationContext.setFileEntryResolver(
-			fileEntry -> {
-				if (!cmsMigrationContext.isRewriteSourceGroup() &&
-					(fileEntry.getGroupId() !=
-						cmsMigrationContext.getSourceGroupId())) {
-
-					return cmsMigrationContext.getObjectEntry(
-						DLFileEntry.class.getName(),
-						fileEntry.getFileEntryId());
-				}
-
-				return _fileEntryMigrator.migrate(
-					cmsMigrationContext, fileEntry);
-			});
+		cmsMigrationContext.setAttachmentFileEntryResolver(
+			fileEntry -> _fileEntryMigrator.getAttachmentFileEntry(
+				cmsMigrationContext, fileEntry));
 
 		_sendPhase(CMSMigrationConstants.PHASE_FOLDERS, 0);
 

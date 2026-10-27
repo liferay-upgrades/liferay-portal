@@ -19,7 +19,6 @@ import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectDefinition;
-import com.liferay.object.model.ObjectEntry;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -86,23 +85,7 @@ public class DDMFormValuesConverter {
 			return null;
 		}
 
-		ObjectEntry objectEntry = cmsMigrationContext.getOrMigrateFileEntry(
-			fileEntry);
-
-		if (objectEntry == null) {
-			return null;
-		}
-
-		Map<String, Serializable> values = objectEntry.getValues();
-
-		long fileEntryId = GetterUtil.getLong(
-			values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE));
-
-		if (fileEntryId == 0) {
-			return null;
-		}
-
-		return _dlAppLocalService.getFileEntry(fileEntryId);
+		return cmsMigrationContext.getAttachmentFileEntry(fileEntry);
 	}
 
 	private FileEntry _getFileEntry(JSONObject jsonObject) {

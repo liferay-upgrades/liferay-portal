@@ -7,7 +7,6 @@ package com.liferay.cms.migration.internal.reference;
 
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
-import com.liferay.cms.migration.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.internal.context.CMSMigrationContext;
 import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
@@ -30,9 +29,6 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 
-import java.io.Serializable;
-
-import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -220,23 +216,7 @@ public class HTMLReferenceRewriter {
 		}
 
 		try {
-			ObjectEntry objectEntry = cmsMigrationContext.getOrMigrateFileEntry(
-				fileEntry);
-
-			if (objectEntry == null) {
-				return null;
-			}
-
-			Map<String, Serializable> values = objectEntry.getValues();
-
-			long fileEntryId = GetterUtil.getLong(
-				values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE));
-
-			if (fileEntryId == 0) {
-				return null;
-			}
-
-			return _dlAppLocalService.getFileEntry(fileEntryId);
+			return cmsMigrationContext.getAttachmentFileEntry(fileEntry);
 		}
 		catch (Exception exception) {
 			cmsMigrationContext.getCMSMigrationReport(

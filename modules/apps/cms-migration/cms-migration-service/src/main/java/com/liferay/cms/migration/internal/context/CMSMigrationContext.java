@@ -105,6 +105,16 @@ public class CMSMigrationContext {
 		return _assetListEntryReferenceScopes.get(assetListEntryId);
 	}
 
+	/**
+	 * Returns the attachment that replaces the file entry in the CMS, migrating
+	 * the file entry first when it belongs to the source group.
+	 */
+	public FileEntry getAttachmentFileEntry(FileEntry fileEntry)
+		throws PortalException {
+
+		return _attachmentFileEntryResolverUnsafeFunction.apply(fileEntry);
+	}
+
 	public CMSMigrationReport getCMSMigrationReport() {
 		return _cmsMigrationReport;
 	}
@@ -165,12 +175,6 @@ public class CMSMigrationContext {
 			_getKey(className, folderId), 0L);
 	}
 
-	public ObjectEntry getOrMigrateFileEntry(FileEntry fileEntry)
-		throws PortalException {
-
-		return _fileEntryResolverUnsafeFunction.apply(fileEntry);
-	}
-
 	/**
 	 * Returns the ID of the group whose references are being rewritten. It is
 	 * the source group, unless the source group is the Global site, whose
@@ -229,11 +233,12 @@ public class CMSMigrationContext {
 		_statusConsumer.accept(itemTitle);
 	}
 
-	public void setFileEntryResolver(
-		UnsafeFunction<FileEntry, ObjectEntry, PortalException>
-			fileEntryResolverUnsafeFunction) {
+	public void setAttachmentFileEntryResolver(
+		UnsafeFunction<FileEntry, FileEntry, PortalException>
+			attachmentFileEntryResolverUnsafeFunction) {
 
-		_fileEntryResolverUnsafeFunction = fileEntryResolverUnsafeFunction;
+		_attachmentFileEntryResolverUnsafeFunction =
+			attachmentFileEntryResolverUnsafeFunction;
 	}
 
 	public void setRewriteGroup(Group rewriteGroup) {
@@ -246,13 +251,13 @@ public class CMSMigrationContext {
 
 	private final Map<Long, ReferenceScope> _assetListEntryReferenceScopes =
 		new HashMap<>();
+	private UnsafeFunction<FileEntry, FileEntry, PortalException>
+		_attachmentFileEntryResolverUnsafeFunction;
 	private final CMSMigrationReport _cmsMigrationReport;
 	private final Map<Long, DDMStructure> _ddmStructures =
 		new LinkedHashMap<>();
 	private final DepotEntry _depotEntry;
 	private final Group _depotGroup;
-	private UnsafeFunction<FileEntry, ObjectEntry, PortalException>
-		_fileEntryResolverUnsafeFunction;
 	private final Map<Long, Long> _layoutPageTemplateEntryIds = new HashMap<>();
 	private final boolean _migrateBlogsEntries;
 	private final boolean _migrateFileEntries;
