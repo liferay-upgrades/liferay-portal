@@ -76,6 +76,7 @@ import styleDeleteAction from './utils/styleDeleteAction';
 import transformFDSBulkActions from './utils/transformFDSBulkActions';
 import transformViewsItemsProps from './utils/transformViewsItemProps';
 import GalleryView from './views/GalleryView';
+import TranslationsRenderer from './cell_renderers/TranslationsRenderer';
 
 const FOLDER_ID_FILTER_REGEX = /^folderId eq (\d+)$/;
 
@@ -350,6 +351,16 @@ export default function AssetsFDSPropsTransformer({
 						/>
 					),
 					name: 'spaceTableCellRenderer',
+					type: 'internal',
+				} as IInternalRenderer,
+				{
+					component: ({itemData}) => (
+						<TranslationsRenderer
+							availableLocales={additionalProps.availableLocales}
+							itemData={itemData}
+						/>
+					),
+					name: 'translationsTableCellRenderer',
 					type: 'internal',
 				} as IInternalRenderer,
 				{
