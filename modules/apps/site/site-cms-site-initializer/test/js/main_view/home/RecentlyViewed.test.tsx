@@ -81,6 +81,18 @@ describe('RecentlyViewed', () => {
 		expect(screen.getByText('approved')).toBeInTheDocument();
 	});
 
+	it('shows a fallback title for an untitled asset', async () => {
+		addRecentlyViewedEntry(1, '/asset/1');
+
+		mockAPI([getAsset(1, '')]);
+
+		render(<RecentlyViewed {...DEFAULT_PROPS} />);
+
+		expect(
+			await screen.findByRole('link', {name: 'untitled-asset'})
+		).toHaveAttribute('href', '/asset/1');
+	});
+
 	it('removes an asset from the history', async () => {
 		addRecentlyViewedEntry(1, '/asset/1');
 		addRecentlyViewedEntry(2, '/asset/2');

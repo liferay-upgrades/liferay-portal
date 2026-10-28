@@ -160,7 +160,7 @@ function RecentlyViewedTile({
 				className="recently-viewed-tile-title stretched-link"
 				href={href}
 			>
-				{getAssetTitle(asset)}
+				{getAssetTitle(asset) || Liferay.Language.get('untitled-asset')}
 			</a>
 
 			<div className="recently-viewed-tile-meta">
