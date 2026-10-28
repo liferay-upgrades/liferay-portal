@@ -79,7 +79,7 @@ public class ViewAllSpacesDisplayContext {
 
 	public String getAPIURL() {
 		return "/o/headless-asset-library/v1.0/asset-libraries?filter=type " +
-			"eq 'Space'&nestedFields=numberOfConnectedSites" +
+			"eq 'Space'&nestedFields=numberOfAssets,numberOfConnectedSites" +
 				",numberOfUserAccounts,numberOfUserGroups";
 	}
 
