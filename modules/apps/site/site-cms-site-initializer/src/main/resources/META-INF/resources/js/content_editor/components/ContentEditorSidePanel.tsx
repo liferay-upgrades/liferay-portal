@@ -27,6 +27,7 @@ import CommentsPanel from './panels/CommentsPanel';
 import GeneralPanel from './panels/GeneralPanel';
 import ProjectsPanel from './panels/ProjectsPanel';
 import SchedulePanel from './panels/SchedulePanel';
+import TextMetricsPanel from './panels/TextMetricsPanel';
 import useAssistantCategorization from './useAssistantCategorization';
 
 type Props = {
@@ -60,6 +61,7 @@ type Props = {
 type SidePanelProps = Props & {
 	categorizationFields: CategorizationFields | null;
 	dateConfig: datetimeUtils.DateConfig;
+	objectDefinitionExternalReferenceCode?: string;
 	onUpdateCategorization: (props: UpdateCategorizationProps) => void;
 	onUpdateSchedule: (props: UpdateScheduleProps) => void;
 	requiredVocabularyIds: number[] | null;
@@ -143,6 +145,13 @@ const PROJECTS_ITEM: Item = {
 	title: Liferay.Language.get('projects'),
 };
 
+const TEXT_METRICS_ITEM: Item = {
+	component: TextMetricsPanel,
+	icon: 'chart-bar-x-axis',
+	id: 'textMetrics',
+	title: Liferay.Language.get('text-metrics'),
+};
+
 export default function ContentEditorSidePanel(props: Props) {
 	const [formId, setFormId] = useState<string | undefined>();
 	const [scheduleFields, setScheduleFields] = useState<ScheduleFields>({
@@ -167,6 +176,10 @@ export default function ContentEditorSidePanel(props: Props) {
 	});
 	const [categorizationFields, setCategorizationFields] =
 		useState<CategorizationFields | null>(null);
+	const [
+		objectDefinitionExternalReferenceCode,
+		setObjectDefinitionExternalReferenceCode,
+	] = useState<string | undefined>();
 	const [requiredVocabularyIds, setRequiredVocabularyIds] = useState<
 		number[] | null
 	>(null);
@@ -215,6 +228,11 @@ export default function ContentEditorSidePanel(props: Props) {
 				}
 
 				if (data) {
+					setObjectDefinitionExternalReferenceCode(
+						data.systemProperties?.objectDefinitionBrief
+							?.externalReferenceCode
+					);
+
 					setCategorizationFields((prevState) => {
 
 						// Only populate the categorization fields if they are
@@ -295,6 +313,9 @@ export default function ContentEditorSidePanel(props: Props) {
 				{...props}
 				categorizationFields={categorizationFields}
 				dateConfig={dateConfig}
+				objectDefinitionExternalReferenceCode={
+					objectDefinitionExternalReferenceCode
+				}
 				onUpdateCategorization={onUpdateCategorization}
 				onUpdateSchedule={onUpdateSchedule}
 				requiredVocabularyIds={requiredVocabularyIds}
@@ -335,8 +356,8 @@ function SidePanel(props: SidePanelProps) {
 	const items = useMemo(
 		() =>
 			props.cmpEnabled
-				? [...DEFAULT_ITEMS, PROJECTS_ITEM]
-				: DEFAULT_ITEMS,
+				? [...DEFAULT_ITEMS, PROJECTS_ITEM, TEXT_METRICS_ITEM]
+				: [...DEFAULT_ITEMS, TEXT_METRICS_ITEM],
 		[props.cmpEnabled]
 	);
 
