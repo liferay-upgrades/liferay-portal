@@ -27,7 +27,7 @@ export async function getDrafts(
 ): Promise<DraftAssets[]> {
 	const params = new URLSearchParams({
 		emptySearch: 'true',
-		filter: `(cmsSection eq 'contents' or cmsSection eq 'files') and status eq 2 and creatorId eq ${userId}`,
+		filter: `(cmsSection eq 'contents' or cmsSection eq 'files') and status eq 2 and creatorId eq ${userId} and rootDescendantNode eq false`,
 		nestedFields: 'embedded',
 		pageSize: String(maxItems),
 		sort: 'dateModified:desc',

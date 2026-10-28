@@ -58,6 +58,9 @@ describe('getDrafts', () => {
 		expect(searchParams.get('emptySearch')).toBe('true');
 		expect(searchParams.get('filter')).toContain('status eq 2');
 		expect(searchParams.get('filter')).toContain('creatorId eq 20132');
+		expect(searchParams.get('filter')).toContain(
+			'rootDescendantNode eq false'
+		);
 		expect(searchParams.get('pageSize')).toBe('5');
 		expect(searchParams.get('sort')).toBe('dateModified:desc');
 	});
