@@ -4,11 +4,14 @@
  */
 
 import ApiHelper from '../services/ApiHelper';
+import SpaceService from '../services/SpaceService';
+import {Space} from '../types/Space';
+import {getScopeExternalReferenceCode} from './getScopeExternalReferenceCode';
 
 export type DraftAssets = {
 	dateModified: string;
 	id: number;
-	scopeKey: string;
+	space: Space | null;
 	title: string;
 };
 
@@ -17,7 +20,13 @@ type SearchItem = {
 	embedded: {
 		id: number;
 		scopeKey: string;
+		systemProperties?: {
+			scope?: {
+				externalReferenceCode: string;
+			};
+		};
 	};
+	entryClassName: string;
 	title: string;
 };
 
@@ -41,10 +50,19 @@ export async function getDrafts(
 		return [];
 	}
 
-	return data.items.map(({dateModified, embedded, title}) => ({
-		dateModified,
-		id: embedded.id,
-		scopeKey: embedded.scopeKey,
-		title,
-	}));
+	return Promise.all(
+		data.items.map(async (item) => ({
+			dateModified: item.dateModified,
+			id: item.embedded.id,
+			space: await getSpace(item),
+			title: item.title,
+		}))
+	);
+}
+
+function getSpace(item: SearchItem): Promise<Space | null> {
+	return SpaceService.getSpaceWithCache(
+		getScopeExternalReferenceCode(item),
+		item.embedded.scopeKey
+	).catch(() => null);
 }

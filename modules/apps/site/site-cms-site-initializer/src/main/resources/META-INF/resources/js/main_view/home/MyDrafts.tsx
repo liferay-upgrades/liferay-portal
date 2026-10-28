@@ -8,6 +8,7 @@ import ClayLoadingIndicator from '@clayui/loading-indicator';
 import {dateUtils, sub} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
+import SpaceSticker from '../../common/components/SpaceSticker';
 import {FDS_FILTER_ID, WORKFLOW_STATUS} from '../../common/utils/constants';
 import {DraftAssets, getDrafts} from '../../common/utils/myDrafts';
 import getAllSectionHref from '../dashboard/governance/getAllSectionHref';
@@ -111,9 +112,15 @@ export default function MyDrafts({
 							</a>
 
 							<div className="my-drafts-item-meta">
-								<span className="text-truncate">
-									{draft.scopeKey}
-								</span>
+								{draft.space && (
+									<SpaceSticker
+										displayType={
+											draft.space.settings?.logoColor
+										}
+										name={draft.space.name}
+										size="xs"
+									/>
+								)}
 
 								<span className="flex-shrink-0">
 									{`· ${dateUtils.fromNow(

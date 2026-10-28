@@ -26,15 +26,33 @@ describe('getDrafts', () => {
 	});
 
 	it('returns the drafts with their title, space and modified date', async () => {
-		mockFetch.mockResolvedValueOnce(
-			mockSearchResponse([
-				{
-					dateModified: '2026-10-27T13:47:58Z',
-					embedded: {id: 38677, scopeKey: 'Marketing'},
-					title: 'Draft Article',
-				},
-			])
-		);
+		mockFetch.mockImplementation(((url: string) =>
+			Promise.resolve(
+				url.includes('/o/search/v1.0/search')
+					? mockSearchResponse([
+							{
+								dateModified: '2026-10-27T13:47:58Z',
+								embedded: {
+									id: 38677,
+									scopeKey: 'marketing-space',
+									systemProperties: {
+										scope: {
+											externalReferenceCode:
+												'utils-space',
+										},
+									},
+								},
+								entryClassName:
+									'com.liferay.object.model.ObjectDefinition#L_CMS_BASIC_WEB_CONTENT',
+								title: 'Draft Article',
+							},
+						])
+					: ({
+							json: async () => ({id: 1, name: 'Marketing'}),
+							ok: true,
+							status: 200,
+						} as Response)
+			)) as any);
 
 		const drafts = await getDrafts(20132, 5);
 
@@ -42,7 +60,7 @@ describe('getDrafts', () => {
 			{
 				dateModified: '2026-10-27T13:47:58Z',
 				id: 38677,
-				scopeKey: 'Marketing',
+				space: expect.objectContaining({name: 'Marketing'}),
 				title: 'Draft Article',
 			},
 		]);

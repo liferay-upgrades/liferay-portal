@@ -71,4 +71,27 @@ describe('MyDrafts', () => {
 			},
 		]);
 	});
+
+	it('shows the name of the space of each draft instead of its key', async () => {
+		mockAPI([
+			{
+				dateModified: '2026-10-27T13:47:58Z',
+				embedded: {
+					id: 38677,
+					scopeKey: 'marketing-space',
+					systemProperties: {
+						scope: {externalReferenceCode: 'component-space'},
+					},
+				},
+				entryClassName:
+					'com.liferay.object.model.ObjectDefinition#L_CMS_BASIC_WEB_CONTENT',
+				title: 'Draft Article',
+			},
+		]);
+
+		render(<MyDrafts {...DEFAULT_PROPS} />);
+
+		expect(await screen.findByText('Marketing')).toBeInTheDocument();
+		expect(screen.queryByText('marketing-space')).not.toBeInTheDocument();
+	});
 });
