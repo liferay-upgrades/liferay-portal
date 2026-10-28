@@ -114,6 +114,10 @@ export async function getRecentlyViewedAssets(): Promise<
 	return recentlyViewedAssets;
 }
 
+export function getViewAssetURL(objectEntryId: number) {
+	return `${Liferay.ThemeDisplay.getPathFriendlyURLPublic()}/cms/view-asset?objectEntryId=${objectEntryId}`;
+}
+
 export function removeRecentlyViewedEntry(id: number) {
 	setRecentlyViewedEntries(
 		getRecentlyViewedEntries().filter((entry) => entry.id !== id)
