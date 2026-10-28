@@ -77,8 +77,8 @@ describe('RecentlyViewed', () => {
 		expect(
 			await screen.findByRole('link', {name: 'Black Friday Landing Copy'})
 		).toHaveAttribute('href', '/asset/1');
-		expect(screen.getByText('approved')).toBeInTheDocument();
 		expect(await screen.findByText('Marketing')).toBeInTheDocument();
+		expect(screen.getByText('approved')).toBeInTheDocument();
 	});
 
 	it('removes an asset from the history', async () => {
@@ -99,11 +99,11 @@ describe('RecentlyViewed', () => {
 		);
 
 		expect(
-			screen.queryByRole('link', {name: 'Product Hero Banner'})
-		).not.toBeInTheDocument();
-		expect(
 			screen.getByRole('link', {name: 'Black Friday Landing Copy'})
 		).toBeInTheDocument();
+		expect(
+			screen.queryByRole('link', {name: 'Product Hero Banner'})
+		).not.toBeInTheDocument();
 	});
 
 	it('clears the history', async () => {
