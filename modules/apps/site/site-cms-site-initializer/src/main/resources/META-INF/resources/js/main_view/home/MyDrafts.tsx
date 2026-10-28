@@ -20,6 +20,7 @@ type Props = {
 	maxItems: number;
 	redirect: string;
 	userId: number;
+	userName: string;
 };
 
 function getEditURL(editContentItemURL: string, id: number, redirect: string) {
@@ -37,6 +38,7 @@ export default function MyDrafts({
 	maxItems,
 	redirect,
 	userId,
+	userName,
 }: Props) {
 	const [drafts, setDrafts] = useState<DraftAssets[] | null>(null);
 
@@ -64,6 +66,15 @@ export default function MyDrafts({
 					className="font-weight-semi-bold text-3"
 					href={getAllSectionHref(allSectionFDSName, {
 						filters: [
+							{
+								id: FDS_FILTER_ID.CREATOR_ID,
+								selectedData: {
+									exclude: false,
+									selectedItems: [
+										{label: userName, value: userId},
+									],
+								},
+							},
 							{
 								id: FDS_FILTER_ID.STATUS,
 								selectedData: {

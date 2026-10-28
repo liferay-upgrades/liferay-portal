@@ -7,6 +7,7 @@ package com.liferay.site.cms.site.initializer.internal.display.context;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -42,6 +43,13 @@ public class ViewHomeMyDraftsDisplayContext {
 			"redirect", _themeDisplay.getURLCurrent()
 		).put(
 			"userId", _themeDisplay.getUserId()
+		).put(
+			"userName",
+			() -> {
+				User user = _themeDisplay.getUser();
+
+				return user.getFullName();
+			}
 		).build();
 	}
 
