@@ -14,15 +14,17 @@ import {
 import ExpirationDateRenderer from '../../../../../src/main/resources/META-INF/resources/js/main_view/props_transformer/cell_renderers/ExpirationDateRenderer';
 
 const NOW = new Date('2026-04-21T12:00:00Z');
+const getTimeZone = Liferay.ThemeDisplay.getTimeZone;
 
 beforeAll(() => {
 	jest.useFakeTimers();
 	jest.setSystemTime(NOW);
-	globalThis.Liferay.ThemeDisplay.getTimeZone = () => 'UTC';
+	Liferay.ThemeDisplay.getTimeZone = () => 'UTC';
 });
 
 afterAll(() => {
 	jest.useRealTimers();
+	Liferay.ThemeDisplay.getTimeZone = getTimeZone;
 });
 
 describe('ExpirationDateRenderer. No date provided.', () => {
