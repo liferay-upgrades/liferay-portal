@@ -73,15 +73,14 @@ describe('ExpirationDateRenderer. Date formatting.', () => {
 	});
 
 	it('formats the date with the portal locale', () => {
-		const languageIdSpy = jest
-			.spyOn(Liferay.ThemeDisplay, 'getBCP47LanguageId')
-			.mockReturnValue('pt-BR');
+		jest.spyOn(
+			Liferay.ThemeDisplay,
+			'getBCP47LanguageId'
+		).mockReturnValueOnce('pt-BR');
 
 		render(<ExpirationDateRenderer value="2026-12-25T00:00:00Z" />);
 
 		expect(screen.getByText(/dez/)).toBeInTheDocument();
-
-		languageIdSpy.mockRestore();
 	});
 });
 
