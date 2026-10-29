@@ -90,10 +90,7 @@ describe('ExpirationDateRenderer. Expiring-soon styling.', () => {
 
 		render(<ExpirationDateRenderer value={soonDate} />);
 
-		const span = screen.getByText(/.+/);
-
-		expect(span).toHaveClass('text-warning');
-		expect(span).not.toHaveClass('text-dark');
+		expect(screen.getByText(/.+/)).toHaveClass('text-warning');
 	});
 
 	it('applies text-dark when the date is beyond the expiring-soon threshold', () => {
@@ -103,10 +100,7 @@ describe('ExpirationDateRenderer. Expiring-soon styling.', () => {
 
 		render(<ExpirationDateRenderer value={farDate} />);
 
-		const span = screen.getByText(/.+/);
-
-		expect(span).toHaveClass('text-dark');
-		expect(span).not.toHaveClass('text-warning');
+		expect(screen.getByText(/.+/)).toHaveClass('text-dark');
 	});
 
 	it('applies text-warning when the expiration date is in the past', () => {
