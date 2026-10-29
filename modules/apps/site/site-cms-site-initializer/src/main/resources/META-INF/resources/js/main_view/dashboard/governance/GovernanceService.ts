@@ -46,7 +46,7 @@ export type Contributors = {
 };
 
 export type FacetBucket = {
-	displayName: string;
+	displayName?: string;
 	frequency: number;
 	term: string;
 };
@@ -56,6 +56,8 @@ export type FreshnessListType =
 	| 'expiringSoon'
 	| 'overdueReviews'
 	| 'upcomingReviews';
+
+const ASSETS_BY_SPACE_AGGREGATION_NAME = 'assetsBySpace';
 
 const CONTENT_AGE_AGGREGATION_NAME = 'contentAge';
 
@@ -71,11 +73,16 @@ const CONTENT_AGE_RANGES: ContentAgeRange[] = [
 
 const CONTRIBUTORS_AGGREGATION_NAME = 'contributors';
 
+export const DEFAULT_CMS_FILTER =
+	"(cmsSection eq 'contents' or cmsSection eq 'files') and objectDefinitionExternalReferenceCode ne 'L_CMS_OBJECT_ENTRY_FOLDER' and rootDescendantNode eq false and status in (0, 2, 3)";
+
 const LONG_STANDING_DRAFT_DAYS = 30;
 
 export const GOVERNANCE_ASSET_LIST_PAGE_SIZE = 8;
 
 const MAX_CONTRIBUTORS = 7;
+
+const MAX_FACET_TERMS = 10000;
 
 export const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -318,6 +325,45 @@ function getAssetsByIdsURL(ids: number[]) {
 	return `${SEARCH_URL}?${searchParams}`;
 }
 
+async function getAssetsBySpace(
+	filter: string,
+	groupId?: number,
+	signal?: AbortSignal
+): Promise<RequestResult<FacetBucket[]>> {
+	const searchParams = new URLSearchParams({
+		filter: getScopedFilter(filter, groupId),
+		pageSize: '1',
+	});
+
+	const {data, error, status} = await ApiHelper.post<{
+		searchFacets?: Record<string, FacetBucket[]>;
+	}>(
+		`${SEARCH_URL}?${searchParams}`,
+		{
+			attributes: {'search.empty.search': true},
+			facetConfigurations: [
+				{
+					aggregationName: ASSETS_BY_SPACE_AGGREGATION_NAME,
+					attributes: {field: 'scopeGroupId'},
+					frequencyThreshold: 1,
+					maxTerms: MAX_FACET_TERMS,
+					name: 'custom',
+				},
+			],
+		},
+		signal
+	);
+
+	if (!data) {
+		return {data: null, error, status};
+	}
+
+	return {
+		data: data.searchFacets?.[ASSETS_BY_SPACE_AGGREGATION_NAME] ?? [],
+		error: null,
+	};
+}
+
 function getQualityAssetsURL(path: string, assetLibraryId?: string) {
 	const searchParams = new URLSearchParams({
 		pageSize: String(GOVERNANCE_ASSET_LIST_PAGE_SIZE),
@@ -367,6 +413,7 @@ function getLongStandingDraftsURL(filter: string, groupId?: number) {
 export default {
 	getAssetStatistics,
 	getAssetsByIdsURL,
+	getAssetsBySpace,
 	getBrokenLinkAssetsURL,
 	getContentAgeDistribution,
 	getContentProgress,

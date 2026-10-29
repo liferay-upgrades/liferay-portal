@@ -331,6 +331,119 @@ describe('GovernanceService.getAssetsByIdsURL', () => {
 	});
 });
 
+describe('GovernanceService.getAssetsBySpace', () => {
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
+
+	it('requests the scopeGroupId custom facet as an empty search', async () => {
+		const postSpy = jest
+			.spyOn(ApiHelper, 'post')
+			.mockResolvedValue({data: {}, error: null} as any);
+
+		await GovernanceService.getAssetsBySpace('someFilter');
+
+		expect(postSpy).toHaveBeenCalledWith(
+			'/o/search/v1.0/search?filter=someFilter&pageSize=1',
+			{
+				attributes: {'search.empty.search': true},
+				facetConfigurations: [
+					{
+						aggregationName: 'assetsBySpace',
+						attributes: {field: 'scopeGroupId'},
+						frequencyThreshold: 1,
+						maxTerms: 10000,
+						name: 'custom',
+					},
+				],
+			},
+			undefined
+		);
+	});
+
+	it('scopes the filter by groupId when a space is given', async () => {
+		const postSpy = jest
+			.spyOn(ApiHelper, 'post')
+			.mockResolvedValue({data: {}, error: null} as any);
+
+		const {signal} = new AbortController();
+
+		await GovernanceService.getAssetsBySpace('someFilter', 123, signal);
+
+		expect(postSpy).toHaveBeenCalledWith(
+			'/o/search/v1.0/search?filter=someFilter+and+groupIds%2Fany%28g%3Ag+eq+123%29&pageSize=1',
+			expect.any(Object),
+			signal
+		);
+	});
+
+	it('returns the assetsBySpace buckets from the search response', async () => {
+		const buckets = [
+			{frequency: 12, term: '101'},
+			{frequency: 4, term: '102'},
+		];
+
+		jest.spyOn(ApiHelper, 'post').mockResolvedValue({
+			data: {
+				searchFacets: {
+					assetsBySpace: buckets,
+				},
+			},
+			error: null,
+		} as any);
+
+		const {data, error} =
+			await GovernanceService.getAssetsBySpace('someFilter');
+
+		expect(error).toBeNull();
+		expect(data).toEqual(buckets);
+	});
+
+	it('returns the error when the request fails', async () => {
+		jest.spyOn(ApiHelper, 'post').mockResolvedValue({
+			data: null,
+			error: 'Something went wrong',
+		} as any);
+
+		const {data, error} =
+			await GovernanceService.getAssetsBySpace('someFilter');
+
+		expect(data).toBeNull();
+		expect(error).toBe('Something went wrong');
+	});
+
+	it('propagates the response status when the request fails', async () => {
+		jest.spyOn(ApiHelper, 'post').mockResolvedValue({
+			data: null,
+			error: 'Forbidden',
+			status: 403,
+		} as any);
+
+		const result = await GovernanceService.getAssetsBySpace('someFilter');
+
+		expect(result).toEqual({data: null, error: 'Forbidden', status: 403});
+	});
+
+	it.each([
+		['the response has no facets', {}],
+		[
+			'the facets do not include assetsBySpace',
+			{searchFacets: {other: []}},
+		],
+	])('returns an empty list when %s', async (_, responseData) => {
+		jest.spyOn(ApiHelper, 'post').mockResolvedValue({
+			data: responseData,
+			error: null,
+		} as any);
+
+		const {data, error} =
+			await GovernanceService.getAssetsBySpace('someFilter');
+
+		expect(error).toBeNull();
+		expect(data).toEqual([]);
+	});
+});
+
 describe('GovernanceService.getBrokenLinkAssetsURL', () => {
 	it('requests the first page of broken link assets sorted by title', () => {
 		expect(GovernanceService.getBrokenLinkAssetsURL()).toBe(
