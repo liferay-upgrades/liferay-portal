@@ -46,6 +46,13 @@
 						"friendlyURL": "/files",
 						"privateLayout": false,
 						"type": "layout"
+					},
+					{
+						"displayIcon": "date",
+						"externalReferenceCode": "CMSPRIMARYNAVIGATION11",
+						"friendlyURL": "/expiring-assets",
+						"privateLayout": false,
+						"type": "layout"
 					}
 				],
 				"name_i18n": {

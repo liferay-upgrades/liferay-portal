@@ -1,0 +1,28 @@
+{
+	"pageElement": {
+		"id": "d7aa42a7-75a7-4648-a313-0480489dbbf3",
+		"pageElements": [
+			{
+				"definition": {
+					"fragment": {
+						"key": "com.liferay.site.cms.site.initializer.internal.fragment.renderer.ViewExpiringAssetsJSPSectionFragmentRenderer"
+					},
+					"fragmentConfig": {
+					},
+					"fragmentFields": [
+					],
+					"indexed": true
+				},
+				"id": "f6c56580-f34d-416f-a10f-fa2ff956fce2",
+				"type": "Fragment"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"masterPage": {
+			"key": "cms-master"
+		}
+	},
+	"version": 1.1
+}
