@@ -52,6 +52,8 @@ public class StructuresSectionCMSTableFDSView extends BaseCMSTableFDSView {
 			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
 				"authorTableCellRenderer")
 		).add(
+			"numberOfAssets", "num-of-assets"
+		).add(
 			addDateFDSTableSchemaField("dateModified", "modified")
 		).add(
 			"status", "status",
