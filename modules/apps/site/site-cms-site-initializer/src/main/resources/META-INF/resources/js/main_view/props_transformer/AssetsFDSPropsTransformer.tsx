@@ -62,6 +62,7 @@ import shareAction from './actions/shareAction';
 import {triggerAssetDownloadBulkAction} from './actions/triggerAssetDownloadBulkAction';
 import AdditionalItemInfoRenderer from './cell_renderers/AdditionalItemInfoRenderer';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
+import ExpirationDateRenderer from './cell_renderers/ExpirationDateRenderer';
 import ReviewDateRenderer from './cell_renderers/ReviewDateRenderer';
 import SimpleActionLinkRenderer from './cell_renderers/SimpleActionLinkRenderer';
 import SpaceRendererWithCache from './cell_renderers/SpaceRendererWithCache';
@@ -355,6 +356,11 @@ export default function AssetsFDSPropsTransformer({
 				{
 					component: TypeRenderer,
 					name: 'typeTableCellRenderer',
+					type: 'internal',
+				} as IInternalRenderer,
+				{
+					component: ExpirationDateRenderer,
+					name: 'expirationDateTableCellRenderer',
 					type: 'internal',
 				} as IInternalRenderer,
 				{
