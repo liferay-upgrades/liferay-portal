@@ -51,9 +51,11 @@ import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.constants.ObjectValidationRuleConstants;
 import com.liferay.object.constants.ObjectValidationRuleSettingConstants;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectEntryFolder;
 import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFolderLocalService;
@@ -79,6 +81,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.TestInfo;
@@ -167,6 +170,7 @@ public class ObjectDefinitionResourceTest
 	@Test
 	public void testGetObjectDefinition() throws Exception {
 		_testGetObjectDefinition();
+		_testGetObjectDefinitionWithNumberOfAssets();
 		_testGetObjectDefinitionWithRootObjectDefinitionExternalReferenceCodes();
 		_testGetObjectDefinitionWithWorkflowDefinitionLink();
 	}
@@ -2121,6 +2125,21 @@ public class ObjectDefinitionResourceTest
 		return objectDefinition;
 	}
 
+	private ObjectEntry _addObjectEntry(
+			long groupId, long objectDefinitionId, long objectEntryFolderId,
+			int workflowAction)
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		serviceContext.setWorkflowAction(workflowAction);
+
+		return _objectEntryLocalService.addObjectEntry(
+			groupId, TestPropsValues.getUserId(), objectDefinitionId,
+			objectEntryFolderId, null, Collections.emptyMap(), serviceContext);
+	}
+
 	private void _assertAssigneeObjectActions(
 		ObjectDefinition objectDefinition) {
 
@@ -2794,6 +2813,99 @@ public class ObjectDefinitionResourceTest
 		Assert.assertEquals(
 			"/o/c/" + objectDefinitionPluralName,
 			objectDefinition.getRestContextPath());
+
+		objectDefinitionResource.deleteObjectDefinition(
+			objectDefinition.getId());
+	}
+
+	private void _testGetObjectDefinitionWithNumberOfAssets() throws Exception {
+		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			Collections.emptyMap(), DepotConstants.TYPE_ASSET_LIBRARY,
+			ServiceContextTestUtil.getServiceContext());
+
+		ObjectDefinition objectDefinition = randomObjectDefinition();
+
+		objectDefinition.setEnableObjectEntryDraft(true);
+		objectDefinition.setEnableObjectEntryVersioning(true);
+		objectDefinition.setObjectDefinitionSettings(
+			new ObjectDefinitionSetting[] {
+				new ObjectDefinitionSetting() {
+					{
+						setName(
+							ObjectDefinitionSettingConstants.
+								NAME_ACCEPTED_GROUP_IDS);
+						setValue(depotEntry.getGroupId());
+					}
+				}
+			});
+		objectDefinition.setPanelCategoryKey("");
+		objectDefinition.setScope(ObjectDefinitionConstants.SCOPE_DEPOT);
+
+		objectDefinition = objectDefinitionResource.postObjectDefinition(
+			objectDefinition);
+
+		objectDefinitionResource.postObjectDefinitionPublish(
+			objectDefinition.getId());
+
+		ObjectEntryFolder objectEntryFolder =
+			_objectEntryFolderLocalService.addObjectEntryFolder(
+				RandomTestUtil.randomString(), depotEntry.getGroupId(),
+				TestPropsValues.getUserId(),
+				ObjectEntryFolderConstants.
+					PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
+				null, null, RandomTestUtil.randomString(),
+				ServiceContextTestUtil.getServiceContext());
+
+		// Counted
+
+		ObjectEntry objectEntry = _addObjectEntry(
+			depotEntry.getGroupId(), objectDefinition.getId(),
+			objectEntryFolder.getObjectEntryFolderId(),
+			WorkflowConstants.ACTION_PUBLISH);
+
+		_objectEntryLocalService.updateObjectEntry(
+			TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
+			objectEntry.getObjectEntryFolderId(), Collections.emptyMap(),
+			ServiceContextTestUtil.getServiceContext());
+
+		_addObjectEntry(
+			depotEntry.getGroupId(), objectDefinition.getId(),
+			objectEntryFolder.getObjectEntryFolderId(),
+			WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		// Not counted
+
+		_addObjectEntry(
+			depotEntry.getGroupId(), objectDefinition.getId(),
+			ObjectEntryFolderConstants.PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
+			WorkflowConstants.ACTION_PUBLISH);
+
+		_objectEntryLocalService.moveObjectEntryToTrash(
+			TestPropsValues.getUserId(),
+			_addObjectEntry(
+				depotEntry.getGroupId(), objectDefinition.getId(),
+				objectEntryFolder.getObjectEntryFolderId(),
+				WorkflowConstants.ACTION_PUBLISH),
+			ServiceContextTestUtil.getServiceContext());
+
+		JSONObject jsonObject = HTTPTestUtil.invokeToJSONObject(
+			null,
+			StringBundler.concat(
+				"object-admin/v1.0/object-definitions/",
+				objectDefinition.getId(), "?nestedFields=numberOfAssets"),
+			Http.Method.GET);
+
+		Assert.assertEquals(2, jsonObject.getInt("numberOfAssets"));
+
+		jsonObject = HTTPTestUtil.invokeToJSONObject(
+			null,
+			"object-admin/v1.0/object-definitions/" + objectDefinition.getId(),
+			Http.Method.GET);
+
+		Assert.assertFalse(jsonObject.has("numberOfAssets"));
 
 		objectDefinitionResource.deleteObjectDefinition(
 			objectDefinition.getId());
@@ -4308,6 +4420,9 @@ public class ObjectDefinitionResourceTest
 	@DeleteAfterTestRun
 	private final List<com.liferay.object.model.ObjectDefinition>
 		_objectDefinitions = new ArrayList<>();
+
+	@Inject
+	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
 
 	@Inject
 	private ObjectEntryLocalService _objectEntryLocalService;
