@@ -2032,6 +2032,14 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("numberOfAssets", additionalAssertFieldName)) {
+				if (objectDefinition.getNumberOfAssets() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("objectActions", additionalAssertFieldName)) {
 				if (objectDefinition.getObjectActions() == null) {
 					valid = false;
@@ -2681,6 +2689,17 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 				if (!Objects.deepEquals(
 						objectDefinition1.getName(),
 						objectDefinition2.getName())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("numberOfAssets", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						objectDefinition1.getNumberOfAssets(),
+						objectDefinition2.getNumberOfAssets())) {
 
 					return false;
 				}
@@ -3490,6 +3509,12 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("numberOfAssets")) {
+			sb.append(String.valueOf(objectDefinition.getNumberOfAssets()));
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("objectActions")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -4007,6 +4032,7 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 				id = RandomTestUtil.randomLong();
 				modifiable = RandomTestUtil.randomBoolean();
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				numberOfAssets = RandomTestUtil.randomInt();
 				objectFolderExternalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				panelAppOrder = StringUtil.toLowerCase(
@@ -4297,4 +4323,4 @@ public abstract class BaseObjectDefinitionResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-896263020
+// LIFERAY-REST-BUILDER-HASH:387798261
