@@ -88,7 +88,7 @@ public class ViewStructuresDisplayContext {
 			sb.append("'");
 		}
 
-		sb.append(")");
+		sb.append(")&nestedFields=numberOfAssets");
 
 		return sb.toString();
 	}

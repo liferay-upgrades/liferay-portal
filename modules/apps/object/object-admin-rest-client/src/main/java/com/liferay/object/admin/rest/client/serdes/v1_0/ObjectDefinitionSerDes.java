@@ -372,6 +372,16 @@ public class ObjectDefinitionSerDes {
 			sb.append("\"");
 		}
 
+		if (objectDefinition.getNumberOfAssets() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"numberOfAssets\": ");
+
+			sb.append(objectDefinition.getNumberOfAssets());
+		}
+
 		if (objectDefinition.getObjectActions() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1017,6 +1027,15 @@ public class ObjectDefinitionSerDes {
 			map.put("name", String.valueOf(objectDefinition.getName()));
 		}
 
+		if (objectDefinition.getNumberOfAssets() == null) {
+			map.put("numberOfAssets", null);
+		}
+		else {
+			map.put(
+				"numberOfAssets",
+				String.valueOf(objectDefinition.getNumberOfAssets()));
+		}
+
 		if (objectDefinition.getObjectActions() == null) {
 			map.put("objectActions", null);
 		}
@@ -1337,6 +1356,9 @@ public class ObjectDefinitionSerDes {
 			else if (Objects.equals(jsonParserFieldName, "name")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "numberOfAssets")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "objectActions")) {
 				return false;
 			}
@@ -1611,6 +1633,12 @@ public class ObjectDefinitionSerDes {
 			else if (Objects.equals(jsonParserFieldName, "name")) {
 				if (jsonParserFieldValue != null) {
 					objectDefinition.setName((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "numberOfAssets")) {
+				if (jsonParserFieldValue != null) {
+					objectDefinition.setNumberOfAssets(
+						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "objectActions")) {
@@ -1956,4 +1984,4 @@ public class ObjectDefinitionSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1328519094
+// LIFERAY-REST-BUILDER-HASH:729080741
