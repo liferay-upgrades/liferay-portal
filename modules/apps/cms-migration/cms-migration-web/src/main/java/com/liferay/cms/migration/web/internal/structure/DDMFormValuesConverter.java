@@ -529,7 +529,10 @@ public class DDMFormValuesConverter {
 						cmsMigrationContext, ddmFormFieldValue));
 			}
 
-			values.put(entry.getKey(), jsonArray.toString());
+			values.put(
+				entry.getKey(),
+				CMSMigrationDDMFormFieldUtil.escapeJSONFieldValue(
+					jsonArray.toString()));
 		}
 	}
 
