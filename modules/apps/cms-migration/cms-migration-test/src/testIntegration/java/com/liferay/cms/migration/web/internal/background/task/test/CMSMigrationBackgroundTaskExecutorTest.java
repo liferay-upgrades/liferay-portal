@@ -25,8 +25,11 @@ import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.dynamic.data.mapping.model.DDMTemplate;
+import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
+import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.journal.constants.JournalArticleConstants;
@@ -46,6 +49,7 @@ import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
@@ -71,6 +75,11 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.template.StringTemplateResource;
+import com.liferay.portal.kernel.template.Template;
+import com.liferay.portal.kernel.template.TemplateConstants;
+import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.templateparser.TemplateNode;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
@@ -293,6 +302,90 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 					"CMS_MIGRATION_BLOGS_ENTRY_" + blogsEntry.getEntryId()));
 
 		Assert.assertEquals(120000, readingTimeEntry.getReadingTime());
+	}
+
+	@Test
+	public void testExecuteWithCheckboxDDMFormField() throws Exception {
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
+
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"checkbox", "checkbox", DDMFormFieldTypeConstants.CHECKBOX,
+				"boolean", false, false, false));
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName(), ddmForm);
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			_group.getGroupId(), _portal.getClassNameId(DDMStructure.class),
+			ddmStructure.getStructureId(),
+			_portal.getClassNameId(JournalArticle.class),
+			TemplateConstants.LANG_TYPE_FTL,
+			"${getterUtil.getBoolean(checkbox.getData())?c}", LocaleUtil.US);
+
+		_journalArticle = JournalTestUtil.addArticleWithXMLContent(
+			_group.getGroupId(),
+			StringBundler.concat(
+				"<root available-locales=\"en_US\" default-locale=\"en_US\">",
+				"<dynamic-element field-reference=\"checkbox\" ",
+				"index-type=\"keyword\" instance-id=\"",
+				RandomTestUtil.randomString(8),
+				"\" name=\"checkbox\" type=\"checkbox\"><dynamic-content ",
+				"language-id=\"en_US\"><![CDATA[true]]></dynamic-content>",
+				"</dynamic-element></root>"),
+			ddmStructure.getStructureKey(), null);
+
+		_assertSuccessful(_execute(_group.getGroupId(), false));
+
+		ObjectEntry objectEntry = _getObjectEntry(
+			"CMS_MIGRATION_DDM_STRUCTURE_" + ddmStructure.getStructureId(),
+			"CMS_MIGRATION_JOURNAL_ARTICLE_" +
+				_journalArticle.getResourcePrimKey());
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		Assert.assertTrue(GetterUtil.getBoolean(values.get("checkbox")));
+
+		DDMTemplate migratedDDMTemplate =
+			_ddmTemplateLocalService.getDDMTemplateByExternalReferenceCode(
+				"CMS_MIGRATION_DDM_TEMPLATE_" + ddmTemplate.getTemplateId(),
+				_group.getGroupId());
+
+		Template template = TemplateManagerUtil.getTemplate(
+			TemplateConstants.LANG_TYPE_FTL,
+			new StringTemplateResource(
+				migratedDDMTemplate.getTemplateKey(),
+				migratedDDMTemplate.getScript()),
+			false);
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		ThemeDisplay themeDisplay = ContentLayoutTestUtil.getThemeDisplay(
+			_companyLocalService.getCompany(_group.getCompanyId()), _group,
+			LayoutTestUtil.addTypeContentLayout(_group));
+
+		themeDisplay.setRequest(mockHttpServletRequest);
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, themeDisplay);
+
+		template.prepare(mockHttpServletRequest);
+
+		template.put(
+			"objectEntryId",
+			new TemplateNode(
+				themeDisplay, "objectEntryId",
+				String.valueOf(objectEntry.getObjectEntryId()),
+				StringPool.BLANK, new HashMap<>()));
+
+		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
+
+		template.processTemplate(unsyncStringWriter);
+
+		String content = unsyncStringWriter.toString();
+
+		Assert.assertTrue(content, content.contains(">true</div>"));
 	}
 
 	@Test
@@ -1084,6 +1177,9 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 	@Inject
 	private CompanyLocalService _companyLocalService;
+
+	@Inject
+	private DDMTemplateLocalService _ddmTemplateLocalService;
 
 	private DepotEntry _depotEntry;
 
