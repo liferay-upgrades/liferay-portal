@@ -6,6 +6,7 @@
 package com.liferay.cms.migration.web.internal.structure;
 
 import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
+import com.liferay.cms.migration.web.internal.content.AttachmentAlternativeTextWriter;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.cms.migration.web.internal.reference.HTMLReferenceRewriter;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
@@ -27,7 +28,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -55,6 +55,22 @@ import java.util.Objects;
  * @author Lino Alves
  */
 public class DDMFormValuesConverter {
+
+	public DDMFormValuesConverter(
+		AttachmentAlternativeTextWriter attachmentAlternativeTextWriter,
+		DLAppLocalService dlAppLocalService,
+		HTMLReferenceRewriter htmlReferenceRewriter,
+		JournalArticleLocalService journalArticleLocalService,
+		JSONFactory jsonFactory,
+		ObjectDefinitionMigrator objectDefinitionMigrator) {
+
+		_attachmentAlternativeTextWriter = attachmentAlternativeTextWriter;
+		_dlAppLocalService = dlAppLocalService;
+		_htmlReferenceRewriter = htmlReferenceRewriter;
+		_journalArticleLocalService = journalArticleLocalService;
+		_jsonFactory = jsonFactory;
+		_objectDefinitionMigrator = objectDefinitionMigrator;
+	}
 
 	public Map<String, Serializable> getValues(
 		CMSMigrationContext cmsMigrationContext, DDMFormValues ddmFormValues) {
@@ -203,10 +219,16 @@ public class DDMFormValuesConverter {
 				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
 
 			try {
+				JSONObject jsonObject = _jsonFactory.createJSONObject(data);
+
 				FileEntry fileEntry = _getAttachmentFileEntry(
-					cmsMigrationContext, _jsonFactory.createJSONObject(data));
+					cmsMigrationContext, jsonObject);
 
 				if (fileEntry != null) {
+					_attachmentAlternativeTextWriter.write(
+						cmsMigrationContext, fileEntry,
+						jsonObject.getString("alt"));
+
 					return fileEntry.getFileEntryId();
 				}
 			}
@@ -571,23 +593,12 @@ public class DDMFormValuesConverter {
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMFormValuesConverter.class);
 
-	private static final Snapshot<DLAppLocalService>
-		_dlAppLocalServiceSnapshot = new Snapshot<>(
-			DDMFormValuesConverter.class, DLAppLocalService.class);
-	private static final Snapshot<JournalArticleLocalService>
-		_journalArticleLocalServiceSnapshot = new Snapshot<>(
-			DDMFormValuesConverter.class, JournalArticleLocalService.class);
-	private static final Snapshot<JSONFactory> _jsonFactorySnapshot =
-		new Snapshot<>(DDMFormValuesConverter.class, JSONFactory.class);
-
-	private final DLAppLocalService _dlAppLocalService =
-		_dlAppLocalServiceSnapshot.get();
-	private final HTMLReferenceRewriter _htmlReferenceRewriter =
-		new HTMLReferenceRewriter();
-	private final JournalArticleLocalService _journalArticleLocalService =
-		_journalArticleLocalServiceSnapshot.get();
-	private final JSONFactory _jsonFactory = _jsonFactorySnapshot.get();
-	private final ObjectDefinitionMigrator _objectDefinitionMigrator =
-		new ObjectDefinitionMigrator();
+	private final AttachmentAlternativeTextWriter
+		_attachmentAlternativeTextWriter;
+	private final DLAppLocalService _dlAppLocalService;
+	private final HTMLReferenceRewriter _htmlReferenceRewriter;
+	private final JournalArticleLocalService _journalArticleLocalService;
+	private final JSONFactory _jsonFactory;
+	private final ObjectDefinitionMigrator _objectDefinitionMigrator;
 
 }
