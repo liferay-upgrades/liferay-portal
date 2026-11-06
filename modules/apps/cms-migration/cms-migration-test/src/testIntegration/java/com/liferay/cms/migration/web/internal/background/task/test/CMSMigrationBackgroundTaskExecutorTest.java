@@ -22,11 +22,15 @@ import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
+import com.liferay.dynamic.data.mapping.constants.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.dynamic.data.mapping.model.DDMTemplate;
+import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
+import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.journal.constants.JournalArticleConstants;
@@ -71,6 +75,7 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
@@ -793,6 +798,153 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithUntranslatedDDMTemplateDescription()
+		throws Exception {
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName());
+
+		DDMTemplate ddmTemplate = _ddmTemplateLocalService.addTemplate(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			_portal.getClassNameId(DDMStructure.class),
+			ddmStructure.getStructureId(),
+			_portal.getClassNameId(JournalArticle.class),
+			HashMapBuilder.put(
+				LocaleUtil.US, RandomTestUtil.randomString()
+			).build(),
+			HashMapBuilder.put(
+				LocaleUtil.US, RandomTestUtil.randomString()
+			).build(),
+			DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY, null,
+			TemplateConstants.LANG_TYPE_FTL, RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		ddmTemplate.setDescriptionMap(
+			ddmTemplate.getDescriptionMap(), LocaleUtil.SPAIN);
+
+		ddmTemplate = _ddmTemplateLocalService.updateDDMTemplate(ddmTemplate);
+
+		_journalArticle = JournalTestUtil.addArticleWithXMLContent(
+			_group.getGroupId(),
+			DDMStructureTestUtil.getSampleStructuredContent(),
+			ddmStructure.getStructureKey(), ddmTemplate.getTemplateKey());
+
+		Locale originalDefaultLocale = LocaleThreadLocal.getDefaultLocale();
+		Locale originalSiteDefaultLocale =
+			LocaleThreadLocal.getSiteDefaultLocale();
+
+		try {
+			LocaleThreadLocal.setDefaultLocale(LocaleUtil.SPAIN);
+			LocaleThreadLocal.setSiteDefaultLocale(LocaleUtil.SPAIN);
+
+			_assertSuccessful(_execute(_group.getGroupId(), false));
+		}
+		finally {
+			LocaleThreadLocal.setDefaultLocale(originalDefaultLocale);
+			LocaleThreadLocal.setSiteDefaultLocale(originalSiteDefaultLocale);
+		}
+
+		DDMTemplate migratedDDMTemplate =
+			_ddmTemplateLocalService.getDDMTemplateByExternalReferenceCode(
+				"CMS_MIGRATION_DDM_TEMPLATE_" + ddmTemplate.getTemplateId(),
+				_group.getGroupId());
+
+		Assert.assertEquals(
+			ddmTemplate.getDescription(LocaleUtil.US),
+			migratedDDMTemplate.getDescription(LocaleUtil.SPAIN, false));
+	}
+
+	@Test
+	public void testExecuteWithUntranslatedDDMTemplateNameAndBlankDefaultLanguage()
+		throws Exception {
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName());
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			_group.getGroupId(), ddmStructure.getStructureId(),
+			_portal.getClassNameId(JournalArticle.class),
+			TemplateConstants.LANG_TYPE_FTL, RandomTestUtil.randomString(),
+			LocaleUtil.US);
+
+		ddmTemplate.setNameMap(ddmTemplate.getNameMap(), LocaleUtil.SPAIN);
+
+		ddmTemplate = _ddmTemplateLocalService.updateDDMTemplate(ddmTemplate);
+
+		_journalArticle = JournalTestUtil.addArticleWithXMLContent(
+			_group.getGroupId(),
+			DDMStructureTestUtil.getSampleStructuredContent(),
+			ddmStructure.getStructureKey(), ddmTemplate.getTemplateKey());
+
+		Locale originalDefaultLocale = LocaleThreadLocal.getDefaultLocale();
+		Locale originalSiteDefaultLocale =
+			LocaleThreadLocal.getSiteDefaultLocale();
+
+		try {
+			LocaleThreadLocal.setDefaultLocale(LocaleUtil.SPAIN);
+			LocaleThreadLocal.setSiteDefaultLocale(LocaleUtil.SPAIN);
+
+			_assertSuccessful(_execute(_group.getGroupId(), false));
+		}
+		finally {
+			LocaleThreadLocal.setDefaultLocale(originalDefaultLocale);
+			LocaleThreadLocal.setSiteDefaultLocale(originalSiteDefaultLocale);
+		}
+
+		DDMTemplate migratedDDMTemplate =
+			_ddmTemplateLocalService.getDDMTemplateByExternalReferenceCode(
+				"CMS_MIGRATION_DDM_TEMPLATE_" + ddmTemplate.getTemplateId(),
+				_group.getGroupId());
+
+		Assert.assertEquals(
+			ddmTemplate.getName(LocaleUtil.US),
+			migratedDDMTemplate.getName(LocaleUtil.SPAIN, false));
+	}
+
+	@Test
+	public void testExecuteWithUntranslatedDDMTemplateNameAndDifferentDefaultLanguage()
+		throws Exception {
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName());
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			_group.getGroupId(), ddmStructure.getStructureId(),
+			_portal.getClassNameId(JournalArticle.class),
+			TemplateConstants.LANG_TYPE_FTL, RandomTestUtil.randomString(),
+			LocaleUtil.US);
+
+		_journalArticle = JournalTestUtil.addArticleWithXMLContent(
+			_group.getGroupId(),
+			DDMStructureTestUtil.getSampleStructuredContent(),
+			ddmStructure.getStructureKey(), ddmTemplate.getTemplateKey());
+
+		Locale originalDefaultLocale = LocaleThreadLocal.getDefaultLocale();
+		Locale originalSiteDefaultLocale =
+			LocaleThreadLocal.getSiteDefaultLocale();
+
+		try {
+			LocaleThreadLocal.setDefaultLocale(LocaleUtil.SPAIN);
+			LocaleThreadLocal.setSiteDefaultLocale(LocaleUtil.SPAIN);
+
+			_assertSuccessful(_execute(_group.getGroupId(), false));
+		}
+		finally {
+			LocaleThreadLocal.setDefaultLocale(originalDefaultLocale);
+			LocaleThreadLocal.setSiteDefaultLocale(originalSiteDefaultLocale);
+		}
+
+		DDMTemplate migratedDDMTemplate =
+			_ddmTemplateLocalService.getDDMTemplateByExternalReferenceCode(
+				"CMS_MIGRATION_DDM_TEMPLATE_" + ddmTemplate.getTemplateId(),
+				_group.getGroupId());
+
+		Assert.assertEquals(
+			ddmTemplate.getName(LocaleUtil.US),
+			migratedDDMTemplate.getName(LocaleUtil.SPAIN, false));
+	}
+
+	@Test
 	public void testExecuteWithUntranslatedDLFileEntryTypeName()
 		throws Exception {
 
@@ -980,11 +1132,28 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			Map<Locale, String> titleMap)
 		throws Exception {
 
-		_journalArticle = JournalTestUtil.addArticle(
-			_group.getGroupId(),
-			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			JournalArticleConstants.CLASS_NAME_ID_DEFAULT, titleMap,
-			descriptionMap, contentMap, LocaleUtil.US, false, true,
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
+			DDMFormTestUtil.createAvailableLocales(
+				LocaleUtil.SPAIN, LocaleUtil.US),
+			LocaleUtil.US);
+
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"content", "content", DDMFormFieldTypeConstants.TEXT, "string",
+				true, false, false, LocaleUtil.SPAIN, LocaleUtil.US));
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName(), ddmForm,
+			LocaleUtil.US);
+
+		_journalArticle = _journalArticleLocalService.addArticle(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, titleMap,
+			descriptionMap,
+			DDMStructureTestUtil.getSampleStructuredContent(
+				"content", Collections.singletonList(contentMap),
+				LocaleUtil.toLanguageId(LocaleUtil.US)),
+			ddmStructure.getStructureId(), null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		Set<Locale> availableLocales = LanguageUtil.getCompanyAvailableLocales(
@@ -1084,6 +1253,9 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 	@Inject
 	private CompanyLocalService _companyLocalService;
+
+	@Inject
+	private DDMTemplateLocalService _ddmTemplateLocalService;
 
 	private DepotEntry _depotEntry;
 
