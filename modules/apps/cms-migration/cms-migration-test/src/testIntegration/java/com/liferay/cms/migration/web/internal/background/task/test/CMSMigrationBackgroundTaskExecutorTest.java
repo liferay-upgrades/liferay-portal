@@ -78,15 +78,22 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portletdisplaytemplate.PortletDisplayTemplateManager;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
@@ -1427,6 +1434,52 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithRewritePagesAndPortletPermissions()
+		throws Exception {
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		Layout customPermissionsLayout = LayoutTestUtil.addTypePortletLayout(
+			_group);
+
+		String customPermissionsPortletId = _addJournalContentPortlet(
+			customPermissionsLayout, journalArticle);
+
+		Role guestRole = _roleLocalService.getRole(
+			_group.getCompanyId(), RoleConstants.GUEST);
+		Role siteMemberRole = _roleLocalService.getRole(
+			_group.getCompanyId(), RoleConstants.SITE_MEMBER);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			_group.getCompanyId(), JournalContentPortletKeys.JOURNAL_CONTENT,
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			PortletPermissionUtil.getPrimaryKey(
+				customPermissionsLayout.getPlid(), customPermissionsPortletId),
+			HashMapBuilder.put(
+				guestRole.getRoleId(), new String[0]
+			).put(
+				siteMemberRole.getRoleId(), new String[] {ActionKeys.VIEW}
+			).build());
+
+		Layout defaultPermissionsLayout = LayoutTestUtil.addTypePortletLayout(
+			_group);
+
+		String defaultPermissionsPortletId = _addJournalContentPortlet(
+			defaultPermissionsLayout, journalArticle);
+
+		_assertSuccessful(_execute(_group.getGroupId(), true));
+
+		_assertPortletPermissions(
+			guestRole, false, customPermissionsLayout,
+			customPermissionsPortletId, siteMemberRole, true);
+		_assertPortletPermissions(
+			guestRole, true, defaultPermissionsLayout,
+			defaultPermissionsPortletId, siteMemberRole, true);
+	}
+
+	@Test
 	public void testExecuteWithUnavailableDefaultLanguage() throws Exception {
 		Map<Locale, String> contentMap = HashMapBuilder.put(
 			LocaleUtil.US, RandomTestUtil.randomString()
@@ -1773,6 +1826,41 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 		return DDMStructureTestUtil.addStructure(
 			_group.getGroupId(), JournalArticle.class.getName(), ddmForm);
+	}
+
+	private void _assertPortletPermissions(
+			Role guestRole, boolean guestRoleView, Layout layout,
+			String oldPortletId, Role siteMemberRole,
+			boolean siteMemberRoleView)
+		throws Exception {
+
+		Assert.assertEquals(
+			0,
+			_resourcePermissionLocalService.getResourcePermissionsCount(
+				layout.getCompanyId(),
+				JournalContentPortletKeys.JOURNAL_CONTENT,
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				PortletPermissionUtil.getPrimaryKey(
+					layout.getPlid(), oldPortletId)));
+
+		String newPrimKey = PortletPermissionUtil.getPrimaryKey(
+			layout.getPlid(),
+			PortletIdCodec.encode(
+				_CMS_CONTENT_DISPLAY_PORTLET_NAME,
+				PortletIdCodec.decodeInstanceId(oldPortletId)));
+
+		Assert.assertEquals(
+			guestRoleView,
+			_resourcePermissionLocalService.hasResourcePermission(
+				layout.getCompanyId(), _CMS_CONTENT_DISPLAY_PORTLET_NAME,
+				ResourceConstants.SCOPE_INDIVIDUAL, newPrimKey,
+				guestRole.getRoleId(), ActionKeys.VIEW));
+		Assert.assertEquals(
+			siteMemberRoleView,
+			_resourcePermissionLocalService.hasResourcePermission(
+				layout.getCompanyId(), _CMS_CONTENT_DISPLAY_PORTLET_NAME,
+				ResourceConstants.SCOPE_INDIVIDUAL, newPrimKey,
+				siteMemberRole.getRoleId(), ActionKeys.VIEW));
 	}
 
 	private void _assertSuccessful(BackgroundTaskResult backgroundTaskResult) {
@@ -2158,6 +2246,12 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 	@Inject
 	private ReadingTimeEntryLocalService _readingTimeEntryLocalService;
+
+	@Inject
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@Inject
+	private RoleLocalService _roleLocalService;
 
 	@Inject
 	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
