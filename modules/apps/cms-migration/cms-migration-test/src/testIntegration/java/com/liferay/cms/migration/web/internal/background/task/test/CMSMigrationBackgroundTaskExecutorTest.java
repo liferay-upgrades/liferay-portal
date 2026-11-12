@@ -473,6 +473,36 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithGlobalSourceGroupAndDocumentLibraryWidgets()
+		throws Exception {
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_group);
+
+		LayoutTestUtil.addPortletToLayout(layout, PortletKeys.DOCUMENT_LIBRARY);
+
+		LayoutTestUtil.addPortletToLayout(
+			layout, PortletKeys.DOCUMENT_LIBRARY,
+			HashMapBuilder.put(
+				"lfrScopeType", new String[] {"company"}
+			).build());
+
+		Group companyGroup = _groupLocalService.getCompanyGroup(
+			_group.getCompanyId());
+
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			companyGroup.getGroupId(), true);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		String statusMessage = backgroundTaskResult.getStatusMessage();
+
+		Assert.assertEquals(
+			statusMessage, 1,
+			StringUtil.count(
+				statusMessage, "The Documents and Media widget on the page"));
+	}
+
+	@Test
 	public void testExecuteWithHTMLDescription() throws Exception {
 		String description = RandomTestUtil.randomString();
 		Locale locale = LocaleUtil.getSiteDefault();
