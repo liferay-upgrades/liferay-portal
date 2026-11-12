@@ -17,11 +17,13 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
+import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.dynamic.data.mapping.constants.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
@@ -48,7 +50,9 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServ
 import com.liferay.layout.test.util.ContentLayoutTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.list.type.model.ListTypeEntry;
+import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
+import com.liferay.object.entry.folder.util.ObjectEntryFolderThreadLocal;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryFolder;
@@ -58,6 +62,7 @@ import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
@@ -149,14 +154,6 @@ import org.junit.runner.RunWith;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import com.liferay.document.library.kernel.model.DLFileEntry;
-import com.liferay.document.library.kernel.store.DLStoreUtil;
-import com.liferay.object.constants.ObjectEntryFolderConstants;
-import com.liferay.object.entry.folder.util.ObjectEntryFolderThreadLocal;
-import com.liferay.petra.lang.SafeCloseable;
-
-import com.liferay.petra.string.StringPool;
 
 /**
  * @author Lino Alves
@@ -719,32 +716,31 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			null, TestPropsValues.getUserId(), _group.getGroupId(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), StringPool.BLANK,
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId())
-		);
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		try (SafeCloseable safeCloseable = 
-				ObjectEntryFolderThreadLocal.setForceDeleteSystemObjectEntryFolderWithSafeCloseable(true)) {
-					
-					_objectEntryFolderLocalService.deleteObjectEntryFolderByExternalReferenceCode(
-						ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
-						_depotEntry.getGroupId(), _depotEntry.getCompanyId()
-					);
-				}
+		try (SafeCloseable safeCloseable =
+				ObjectEntryFolderThreadLocal.
+					setForceDeleteSystemObjectEntryFolderWithSafeCloseable(
+						true)) {
 
-				BackgroundTaskResult backgroundTaskResult = _execute(
-					_group.getGroupId(), false);
+			_objectEntryFolderLocalService.
+				deleteObjectEntryFolderByExternalReferenceCode(
+					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+					_depotEntry.getGroupId(), _depotEntry.getCompanyId());
+		}
 
-				String statusMessage = backgroundTaskResult.getStatusMessage();
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), false);
 
-				Assert.assertEquals(
-					statusMessage, BackgroundTaskConstants.STATUS_FAILED, backgroundTaskResult.getStatus()
-				);
-				Assert.assertTrue(
-					statusMessage, statusMessage.contains("\"folders\":1")
-				);
-				Assert.assertTrue(
-					statusMessage, statusMessage.contains("The migration stopped")
-				);
+		String statusMessage = backgroundTaskResult.getStatusMessage();
+
+		Assert.assertEquals(
+			statusMessage, BackgroundTaskConstants.STATUS_FAILED,
+			backgroundTaskResult.getStatus());
+		Assert.assertTrue(
+			statusMessage, statusMessage.contains("\"folders\":1"));
+		Assert.assertTrue(
+			statusMessage, statusMessage.contains("The migration stopped"));
 	}
 
 	@Test
@@ -755,8 +751,7 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 		DLStoreUtil.deleteFile(
 			dlFileEntry.getCompanyId(), dlFileEntry.getDataRepositoryId(),
-			dlFileEntry.getName()
-		);
+			dlFileEntry.getName());
 
 		BackgroundTaskResult backgroundTaskResult = _execute(
 			_group.getGroupId(), false);
@@ -767,7 +762,8 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			statusMessage, BackgroundTaskConstants.STATUS_COMPLETED_WITH_ERRORS,
 			backgroundTaskResult.getStatus());
 		Assert.assertTrue(
-			statusMessage, statusMessage.contains("Unable to migrate the document"));
+			statusMessage,
+			statusMessage.contains("Unable to migrate the document"));
 		Assert.assertFalse(
 			statusMessage, statusMessage.contains("The migration stopped"));
 	}
