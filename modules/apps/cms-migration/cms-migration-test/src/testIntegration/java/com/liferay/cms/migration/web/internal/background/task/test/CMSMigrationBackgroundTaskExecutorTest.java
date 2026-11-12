@@ -25,6 +25,7 @@ import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
+import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.dynamic.data.mapping.constants.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
@@ -58,6 +59,7 @@ import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectFieldSettingConstants;
 import com.liferay.object.constants.ObjectFolderConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
+import com.liferay.object.entry.folder.util.ObjectEntryFolderThreadLocal;
 import com.liferay.object.field.builder.AttachmentObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.field.setting.builder.ObjectFieldSettingBuilder;
@@ -79,6 +81,7 @@ import com.liferay.object.test.util.ObjectRelationshipTestUtil;
 import com.liferay.object.tree.constants.TreeConstants;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTemporarySwapper;
@@ -951,6 +954,64 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		Map<String, Serializable> values = objectEntry.getValues();
 
 		Assert.assertTrue(Validator.isNull(values.get("smallImageURL")));
+	}
+
+	@Test
+	public void testExecuteWithMissingContentsFolder() throws Exception {
+		_dlAppLocalService.addFolder(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(), StringPool.BLANK,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		try (SafeCloseable safeCloseable =
+				ObjectEntryFolderThreadLocal.
+					setForceDeleteSystemObjectEntryFolderWithSafeCloseable(
+						true)) {
+
+			_objectEntryFolderLocalService.
+				deleteObjectEntryFolderByExternalReferenceCode(
+					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+					_depotEntry.getGroupId(), _depotEntry.getCompanyId());
+		}
+
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), false);
+
+		String statusMessage = backgroundTaskResult.getStatusMessage();
+
+		Assert.assertEquals(
+			statusMessage, BackgroundTaskConstants.STATUS_FAILED,
+			backgroundTaskResult.getStatus());
+		Assert.assertTrue(
+			statusMessage, statusMessage.contains("\"folders\":1"));
+		Assert.assertTrue(
+			statusMessage, statusMessage.contains("The migration stopped"));
+	}
+
+	@Test
+	public void testExecuteWithMissingFileEntryContent() throws Exception {
+		FileEntry fileEntry = _addFileEntry(StringPool.BLANK);
+
+		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
+
+		DLStoreUtil.deleteFile(
+			dlFileEntry.getCompanyId(), dlFileEntry.getDataRepositoryId(),
+			dlFileEntry.getName());
+
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), false);
+
+		String statusMessage = backgroundTaskResult.getStatusMessage();
+
+		Assert.assertEquals(
+			statusMessage, BackgroundTaskConstants.STATUS_COMPLETED_WITH_ERRORS,
+			backgroundTaskResult.getStatus());
+		Assert.assertTrue(
+			statusMessage,
+			statusMessage.contains("Unable to migrate the document"));
+		Assert.assertFalse(
+			statusMessage, statusMessage.contains("The migration stopped"));
 	}
 
 	@Test
