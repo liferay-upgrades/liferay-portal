@@ -155,17 +155,24 @@ public class PortletReferenceRewriter {
 						_replaceWebContentDisplay(
 							cmsMigrationContext, layout, portletId);
 					}
-					else if (portletName.equals(
+					else if ((portletName.equals(
 								DLPortletKeys.DOCUMENT_LIBRARY) ||
-							 portletName.equals(
-								 DLPortletKeys.MEDIA_GALLERY_DISPLAY)) {
+							  portletName.equals(
+								  DLPortletKeys.MEDIA_GALLERY_DISPLAY)) &&
+							 (cmsMigrationContext.isRewriteSourceGroup() ||
+							  (_portal.getScopeGroupId(layout, portletId) ==
+								  cmsMigrationContext.getSourceGroupId()))) {
+
+						Group group = layout.getGroup();
 
 						cmsMigrationContext.getCMSMigrationReport(
 						).addWarning(
 							StringBundler.concat(
 								"The Documents and Media widget on the page ",
-								layout.getFriendlyURL(),
-								" browses the classic library and has no ",
+								layout.getFriendlyURL(), " (site ",
+								group.getDescriptiveName(), ", plid ",
+								layout.getPlid(),
+								") browses the classic library and has no ",
 								"counterpart for CMS files")
 						);
 					}
