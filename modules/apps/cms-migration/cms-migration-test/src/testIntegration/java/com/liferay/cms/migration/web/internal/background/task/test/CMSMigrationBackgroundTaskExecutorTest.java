@@ -106,11 +106,13 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
+import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portletdisplaytemplate.PortletDisplayTemplateManager;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -434,6 +436,107 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithDocumentLibraryWidgets() throws Exception {
+		Layout layout1 = LayoutTestUtil.addTypePortletLayout(_group);
+
+		LayoutTestUtil.addPortletToLayout(
+			layout1, PortletKeys.DOCUMENT_LIBRARY, new HashMap<>());
+
+		Layout layout2 = LayoutTestUtil.addTypePortletLayout(_group);
+
+		_groupLocalService.checkScopeGroup(
+			layout2, TestPropsValues.getUserId());
+
+		LayoutTestUtil.addPortletToLayout(
+			layout2, PortletKeys.DOCUMENT_LIBRARY,
+			HashMapBuilder.put(
+				"lfrScopeLayoutUuid", new String[] {layout2.getUuid()}
+			).put(
+				"lfrScopeType", new String[] {"layout"}
+			).build());
+
+		Repository repository = PortletFileRepositoryUtil.addPortletRepository(
+			_group.getGroupId(), RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Layout layout3 = LayoutTestUtil.addTypePortletLayout(_group);
+
+		LayoutTestUtil.addPortletToLayout(
+			layout3, PortletKeys.DOCUMENT_LIBRARY,
+			HashMapBuilder.put(
+				"selectedGroupExternalReferenceCode",
+				new String[] {_group.getExternalReferenceCode()}
+			).put(
+				"selectedRepositoryExternalReferenceCode",
+				new String[] {repository.getExternalReferenceCode()}
+			).build());
+
+		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			DepotConstants.TYPE_ASSET_LIBRARY,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		try {
+			Group depotGroup = depotEntry.getGroup();
+
+			Layout layout4 = LayoutTestUtil.addTypePortletLayout(_group);
+
+			LayoutTestUtil.addPortletToLayout(
+				layout4, PortletKeys.DOCUMENT_LIBRARY,
+				HashMapBuilder.put(
+					"selectedGroupExternalReferenceCode",
+					new String[] {depotGroup.getExternalReferenceCode()}
+				).build());
+
+			BackgroundTaskResult backgroundTaskResult = _execute(
+				HashMapBuilder.<String, Serializable>put(
+					"depotEntryId", _depotEntry.getDepotEntryId()
+				).put(
+					"migrateBlogsEntries", true
+				).put(
+					"migrateFileEntries", false
+				).put(
+					"rewritePages", true
+				).put(
+					"sourceGroupId", _group.getGroupId()
+				).build());
+
+			_assertSuccessful(backgroundTaskResult);
+
+			String statusMessage = backgroundTaskResult.getStatusMessage();
+
+			Assert.assertFalse(
+				statusMessage,
+				statusMessage.contains(
+					"The Documents and Media widget on the page"));
+
+			backgroundTaskResult = _execute(_group.getGroupId(), true);
+
+			_assertSuccessful(backgroundTaskResult);
+
+			statusMessage = backgroundTaskResult.getStatusMessage();
+
+			Assert.assertEquals(
+				statusMessage, 1,
+				StringUtil.count(
+					statusMessage,
+					"The Documents and Media widget on the page"));
+			Assert.assertTrue(
+				statusMessage,
+				statusMessage.contains(
+					_getDocumentLibraryWidgetWarning(layout1)));
+		}
+		finally {
+			_deleteDepotEntry(depotEntry);
+		}
+	}
+
+	@Test
 	public void testExecuteWithEditPages() throws Exception {
 		JournalArticle journalArticle = JournalTestUtil.addArticle(
 			_group.getGroupId(),
@@ -669,6 +772,141 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		}
 		finally {
 			_journalArticleLocalService.deleteArticle(globalJournalArticle);
+		}
+	}
+
+	@Test
+	public void testExecuteWithGlobalSourceGroupAndDocumentLibraryWidgets()
+		throws Exception {
+
+		Layout layout1 = LayoutTestUtil.addTypePortletLayout(_group);
+
+		LayoutTestUtil.addPortletToLayout(
+			layout1, PortletKeys.DOCUMENT_LIBRARY, new HashMap<>());
+
+		Layout layout2 = LayoutTestUtil.addTypePortletLayout(_group);
+
+		LayoutTestUtil.addPortletToLayout(
+			layout2, PortletKeys.DOCUMENT_LIBRARY,
+			HashMapBuilder.put(
+				"lfrScopeType", new String[] {"company"}
+			).build());
+
+		Layout layout3 = LayoutTestUtil.addTypePortletLayout(_group);
+
+		Group companyGroup = _groupLocalService.getCompanyGroup(
+			_group.getCompanyId());
+
+		LayoutTestUtil.addPortletToLayout(
+			layout3, PortletKeys.DOCUMENT_LIBRARY,
+			HashMapBuilder.put(
+				"selectedGroupExternalReferenceCode",
+				new String[] {companyGroup.getExternalReferenceCode()}
+			).build());
+
+		Folder folder = _dlAppLocalService.addFolder(
+			null, TestPropsValues.getUserId(), companyGroup.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(), StringPool.BLANK,
+			ServiceContextTestUtil.getServiceContext(
+				companyGroup.getGroupId()));
+
+		try {
+			Layout layout4 = LayoutTestUtil.addTypePortletLayout(_group);
+
+			LayoutTestUtil.addPortletToLayout(
+				layout4, PortletKeys.DOCUMENT_LIBRARY,
+				HashMapBuilder.put(
+					"rootFolderExternalReferenceCode",
+					new String[] {folder.getExternalReferenceCode()}
+				).put(
+					"selectedGroupExternalReferenceCode",
+					new String[] {companyGroup.getExternalReferenceCode()}
+				).build());
+
+			Layout layout5 = LayoutTestUtil.addTypePortletLayout(_group);
+
+			LayoutTestUtil.addPortletToLayout(
+				layout5, PortletKeys.DOCUMENT_LIBRARY,
+				HashMapBuilder.put(
+					"lfrScopeType", new String[] {"company"}
+				).put(
+					"selectedGroupExternalReferenceCode",
+					new String[] {_group.getExternalReferenceCode()}
+				).build());
+
+			Layout layout6 = LayoutTestUtil.addTypePortletLayout(_group);
+
+			LayoutTestUtil.addPortletToLayout(
+				layout6, PortletKeys.MEDIA_GALLERY_DISPLAY,
+				HashMapBuilder.put(
+					"selectedGroupExternalReferenceCode",
+					new String[] {companyGroup.getExternalReferenceCode()}
+				).build());
+
+			Layout layout7 = LayoutTestUtil.addTypePortletLayout(_group);
+
+			_groupLocalService.checkScopeGroup(
+				layout7, TestPropsValues.getUserId());
+
+			LayoutTestUtil.addPortletToLayout(
+				layout7, PortletKeys.DOCUMENT_LIBRARY,
+				HashMapBuilder.put(
+					"lfrScopeLayoutUuid", new String[] {layout7.getUuid()}
+				).put(
+					"lfrScopeType", new String[] {"layout"}
+				).build());
+
+			_anotherGroup = GroupTestUtil.addGroup();
+
+			GroupTestUtil.enableLocalStaging(_anotherGroup);
+
+			Group stagingGroup = _anotherGroup.getStagingGroup();
+
+			Layout layout8 = LayoutTestUtil.addTypePortletLayout(stagingGroup);
+
+			LayoutTestUtil.addPortletToLayout(
+				layout8, PortletKeys.DOCUMENT_LIBRARY,
+				HashMapBuilder.put(
+					"selectedGroupExternalReferenceCode",
+					new String[] {stagingGroup.getExternalReferenceCode()}
+				).build());
+
+			Layout layout9 = LayoutTestUtil.addTypePortletLayout(stagingGroup);
+
+			LayoutTestUtil.addPortletToLayout(
+				layout9, PortletKeys.DOCUMENT_LIBRARY,
+				HashMapBuilder.put(
+					"selectedGroupExternalReferenceCode",
+					new String[] {companyGroup.getExternalReferenceCode()}
+				).build());
+
+			BackgroundTaskResult backgroundTaskResult = _execute(
+				companyGroup.getGroupId(), true);
+
+			_assertSuccessful(backgroundTaskResult);
+
+			String statusMessage = backgroundTaskResult.getStatusMessage();
+
+			Assert.assertEquals(
+				statusMessage, 5,
+				StringUtil.count(
+					statusMessage,
+					"The Documents and Media widget on the page"));
+
+			for (Layout layout :
+					new Layout[] {
+						layout2, layout3, layout4, layout6, layout9
+					}) {
+
+				Assert.assertTrue(
+					statusMessage,
+					statusMessage.contains(
+						_getDocumentLibraryWidgetWarning(layout)));
+			}
+		}
+		finally {
+			_dlAppLocalService.deleteFolder(folder.getFolderId());
 		}
 	}
 
@@ -4784,6 +5022,17 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		sb.append("</p>");
 
 		return sb.toString();
+	}
+
+	private String _getDocumentLibraryWidgetWarning(Layout layout)
+		throws Exception {
+
+		Group group = layout.getGroup();
+
+		return StringBundler.concat(
+			"The Documents and Media widget on the page ",
+			layout.getFriendlyURL(), " (site ", group.getDescriptiveName(),
+			", plid ", layout.getPlid(), ")");
 	}
 
 	private String _getDynamicElement(
