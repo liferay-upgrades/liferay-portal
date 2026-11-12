@@ -31,12 +31,14 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
+import com.liferay.portal.kernel.service.RepositoryLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
@@ -90,6 +92,7 @@ public class PortletReferenceRewriter {
 		JSONFactory jsonFactory, LayoutLocalService layoutLocalService,
 		Portal portal,
 		PortletPreferencesLocalService portletPreferencesLocalService,
+		RepositoryLocalService repositoryLocalService,
 		ResourceActions resourceActions,
 		ResourceLocalService resourceLocalService,
 		ResourcePermissionLocalService resourcePermissionLocalService,
@@ -106,6 +109,7 @@ public class PortletReferenceRewriter {
 		_layoutLocalService = layoutLocalService;
 		_portal = portal;
 		_portletPreferencesLocalService = portletPreferencesLocalService;
+		_repositoryLocalService = repositoryLocalService;
 		_resourceActions = resourceActions;
 		_resourceLocalService = resourceLocalService;
 		_resourcePermissionLocalService = resourcePermissionLocalService;
@@ -165,19 +169,14 @@ public class PortletReferenceRewriter {
 						_replaceWebContentDisplay(
 							cmsMigrationContext, layout, portletId);
 					}
-					else if (portletName.equals(
-								DLPortletKeys.DOCUMENT_LIBRARY) ||
-							 portletName.equals(
-								 DLPortletKeys.MEDIA_GALLERY_DISPLAY)) {
+					else if (cmsMigrationContext.isMigrateFileEntries() &&
+							 (portletName.equals(
+								 DLPortletKeys.DOCUMENT_LIBRARY) ||
+							  portletName.equals(
+								  DLPortletKeys.MEDIA_GALLERY_DISPLAY))) {
 
-						cmsMigrationContext.getCMSMigrationReport(
-						).addWarning(
-							StringBundler.concat(
-								"The Documents and Media widget on the page ",
-								layout.getFriendlyURL(),
-								" browses the classic library and has no ",
-								"counterpart for CMS files")
-						);
+						_addDocumentLibraryWidgetWarning(
+							cmsMigrationContext, layout, portletId);
 					}
 				}
 				catch (Exception exception) {
@@ -191,6 +190,30 @@ public class PortletReferenceRewriter {
 				}
 			}
 		}
+	}
+
+	private void _addDocumentLibraryWidgetWarning(
+			CMSMigrationContext cmsMigrationContext, Layout layout,
+			String portletId)
+		throws Exception {
+
+		if (_getDocumentLibraryRepositoryId(layout, portletId) !=
+				cmsMigrationContext.getSourceGroupId()) {
+
+			return;
+		}
+
+		Group group = layout.getGroup();
+
+		cmsMigrationContext.getCMSMigrationReport(
+		).addWarning(
+			StringBundler.concat(
+				"The Documents and Media widget on the page ",
+				layout.getFriendlyURL(), " (site ", group.getDescriptiveName(),
+				", plid ", layout.getPlid(),
+				") browses the classic library and has no counterpart for CMS ",
+				"files")
+		);
 	}
 
 	private Map<String, String[]> _copyDecorationPreferences(
@@ -243,6 +266,57 @@ public class PortletReferenceRewriter {
 		}
 
 		return cmsMigrationContext.getSourceGroupId();
+	}
+
+	private long _getDocumentLibraryRepositoryId(
+			Layout layout, String portletId)
+		throws Exception {
+
+		long scopeGroupId = _portal.getScopeGroupId(layout, portletId);
+
+		PortletPreferences portletPreferences =
+			_portletPreferencesLocalService.getPreferences(
+				layout.getCompanyId(), PortletKeys.PREFS_OWNER_ID_DEFAULT,
+				PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid(),
+				portletId);
+
+		String selectedGroupExternalReferenceCode = portletPreferences.getValue(
+			"selectedGroupExternalReferenceCode", null);
+
+		if (Validator.isNull(selectedGroupExternalReferenceCode)) {
+			return scopeGroupId;
+		}
+
+		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
+			selectedGroupExternalReferenceCode, layout.getCompanyId());
+
+		if (group == null) {
+			return scopeGroupId;
+		}
+
+		Group scopeGroup = _groupLocalService.getGroup(scopeGroupId);
+
+		if (group.isStagingGroup() && !scopeGroup.isStagingGroup()) {
+			group = group.getLiveGroup();
+		}
+
+		String selectedRepositoryExternalReferenceCode =
+			portletPreferences.getValue(
+				"selectedRepositoryExternalReferenceCode", null);
+
+		if (Validator.isNull(selectedRepositoryExternalReferenceCode)) {
+			return group.getGroupId();
+		}
+
+		Repository repository =
+			_repositoryLocalService.fetchRepositoryByExternalReferenceCode(
+				selectedRepositoryExternalReferenceCode, group.getGroupId());
+
+		if (repository == null) {
+			return scopeGroupId;
+		}
+
+		return repository.getRepositoryId();
 	}
 
 	private JournalArticle _getJournalArticle(
@@ -883,6 +957,7 @@ public class PortletReferenceRewriter {
 	private final Portal _portal;
 	private final PortletPreferencesLocalService
 		_portletPreferencesLocalService;
+	private final RepositoryLocalService _repositoryLocalService;
 	private final ResourceActions _resourceActions;
 	private final ResourceLocalService _resourceLocalService;
 	private final ResourcePermissionLocalService
