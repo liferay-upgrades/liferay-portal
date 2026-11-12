@@ -110,9 +110,13 @@ public class PortletReferenceRewriter {
 	public void rewrite(CMSMigrationContext cmsMigrationContext, Layout layout)
 		throws Exception {
 
-		boolean updateLayoutModifiedDate =
-			UpdateLayoutModifiedDateThreadLocal.isUpdateLayoutModifiedDate() &&
-			!layout.isDraftLayout();
+		boolean updateLayoutModifiedDate = false;
+
+		if (UpdateLayoutModifiedDateThreadLocal.isUpdateLayoutModifiedDate() &&
+			!layout.isDraftLayout()) {
+
+			updateLayoutModifiedDate = true;
+		}
 
 		try (SafeCloseable safeCloseable =
 				UpdateLayoutModifiedDateThreadLocal.
