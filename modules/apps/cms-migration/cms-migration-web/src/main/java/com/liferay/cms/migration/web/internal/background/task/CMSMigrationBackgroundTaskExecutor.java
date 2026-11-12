@@ -176,6 +176,8 @@ public class CMSMigrationBackgroundTaskExecutor
 
 		CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
 
+		boolean stopped = false;
+
 		try {
 			PrincipalThreadLocal.setName(user.getUserId());
 			PermissionThreadLocal.setPermissionChecker(
@@ -208,6 +210,8 @@ public class CMSMigrationBackgroundTaskExecutor
 		catch (Exception exception) {
 			cmsMigrationReport.addError(
 				"The migration stopped: " + exception.getMessage());
+
+			stopped = true;
 		}
 		finally {
 			PrincipalThreadLocal.setName(name);
@@ -217,7 +221,10 @@ public class CMSMigrationBackgroundTaskExecutor
 
 		int status = BackgroundTaskConstants.STATUS_SUCCESSFUL;
 
-		if (cmsMigrationReport.hasErrors()) {
+		if (stopped) {
+			status = BackgroundTaskConstants.STATUS_FAILED;
+		}
+		else if (cmsMigrationReport.hasErrors()) {
 			status = BackgroundTaskConstants.STATUS_COMPLETED_WITH_ERRORS;
 		}
 
