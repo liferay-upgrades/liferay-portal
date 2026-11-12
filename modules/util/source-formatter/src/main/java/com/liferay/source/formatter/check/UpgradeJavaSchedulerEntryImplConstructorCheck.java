@@ -108,7 +108,8 @@ public class UpgradeJavaSchedulerEntryImplConstructorCheck
 			}
 		}
 
-		return constructorContent;
+		return StringUtil.replace(
+			constructorContent, ".getTrigger()", ".getTriggerConfiguration()");
 	}
 
 	private String _replaceSuper(JavaConstructor javaConstructor) {
