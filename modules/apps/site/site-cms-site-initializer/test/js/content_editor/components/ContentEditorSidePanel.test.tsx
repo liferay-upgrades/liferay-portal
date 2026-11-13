@@ -357,6 +357,7 @@ describe('ContentEditorSidePanel', () => {
 			'schedule[noun]',
 			'categorization',
 			'projects',
+			'text-metrics',
 		].forEach((name) =>
 			expect(screen.getByTitle(name)).toBeInTheDocument()
 		);
@@ -366,6 +367,20 @@ describe('ContentEditorSidePanel', () => {
 		renderComponent({cmpEnabled: false});
 
 		expect(screen.queryByTitle('projects')).not.toBeInTheDocument();
+	});
+
+	it('renders the Text Metrics panel as the last item', async () => {
+		renderComponent({cmpEnabled: false});
+
+		const tabs = screen.getAllByRole('tab');
+
+		expect(tabs[tabs.length - 1]).toHaveAccessibleName('text-metrics');
+
+		await userEvent.click(screen.getByLabelText('text-metrics'));
+
+		expect(
+			await screen.findByText('start-writing-to-see-the-text-metrics')
+		).toBeInTheDocument();
 	});
 
 	it('renders the hidden inputs with initial values', async () => {
