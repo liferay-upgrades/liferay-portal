@@ -57,6 +57,13 @@ public abstract class BaseContentsSectionCMSTableFDSView
 				true
 			)
 		).add(
+			"dateExpiration", "expiration-date",
+			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
+				"expirationDateTableCellRenderer"
+			).setSortable(
+				true
+			)
+		).add(
 			"embedded.status", "status",
 			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
 				"statusTableCellRenderer")
