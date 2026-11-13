@@ -334,6 +334,10 @@ public class PropsValues {
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.CMS_BROKEN_LINKS_CHECKER_ENABLED));
 
+	public static final int CMS_DRAFT_NOTIFICATION_ENTRIES_MAX_AGE =
+		GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.CMS_DRAFT_NOTIFICATION_ENTRIES_MAX_AGE));
+
 	public static final String[] COMBO_ALLOWED_FILE_EXTENSIONS =
 		PropsUtil.getArray(PropsKeys.COMBO_ALLOWED_FILE_EXTENSIONS);
 

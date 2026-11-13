@@ -219,6 +219,24 @@ public class AssetLibraryDTOConverter
 				setDefaultLanguageId(
 					() -> GetterUtil.getString(
 						unicodeProperties.get("languageId")));
+				setDraftNotificationEnabled(
+					() -> GetterUtil.getBoolean(
+						unicodeProperties.get("draftNotificationEnabled"), true));
+				setDraftNotificationMaxAge(
+					() -> {
+						int draftNotificationMaxAge = GetterUtil.getInteger(
+							unicodeProperties.getProperty(
+								"draftNotificationMaxAge"));
+
+						if (draftNotificationMaxAge > 0) {
+							return draftNotificationMaxAge;
+						}
+
+						return PrefsPropsUtil.getInteger(
+							group.getCompanyId(),
+							PropsKeys.CMS_DRAFT_NOTIFICATION_ENTRIES_MAX_AGE,
+							PropsValues.CMS_DRAFT_NOTIFICATION_ENTRIES_MAX_AGE);
+					});
 				setGoogleMapsAPIKey(
 					() -> {
 						if (!FeatureFlagManagerUtil.isEnabled(
