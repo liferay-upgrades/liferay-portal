@@ -1,0 +1,105 @@
+@import '_atlas-custom-properties-variables';
+
+.recently-viewed {
+	border: 1px solid var(--secondary-l2);
+	border-radius: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	padding: 1rem;
+
+	.recently-viewed-empty-state {
+		align-items: center;
+		color: var(--secondary);
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1.5rem;
+		text-align: center;
+	}
+
+	.recently-viewed-grid {
+		display: grid;
+		gap: 0.75rem;
+		grid-auto-rows: 1fr;
+		grid-template-columns: minmax(0, 1fr);
+		margin-bottom: 0;
+
+		@include media-breakpoint-up(sm) {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		@include media-breakpoint-up(lg) {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+	}
+
+	.recently-viewed-tile {
+		border: 1px solid var(--secondary-l2);
+		border-radius: 6px;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		min-height: 120px;
+		padding: 0.75rem;
+		position: relative;
+
+		&:hover,
+		&:focus-within {
+			border-color: var(--primary-l1);
+
+			.recently-viewed-tile-remove {
+				opacity: 1;
+			}
+		}
+
+		&.recently-viewed-tile-unavailable {
+			background-color: var(--light-l1);
+			border-color: var(--secondary-l2);
+			border-style: dashed;
+		}
+	}
+
+	.recently-viewed-tile-meta {
+		align-items: center;
+		color: var(--secondary);
+		display: flex;
+		font-size: 0.75rem;
+		font-weight: 400;
+		gap: 0.375rem;
+		margin-top: auto;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+
+	.recently-viewed-tile-remove {
+		background-color: var(--light);
+		height: 1.75rem;
+		opacity: 0;
+		position: absolute;
+		right: 0.375rem;
+		top: 0.375rem;
+		width: 1.75rem;
+		z-index: 2;
+	}
+
+	.recently-viewed-tile-title {
+		-webkit-box-orient: vertical;
+		color: var(--dark);
+		display: -webkit-box;
+		font-size: 0.875rem;
+		font-weight: 600;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.recently-viewed-title {
+		align-items: center;
+		color: var(--dark);
+		display: flex;
+		font-size: 1rem;
+		font-weight: 600;
+		gap: 0.5rem;
+	}
+}

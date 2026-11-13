@@ -15,6 +15,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import AssetPreview from '../../common/components/AssetPreview';
 import Toolbar from '../../common/components/Toolbar';
 import {ISearchAssetObjectEntry} from '../../common/types/AssetType';
+import {addRecentlyViewedEntry} from '../../common/utils/recentlyViewed';
 import CommentsPanel from '../../content_editor/components/panels/CommentsPanel';
 import ObjectEntryService from '../info_panel/services/ObjectEntryService';
 
@@ -103,6 +104,12 @@ export default function ViewAsset({
 
 		return itemState;
 	}, [className, itemState]);
+
+	useEffect(() => {
+		if (item?.embedded?.id) {
+			addRecentlyViewedEntry(item.embedded.id, window.location.href);
+		}
+	}, [item]);
 
 	const [openSidePanel, setOpenSidePanel] = useState(false);
 	const containerRef = useRef(null);

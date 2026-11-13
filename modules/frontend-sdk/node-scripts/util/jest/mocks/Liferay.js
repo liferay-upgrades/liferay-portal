@@ -256,6 +256,8 @@ const ThemeDisplay = {
 	 */
 	getBCP47LanguageId: jest.fn(() => 'en-US'),
 
+	getCompanyId: jest.fn(() => '20096'),
+
 	getDefaultLanguageId: jest.fn(() => 'en_US'),
 
 	/**

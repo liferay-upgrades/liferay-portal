@@ -11,8 +11,9 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 
 import {IAssetObjectEntry} from '../../../../src/main/resources/META-INF/resources/js/common/types/AssetType';
+import {getRecentlyViewedAssets} from '../../../../src/main/resources/META-INF/resources/js/common/utils/recentlyViewed';
 import AssetNavigationModalContent from '../../../../src/main/resources/META-INF/resources/js/main_view/modal/asset_navigation_view/AssetNavigationModalContent';
-import {addParams} from '../../__mocks__/frontend-js-web';
+import {addParams, mockFetch} from '../../__mocks__/frontend-js-web';
 
 const ACTIONS = {
 	get: {href: '/link-to-get-action', method: 'GET'},
@@ -182,6 +183,27 @@ describe('AssetNavigationModalContent', () => {
 		expect(screen.getByTestId('modal-header-name')).toHaveTextContent(
 			'KB Article'
 		);
+	});
+
+	it('adds every item shown to the recently viewed history', async () => {
+		localStorage.clear();
+
+		const {getByLabelText} = renderComponent();
+
+		fireEvent.click(getByLabelText('next'));
+
+		mockFetch.mockResolvedValueOnce({
+			json: async () => ({items: []}),
+			ok: true,
+			status: 200,
+		} as Response);
+
+		const recentlyViewedAssets = await getRecentlyViewedAssets();
+
+		expect(recentlyViewedAssets.map(({href, id}) => ({href, id}))).toEqual([
+			{href: '/web/cms/view-asset?objectEntryId=36599', id: 36599},
+			{href: '/web/cms/view-asset?objectEntryId=36535', id: 36535},
+		]);
 	});
 
 	it('wraps around to last item when pressing previous on first item', () => {
