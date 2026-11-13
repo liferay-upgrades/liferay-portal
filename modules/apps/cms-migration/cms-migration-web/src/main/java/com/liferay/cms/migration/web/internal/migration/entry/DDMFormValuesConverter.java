@@ -153,7 +153,9 @@ public class DDMFormValuesConverter {
 
 		FileEntry fileEntry = _getFileEntry(jsonObject);
 
-		if (fileEntry == null) {
+		if ((fileEntry == null) ||
+			(fileEntry.getGroupId() == cmsMigrationContext.getDepotGroupId())) {
+
 			return null;
 		}
 
