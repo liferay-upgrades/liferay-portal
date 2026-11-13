@@ -48,6 +48,7 @@
 			"label"?: {[key: string]: string;};
 			"modifiable"?: boolean;
 			"name"?: string;
+			"numberOfAssets"?: number;
 			"objectActions"?: Array<ObjectAction>;
 			"objectDefinitionSettings"?: Array<ObjectDefinitionSetting>;
 			"objectFields"?: Array<ObjectField>;
@@ -212,6 +213,11 @@
 			baseName: "name",
 			name: "name",
 			type: "string",
+		},
+		{
+			baseName: "numberOfAssets",
+			name: "numberOfAssets",
+			type: "number",
 		},
 		{
 			baseName: "objectActions",

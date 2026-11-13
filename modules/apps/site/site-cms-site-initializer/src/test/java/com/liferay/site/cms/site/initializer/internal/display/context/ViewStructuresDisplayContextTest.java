@@ -31,9 +31,13 @@ public class ViewStructuresDisplayContextTest {
 	public void testGetAPIURL() {
 		String apiURL = _viewStructuresDisplayContext.getAPIURL();
 
+		Assert.assertTrue(apiURL.endsWith("&nestedFields=numberOfAssets"));
+
 		int start = apiURL.indexOf("filter=");
 
-		String filterString = apiURL.substring(start + 7);
+		int end = apiURL.indexOf(StringPool.AMPERSAND, start);
+
+		String filterString = apiURL.substring(start + 7, end);
 
 		Assert.assertTrue(filterString.startsWith(StringPool.OPEN_PARENTHESIS));
 		Assert.assertTrue(filterString.endsWith(StringPool.CLOSE_PARENTHESIS));

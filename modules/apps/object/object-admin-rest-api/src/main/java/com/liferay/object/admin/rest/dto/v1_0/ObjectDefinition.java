@@ -1190,6 +1190,51 @@ public class ObjectDefinition implements Serializable {
 	@JsonIgnore
 	private Supplier<String> _nameSupplier;
 
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The number of assets that use this object definition."
+	)
+	public Integer getNumberOfAssets() {
+		if (_numberOfAssetsSupplier != null) {
+			numberOfAssets = _numberOfAssetsSupplier.get();
+
+			_numberOfAssetsSupplier = null;
+		}
+
+		return numberOfAssets;
+	}
+
+	public void setNumberOfAssets(Integer numberOfAssets) {
+		this.numberOfAssets = numberOfAssets;
+
+		_numberOfAssetsSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setNumberOfAssets(
+		UnsafeSupplier<Integer, Exception> numberOfAssetsUnsafeSupplier) {
+
+		_numberOfAssetsSupplier = () -> {
+			try {
+				return numberOfAssetsUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "The number of assets that use this object definition."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Integer numberOfAssets;
+
+	@JsonIgnore
+	private Supplier<Integer> _numberOfAssetsSupplier;
+
 	@io.swagger.v3.oas.annotations.media.Schema
 	@Valid
 	public ObjectAction[] getObjectActions() {
@@ -2522,6 +2567,18 @@ public class ObjectDefinition implements Serializable {
 			sb.append("\"");
 		}
 
+		Integer numberOfAssets = getNumberOfAssets();
+
+		if (numberOfAssets != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"numberOfAssets\": ");
+
+			sb.append(numberOfAssets);
+		}
+
 		ObjectAction[] objectActions = getObjectActions();
 
 		if (objectActions != null) {
@@ -3036,4 +3093,4 @@ public class ObjectDefinition implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:2068035854
+// LIFERAY-REST-BUILDER-HASH:-1334659565

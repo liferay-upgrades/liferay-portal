@@ -127,6 +127,11 @@ components:
                     type: boolean
                 name:
                     type: string
+                numberOfAssets:
+                    description:
+                        The number of assets that use this object definition.
+                    readOnly: true
+                    type: integer
                 objectActions:
                     items:
                         $ref: "#/components/schemas/ObjectAction"

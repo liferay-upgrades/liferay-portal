@@ -617,6 +617,27 @@ public class ObjectDefinition implements Cloneable, Serializable {
 
 	protected String name;
 
+	public Integer getNumberOfAssets() {
+		return numberOfAssets;
+	}
+
+	public void setNumberOfAssets(Integer numberOfAssets) {
+		this.numberOfAssets = numberOfAssets;
+	}
+
+	public void setNumberOfAssets(
+		UnsafeSupplier<Integer, Exception> numberOfAssetsUnsafeSupplier) {
+
+		try {
+			numberOfAssets = numberOfAssetsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Integer numberOfAssets;
+
 	public ObjectAction[] getObjectActions() {
 		return objectActions;
 	}
@@ -1144,4 +1165,4 @@ public class ObjectDefinition implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-852775071
+// LIFERAY-REST-BUILDER-HASH:1325046225
