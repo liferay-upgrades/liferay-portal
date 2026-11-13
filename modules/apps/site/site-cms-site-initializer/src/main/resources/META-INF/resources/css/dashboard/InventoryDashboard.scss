@@ -1,4 +1,48 @@
+@import '_atlas-custom-properties-variables';
+
 .cms-dashboard {
+	&__assets-by-space {
+		&__bar {
+			background-color: $secondary-l3;
+			border-radius: 3px;
+			height: 6px;
+		}
+
+		&__bar-fill {
+			border-radius: 3px;
+		}
+
+		&__count {
+			min-width: 2rem;
+		}
+
+		&__loading {
+			min-height: 220px;
+		}
+
+		&__name {
+			flex: 0 0 42%;
+			max-width: 42%;
+
+			span {
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+		}
+
+		&__row:not(:last-child) {
+			border-bottom: 1px solid $secondary-l3;
+		}
+
+		&__share {
+			min-width: 2.75rem;
+		}
+
+		&__value {
+			font-variant-numeric: tabular-nums;
+		}
+	}
+
 	&__content-and-files-card {
 		&__breakdown {
 			flex: 1 1 160px;
