@@ -30,6 +30,7 @@ import com.liferay.object.model.ObjectEntry;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Group;
@@ -110,14 +111,20 @@ public class PortletReferenceRewriter {
 	public void rewrite(CMSMigrationContext cmsMigrationContext, Layout layout)
 		throws Exception {
 
-		boolean updateLayoutModifiedDate =
-			UpdateLayoutModifiedDateThreadLocal.isUpdateLayoutModifiedDate() &&
-			!layout.isDraftLayout();
+		boolean updateLayoutModifiedDate = false;
+
+		if (UpdateLayoutModifiedDateThreadLocal.isUpdateLayoutModifiedDate() &&
+			!layout.isDraftLayout()) {
+
+			updateLayoutModifiedDate = true;
+		}
 
 		try (SafeCloseable safeCloseable =
 				UpdateLayoutModifiedDateThreadLocal.
 					setUpdateLayoutModifiedDateWithSafeCloseable(
 						updateLayoutModifiedDate)) {
+
+			String pageDescription = _getPageDescription(layout);
 
 			for (com.liferay.portal.kernel.model.PortletPreferences
 					portletPreferences :
@@ -155,16 +162,19 @@ public class PortletReferenceRewriter {
 						_replaceWebContentDisplay(
 							cmsMigrationContext, layout, portletId);
 					}
-					else if (portletName.equals(
+					else if ((portletName.equals(
 								DLPortletKeys.DOCUMENT_LIBRARY) ||
-							 portletName.equals(
-								 DLPortletKeys.MEDIA_GALLERY_DISPLAY)) {
+							  portletName.equals(
+								  DLPortletKeys.MEDIA_GALLERY_DISPLAY)) &&
+							 (cmsMigrationContext.isRewriteSourceGroup() ||
+							  (_portal.getScopeGroupId(layout, portletId) ==
+								  cmsMigrationContext.getSourceGroupId()))) {
 
 						cmsMigrationContext.getCMSMigrationReport(
 						).addWarning(
 							StringBundler.concat(
 								"The Documents and Media widget on the page ",
-								layout.getFriendlyURL(),
+								pageDescription,
 								" browses the classic library and has no ",
 								"counterpart for CMS files")
 						);
@@ -175,8 +185,7 @@ public class PortletReferenceRewriter {
 					).addError(
 						StringBundler.concat(
 							"Unable to rewrite the widget ", portletId, " on ",
-							layout.getFriendlyURL(), ": ",
-							exception.getMessage())
+							pageDescription, ": ", exception.getMessage())
 					);
 				}
 			}
@@ -282,6 +291,14 @@ public class PortletReferenceRewriter {
 
 		return _journalArticleLocalService.fetchLatestArticle(
 			groupId, articleId, WorkflowConstants.STATUS_ANY);
+	}
+
+	private String _getPageDescription(Layout layout) throws PortalException {
+		Group group = layout.getGroup();
+
+		return StringBundler.concat(
+			layout.getFriendlyURL(), " (site ", group.getDescriptiveName(),
+			", plid ", layout.getPlid(), ")");
 	}
 
 	private String _getValue(Map<String, String[]> settings, String key) {
@@ -524,7 +541,7 @@ public class PortletReferenceRewriter {
 				StringBundler.concat(
 					"The template ", ddmTemplateKey, " of the web content ",
 					journalArticle.getArticleId(), " on ",
-					layout.getFriendlyURL(), " was not migrated")
+					_getPageDescription(layout), " was not migrated")
 			);
 		}
 
@@ -634,7 +651,7 @@ public class PortletReferenceRewriter {
 			scopeIds.add(scopeId);
 		}
 
-		String label = "The Asset Publisher on " + layout.getFriendlyURL();
+		String label = "The Asset Publisher on " + _getPageDescription(layout);
 		String selectionStyle = portletPreferences.getValue(
 			"selectionStyle", "dynamic");
 
