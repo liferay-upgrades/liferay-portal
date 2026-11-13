@@ -18,6 +18,7 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
@@ -394,6 +395,72 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithDocumentDDMFormFieldInDepotGroup()
+		throws Exception {
+
+		FileEntry fileEntry = _dlAppLocalService.addFileEntry(
+			null, TestPropsValues.getUserId(), _depotEntry.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString() + ".txt", ContentTypes.TEXT_PLAIN,
+			RandomTestUtil.randomString(), null, StringPool.BLANK, null,
+			RandomTestUtil.randomBytes(), null, null, null,
+			ServiceContextTestUtil.getServiceContext(_depotEntry.getGroupId()));
+
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm("name");
+
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"document", "document",
+				DDMFormFieldTypeConstants.DOCUMENT_LIBRARY, "document-library",
+				true, false, false));
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName(), ddmForm);
+
+		Document document = SAXReaderUtil.createDocument();
+
+		Element rootElement = document.addElement("root");
+
+		Locale locale = LocaleUtil.getSiteDefault();
+
+		String languageId = LocaleUtil.toLanguageId(locale);
+
+		rootElement.addAttribute("available-locales", languageId);
+		rootElement.addAttribute("default-locale", languageId);
+
+		_addDynamicElement(
+			rootElement, RandomTestUtil.randomString(), languageId, "name",
+			"text");
+		_addDynamicElement(
+			rootElement,
+			JSONUtil.put(
+				"fileEntryId", fileEntry.getFileEntryId()
+			).put(
+				"groupId", fileEntry.getGroupId()
+			).put(
+				"title", fileEntry.getTitle()
+			).put(
+				"uuid", fileEntry.getUuid()
+			).toString(),
+			languageId, "document", "document_library");
+
+		JournalArticle journalArticle =
+			JournalTestUtil.addArticleWithXMLContent(
+				_group.getGroupId(),
+				JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+				JournalArticleConstants.CLASS_NAME_ID_DEFAULT, document.asXML(),
+				ddmStructure.getStructureKey(), null, locale);
+
+		_assertSuccessful(_execute(_group.getGroupId(), false));
+
+		ObjectEntry objectEntry = _getObjectEntry(journalArticle);
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		Assert.assertNotEquals(0L, GetterUtil.getLong(values.get("document")));
+	}
+
+	@Test
 	public void testExecuteWithFileEntryDescription() throws Exception {
 		String description = RandomTestUtil.randomString();
 
@@ -404,6 +471,92 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		FileEntry attachmentFileEntry = _getAttachmentFileEntry(fileEntry);
 
 		Assert.assertEquals(description, attachmentFileEntry.getDescription());
+	}
+
+	@Test
+	public void testExecuteWithFileEntryLinkedFromJournalArticleContent()
+		throws Exception {
+
+		FileEntry fileEntry = _addFileEntry(StringPool.BLANK);
+
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
+
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"content", "content", DDMFormFieldTypeConstants.RICH_TEXT,
+				"html", true, false, false));
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName(), ddmForm);
+
+		String link = StringBundler.concat(
+			"/documents/", fileEntry.getGroupId(), "/", fileEntry.getFolderId(),
+			"/", fileEntry.getTitle(), "/", fileEntry.getUuid());
+
+		JournalArticle journalArticle =
+			JournalTestUtil.addArticleWithXMLContent(
+				_group.getGroupId(),
+				DDMStructureTestUtil.getSampleStructuredContent(
+					"content",
+					Collections.singletonList(
+						HashMapBuilder.put(
+							LocaleUtil.US,
+							StringBundler.concat(
+								"<p><a href=\"", link, "\">",
+								fileEntry.getTitle(), "</a></p>")
+						).build()),
+					LocaleUtil.toLanguageId(LocaleUtil.US)),
+				ddmStructure.getStructureKey(), null);
+
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), false);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		ObjectEntry fileObjectEntry = _getObjectEntry(fileEntry);
+
+		int count = _objectEntryLocalService.getObjectEntriesCount(
+			_depotEntry.getGroupId(), fileObjectEntry.getObjectDefinitionId());
+
+		Assert.assertEquals(1, count);
+
+		for (ObjectEntry objectEntry :
+				_objectEntryLocalService.getObjectEntries(
+					_depotEntry.getGroupId(),
+					fileObjectEntry.getObjectDefinitionId(), 0, count)) {
+
+			Map<String, Serializable> values = objectEntry.getValues();
+
+			FileEntry attachmentFileEntry = _dlAppLocalService.getFileEntry(
+				GetterUtil.getLong(values.get("file")));
+
+			String title = attachmentFileEntry.getTitle();
+
+			Assert.assertFalse(title, title.endsWith("(1)"));
+		}
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			backgroundTaskResult.getStatusMessage());
+
+		JSONObject countsJSONObject = jsonObject.getJSONObject("counts");
+
+		Assert.assertEquals(1, countsJSONObject.getLong("file-entries"));
+
+		FileEntry attachmentFileEntry = _getAttachmentFileEntry(fileEntry);
+
+		ObjectEntry objectEntry = _getObjectEntry(journalArticle);
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		String content = String.valueOf(values.values());
+
+		Assert.assertTrue(
+			content,
+			content.contains(
+				_dlURLHelper.getPreviewURL(
+					attachmentFileEntry, attachmentFileEntry.getFileVersion(),
+					null, StringPool.BLANK, false, false)));
+		Assert.assertFalse(content, content.contains(link));
 	}
 
 	@Test
@@ -2288,6 +2441,9 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 	@Inject
 	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
+
+	@Inject
+	private DLURLHelper _dlURLHelper;
 
 	@Inject
 	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;

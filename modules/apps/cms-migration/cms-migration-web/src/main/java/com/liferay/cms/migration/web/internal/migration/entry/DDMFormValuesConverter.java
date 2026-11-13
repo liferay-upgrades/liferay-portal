@@ -108,8 +108,9 @@ public class DDMFormValuesConverter {
 				type.equals(DDMFormFieldTypeConstants.DOCUMENT_LIBRARY) ||
 				type.equals(DDMFormFieldTypeConstants.IMAGE)) {
 
-				FileEntry fileEntry = _getAttachmentFileEntry(
-					cmsMigrationContext, jsonObject);
+				FileEntry fileEntry =
+					_htmlReferenceRewriter.getAttachmentFileEntry(
+						cmsMigrationContext, _getFileEntry(jsonObject));
 
 				if (fileEntry == null) {
 					return data;

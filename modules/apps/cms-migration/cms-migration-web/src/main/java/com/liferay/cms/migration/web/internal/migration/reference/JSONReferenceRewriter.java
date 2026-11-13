@@ -5,7 +5,6 @@
 
 package com.liferay.cms.migration.web.internal.migration.reference;
 
-import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
@@ -21,15 +20,11 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 
-import java.io.Serializable;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -69,35 +64,9 @@ public class JSONReferenceRewriter {
 		return _rewrite(cmsMigrationContext, jsonObject, false, referenceScope);
 	}
 
-	private FileEntry _getAttachmentFileEntry(
-		CMSMigrationContext cmsMigrationContext, long fileEntryId) {
-
+	private FileEntry _fetchFileEntry(long fileEntryId) {
 		try {
-			FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
-
-			if (fileEntry.getGroupId() ==
-					cmsMigrationContext.getDepotGroupId()) {
-
-				return null;
-			}
-
-			ObjectEntry objectEntry = cmsMigrationContext.getOrMigrateFileEntry(
-				fileEntry);
-
-			if (objectEntry == null) {
-				return null;
-			}
-
-			Map<String, Serializable> values = objectEntry.getValues();
-
-			long attachmentFileEntryId = GetterUtil.getLong(
-				values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE));
-
-			if (attachmentFileEntryId == 0) {
-				return null;
-			}
-
-			return _dlAppLocalService.getFileEntry(attachmentFileEntryId);
+			return _dlAppLocalService.getFileEntry(fileEntryId);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
@@ -215,8 +184,9 @@ public class JSONReferenceRewriter {
 			return false;
 		}
 
-		FileEntry attachmentFileEntry = _getAttachmentFileEntry(
-			cmsMigrationContext, fileEntryId);
+		FileEntry attachmentFileEntry =
+			_htmlReferenceRewriter.getAttachmentFileEntry(
+				cmsMigrationContext, _fetchFileEntry(fileEntryId));
 
 		if (attachmentFileEntry == null) {
 			return false;
