@@ -161,7 +161,7 @@ public class CMSMigrationBackgroundTaskExecutor
 
 		CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
 
-		boolean stopped = false;
+		int status = BackgroundTaskConstants.STATUS_SUCCESSFUL;
 
 		try {
 			PrincipalThreadLocal.setName(user.getUserId());
@@ -189,7 +189,7 @@ public class CMSMigrationBackgroundTaskExecutor
 			cmsMigrationReport.addError(
 				"The migration stopped: " + exception.getMessage());
 
-			stopped = true;
+			status = BackgroundTaskConstants.STATUS_FAILED;
 		}
 		finally {
 			PrincipalThreadLocal.setName(name);
@@ -197,12 +197,9 @@ public class CMSMigrationBackgroundTaskExecutor
 			ServiceContextThreadLocal.popServiceContext();
 		}
 
-		int status = BackgroundTaskConstants.STATUS_SUCCESSFUL;
+		if ((status == BackgroundTaskConstants.STATUS_SUCCESSFUL) &&
+			cmsMigrationReport.hasErrors()) {
 
-		if (stopped) {
-			status = BackgroundTaskConstants.STATUS_FAILED;
-		}
-		else if (cmsMigrationReport.hasErrors()) {
 			status = BackgroundTaskConstants.STATUS_COMPLETED_WITH_ERRORS;
 		}
 
