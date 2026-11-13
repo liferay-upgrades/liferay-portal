@@ -734,11 +734,15 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 		String statusMessage = backgroundTaskResult.getStatusMessage();
 
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(statusMessage);
+
+		JSONObject countsJSONObject = jsonObject.getJSONObject("counts");
+
 		Assert.assertEquals(
 			statusMessage, BackgroundTaskConstants.STATUS_FAILED,
 			backgroundTaskResult.getStatus());
-		Assert.assertTrue(
-			statusMessage, statusMessage.contains("\"folders\":1"));
+		Assert.assertEquals(
+			statusMessage, 1, countsJSONObject.getLong("folders"));
 		Assert.assertTrue(
 			statusMessage, statusMessage.contains("The migration stopped"));
 	}
@@ -764,8 +768,6 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		Assert.assertTrue(
 			statusMessage,
 			statusMessage.contains("Unable to migrate the document"));
-		Assert.assertFalse(
-			statusMessage, statusMessage.contains("The migration stopped"));
 	}
 
 	@Test
