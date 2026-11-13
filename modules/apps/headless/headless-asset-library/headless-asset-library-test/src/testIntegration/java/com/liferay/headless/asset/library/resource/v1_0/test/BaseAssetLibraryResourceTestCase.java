@@ -1340,6 +1340,14 @@ public abstract class BaseAssetLibraryResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("numberOfAssets", additionalAssertFieldName)) {
+				if (assetLibrary.getNumberOfAssets() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals(
 					"numberOfConnectedSites", additionalAssertFieldName)) {
 
@@ -1671,6 +1679,17 @@ public abstract class BaseAssetLibraryResourceTestCase {
 				if (!equals(
 						(Map)assetLibrary1.getName_i18n(),
 						(Map)assetLibrary2.getName_i18n())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("numberOfAssets", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						assetLibrary1.getNumberOfAssets(),
+						assetLibrary2.getNumberOfAssets())) {
 
 					return false;
 				}
@@ -2201,6 +2220,12 @@ public abstract class BaseAssetLibraryResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("numberOfAssets")) {
+			sb.append(String.valueOf(assetLibrary.getNumberOfAssets()));
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("numberOfConnectedSites")) {
 			sb.append(String.valueOf(assetLibrary.getNumberOfConnectedSites()));
 
@@ -2309,6 +2334,7 @@ public abstract class BaseAssetLibraryResourceTestCase {
 					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				numberOfAssets = RandomTestUtil.randomInt();
 				numberOfConnectedSites = RandomTestUtil.randomInt();
 				numberOfUserAccounts = RandomTestUtil.randomInt();
 				numberOfUserGroups = RandomTestUtil.randomInt();
@@ -2590,4 +2616,4 @@ public abstract class BaseAssetLibraryResourceTestCase {
 			_assetLibraryResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:483980998
+// LIFERAY-REST-BUILDER-HASH:-597033679

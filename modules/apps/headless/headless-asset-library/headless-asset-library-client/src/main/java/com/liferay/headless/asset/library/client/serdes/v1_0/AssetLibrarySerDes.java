@@ -236,6 +236,16 @@ public class AssetLibrarySerDes {
 			sb.append(_toJSON(assetLibrary.getName_i18n()));
 		}
 
+		if (assetLibrary.getNumberOfAssets() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"numberOfAssets\": ");
+
+			sb.append(assetLibrary.getNumberOfAssets());
+		}
+
 		if (assetLibrary.getNumberOfConnectedSites() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -494,6 +504,15 @@ public class AssetLibrarySerDes {
 			map.put("name_i18n", String.valueOf(assetLibrary.getName_i18n()));
 		}
 
+		if (assetLibrary.getNumberOfAssets() == null) {
+			map.put("numberOfAssets", null);
+		}
+		else {
+			map.put(
+				"numberOfAssets",
+				String.valueOf(assetLibrary.getNumberOfAssets()));
+		}
+
 		if (assetLibrary.getNumberOfConnectedSites() == null) {
 			map.put("numberOfConnectedSites", null);
 		}
@@ -626,6 +645,9 @@ public class AssetLibrarySerDes {
 			}
 			else if (Objects.equals(jsonParserFieldName, "name_i18n")) {
 				return true;
+			}
+			else if (Objects.equals(jsonParserFieldName, "numberOfAssets")) {
+				return false;
 			}
 			else if (Objects.equals(
 						jsonParserFieldName, "numberOfConnectedSites")) {
@@ -760,6 +782,12 @@ public class AssetLibrarySerDes {
 				if (jsonParserFieldValue != null) {
 					assetLibrary.setName_i18n(
 						(Map<String, String>)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "numberOfAssets")) {
+				if (jsonParserFieldValue != null) {
+					assetLibrary.setNumberOfAssets(
+						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(
@@ -943,4 +971,4 @@ public class AssetLibrarySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1916701982
+// LIFERAY-REST-BUILDER-HASH:27797836

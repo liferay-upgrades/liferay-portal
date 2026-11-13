@@ -351,6 +351,28 @@ public class ObjectEntryFolderLocalServiceImpl
 
 	@Override
 	public int getObjectEntryFoldersCount(
+		long groupId, Integer[] statuses, String treePath) {
+
+		return objectEntryFolderPersistence.dslQueryCount(
+			DSLQueryFactoryUtil.count(
+			).from(
+				ObjectEntryFolderTable.INSTANCE
+			).where(
+				ObjectEntryFolderTable.INSTANCE.groupId.eq(
+					groupId
+				).and(
+					ObjectEntryFolderTable.INSTANCE.status.in(statuses)
+				).and(
+					ObjectEntryFolderTable.INSTANCE.treePath.like(
+						treePath + StringPool.PERCENT)
+				).and(
+					ObjectEntryFolderTable.INSTANCE.treePath.neq(treePath)
+				)
+			));
+	}
+
+	@Override
+	public int getObjectEntryFoldersCount(
 		long groupId, long companyId, long parentObjectEntryFolderId) {
 
 		return objectEntryFolderPersistence.countByG_C_P(

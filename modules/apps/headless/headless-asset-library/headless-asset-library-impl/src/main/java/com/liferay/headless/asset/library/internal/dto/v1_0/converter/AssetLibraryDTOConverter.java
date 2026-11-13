@@ -18,6 +18,10 @@ import com.liferay.headless.asset.library.internal.resource.v1_0.BaseAssetLibrar
 import com.liferay.headless.asset.library.internal.util.AssetLibraryUtil;
 import com.liferay.headless.asset.library.internal.util.CreatorUtil;
 import com.liferay.map.constants.MapProviderWebKeys;
+import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.model.ObjectEntryFolder;
+import com.liferay.object.service.ObjectEntryFolderLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -39,6 +43,7 @@ import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.util.JaxRsLinkUtil;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.sharing.constants.SharingConfigurationConstants;
+import com.liferay.site.cms.site.initializer.constants.CMSWorkflowConstants;
 
 import jakarta.ws.rs.core.UriInfo;
 
@@ -126,6 +131,11 @@ public class AssetLibraryDTOConverter
 					() -> LocalizedMapUtil.getI18nMap(
 						dtoConverterContext.isAcceptAllLanguages(),
 						group.getNameMap()));
+				setNumberOfAssets(
+					() -> NestedFieldsSupplier.supply(
+						"numberOfAssets",
+						nestedField -> _getNumberOfAssets(
+							group.getCompanyId(), group.getGroupId())));
 				setNumberOfConnectedSites(
 					() -> NestedFieldsSupplier.supply(
 						"numberOfConnectedSites",
@@ -167,6 +177,36 @@ public class AssetLibraryDTOConverter
 				}
 			},
 			MimeTypeLimit.class);
+	}
+
+	private int _getNumberOfAssets(long companyId, long groupId) {
+		int numberOfAssets = 0;
+
+		for (String externalReferenceCode :
+				new String[] {
+					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES
+				}) {
+
+			ObjectEntryFolder objectEntryFolder =
+				_objectEntryFolderLocalService.
+					fetchObjectEntryFolderByExternalReferenceCode(
+						externalReferenceCode, groupId, companyId);
+
+			if (objectEntryFolder == null) {
+				continue;
+			}
+
+			numberOfAssets += _objectEntryLocalService.getObjectEntriesCount(
+				groupId, CMSWorkflowConstants.STATUSES,
+				objectEntryFolder.getTreePath());
+			numberOfAssets +=
+				_objectEntryFolderLocalService.getObjectEntryFoldersCount(
+					groupId, CMSWorkflowConstants.STATUSES,
+					objectEntryFolder.getTreePath());
+		}
+
+		return numberOfAssets;
 	}
 
 	private ConnectedSite _toConnectedSite(
@@ -289,6 +329,12 @@ public class AssetLibraryDTOConverter
 
 	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
+
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Reference
 	private Portal _portal;

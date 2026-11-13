@@ -44,6 +44,8 @@ public class AllSpacesSectionCMSTableFDSView extends BaseCMSTableFDSView {
 		).add(
 			"numberOfConnectedSites", "num-of-connections"
 		).add(
+			"numberOfAssets", "num-of-assets"
+		).add(
 			addDateFDSTableSchemaField("dateModified", "modified")
 		).build();
 	}

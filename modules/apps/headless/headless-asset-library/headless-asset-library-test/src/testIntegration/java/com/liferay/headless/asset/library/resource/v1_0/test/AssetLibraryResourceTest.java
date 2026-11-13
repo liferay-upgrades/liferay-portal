@@ -18,6 +18,13 @@ import com.liferay.headless.asset.library.client.pagination.Pagination;
 import com.liferay.headless.asset.library.client.permission.Permission;
 import com.liferay.headless.asset.library.client.problem.Problem;
 import com.liferay.headless.asset.library.client.resource.v1_0.AssetLibraryResource;
+import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectEntryFolder;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryFolderLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
@@ -31,14 +38,17 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.randomizerbumpers.SiteFriendlyURLKeywordRandomizerBumper;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -47,18 +57,27 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+
+import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -67,6 +86,13 @@ import org.junit.runner.RunWith;
  */
 @RunWith(Arquillian.class)
 public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@Override
 	@Test
@@ -168,6 +194,14 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 			Assert.assertTrue(items.contains(assetLibrary));
 		}
+	}
+
+	@Override
+	@Test
+	public void testGetAssetLibrary() throws Exception {
+		super.testGetAssetLibrary();
+
+		_testGetAssetLibraryNumberOfAssets();
 	}
 
 	@FeatureFlag("LPD-11388")
@@ -447,6 +481,47 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		return assetLibraryResource.postAssetLibrary(randomAssetLibrary());
 	}
 
+	private ObjectEntry _addObjectEntry(
+			long objectEntryFolderId, ServiceContext serviceContext)
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMS_BASIC_WEB_CONTENT", testCompany.getCompanyId());
+
+		serviceContext.setAttribute(
+			"friendlyUrlMap", new HashMap<String, String>());
+
+		return _objectEntryLocalService.addObjectEntry(
+			serviceContext.getScopeGroupId(), serviceContext.getUserId(),
+			objectDefinition.getObjectDefinitionId(), objectEntryFolderId,
+			LocaleUtil.toLanguageId(LocaleUtil.getDefault()), _getValues(),
+			serviceContext);
+	}
+
+	private ObjectEntryFolder _addObjectEntryFolder(
+			long parentObjectEntryFolderId, ServiceContext serviceContext)
+		throws Exception {
+
+		return _objectEntryFolderLocalService.addObjectEntryFolder(
+			RandomTestUtil.randomString(), serviceContext.getScopeGroupId(),
+			serviceContext.getUserId(), parentObjectEntryFolderId,
+			StringPool.BLANK,
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			RandomTestUtil.randomString(), serviceContext);
+	}
+
+	private AssetLibrary _addSpaceAssetLibrary() throws Exception {
+		AssetLibrary assetLibrary = randomAssetLibrary();
+
+		assetLibrary.setType(AssetLibrary.Type.SPACE);
+
+		return assetLibraryResource.postAssetLibrary(assetLibrary);
+	}
+
 	private void _assertFriendlyURLAndName(
 			AssetLibrary assetLibrary, String expectedFriendlyURL,
 			String expectedName, AssetLibrary patchAssetLibrary)
@@ -517,6 +592,20 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 			unicodeProperties.get("depotEntryType"));
 	}
 
+	private void _assertNumberOfAssets(
+			AssetLibrary assetLibrary,
+			AssetLibraryResource assetLibraryResource,
+			int expectedNumberOfAssets)
+		throws Exception {
+
+		assetLibrary = assetLibraryResource.getAssetLibrary(
+			assetLibrary.getExternalReferenceCode());
+
+		Assert.assertEquals(
+			Integer.valueOf(expectedNumberOfAssets),
+			assetLibrary.getNumberOfAssets());
+	}
+
 	private void _assertSettings(
 		AssetLibrary assetLibrary, boolean expectedAutoTaggingEnabled,
 		String[] expectedAvailableLanguageIds, String expectedDefaultLanguageId,
@@ -565,6 +654,28 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		return TransformUtil.transformToArray(
 			ListUtil.fromArray(locales),
 			(Locale locale) -> _language.getLanguageId(locale), String.class);
+	}
+
+	private long _getObjectEntryFolderId(
+			String externalReferenceCode, long groupId)
+		throws Exception {
+
+		ObjectEntryFolder objectEntryFolder =
+			_objectEntryFolderLocalService.
+				getObjectEntryFolderByExternalReferenceCode(
+					externalReferenceCode, groupId, testCompany.getCompanyId());
+
+		return objectEntryFolder.getObjectEntryFolderId();
+	}
+
+	private Map<String, Serializable> _getValues() {
+		return HashMapBuilder.<String, Serializable>put(
+			"title_i18n",
+			HashMapBuilder.put(
+				LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+				RandomTestUtil.randomString()
+			).build()
+		).build();
 	}
 
 	private AssetLibrary _postAssetLibraryWithSettings(
@@ -624,6 +735,94 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 	private String _randomFriendlyURL() {
 		return StringUtil.toLowerCase("/" + RandomTestUtil.randomString());
+	}
+
+	private void _testGetAssetLibraryNumberOfAssets() throws Exception {
+		User adminUser = UserTestUtil.getAdminUser(testCompany.getCompanyId());
+
+		AssetLibraryResource adminUserAssetLibraryResource =
+			AssetLibraryResource.builder(
+			).authentication(
+				adminUser.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD
+			).endpoint(
+				testCompany.getVirtualHostname(),
+				PortalUtil.getPortalServerPort(false), "http"
+			).locale(
+				LocaleUtil.getDefault()
+			).parameter(
+				"nestedFields", "numberOfAssets"
+			).build();
+
+		AssetLibrary assetLibrary = _addSpaceAssetLibrary();
+
+		_assertNumberOfAssets(assetLibrary, adminUserAssetLibraryResource, 0);
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(assetLibrary.getSiteId());
+
+		_addObjectEntryFolder(
+			_getObjectEntryFolderId(
+				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES,
+				assetLibrary.getSiteId()),
+			serviceContext);
+
+		_assertNumberOfAssets(assetLibrary, adminUserAssetLibraryResource, 1);
+
+		ObjectEntryFolder parentObjectEntryFolder = _addObjectEntryFolder(
+			_getObjectEntryFolderId(
+				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+				assetLibrary.getSiteId()),
+			serviceContext);
+
+		ObjectEntryFolder objectEntryFolder = _addObjectEntryFolder(
+			parentObjectEntryFolder.getObjectEntryFolderId(), serviceContext);
+
+		ObjectEntry objectEntry = _addObjectEntry(
+			objectEntryFolder.getObjectEntryFolderId(), serviceContext);
+
+		_assertNumberOfAssets(assetLibrary, adminUserAssetLibraryResource, 4);
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		objectEntry = _objectEntryLocalService.updateObjectEntry(
+			serviceContext.getUserId(), objectEntry.getObjectEntryId(),
+			objectEntry.getObjectEntryFolderId(), _getValues(), serviceContext);
+
+		Assert.assertNotNull(
+			_objectEntryLocalService.fetchObjectEntryByHeadObjectEntryId(
+				objectEntry.getObjectEntryId()));
+
+		_assertNumberOfAssets(assetLibrary, adminUserAssetLibraryResource, 4);
+
+		AssetLibrary otherAssetLibrary = _addSpaceAssetLibrary();
+
+		ServiceContext otherServiceContext =
+			ServiceContextTestUtil.getServiceContext(
+				otherAssetLibrary.getSiteId());
+
+		ObjectEntryFolder otherObjectEntryFolder = _addObjectEntryFolder(
+			_getObjectEntryFolderId(
+				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+				otherAssetLibrary.getSiteId()),
+			otherServiceContext);
+
+		_addObjectEntry(
+			otherObjectEntryFolder.getObjectEntryFolderId(),
+			otherServiceContext);
+
+		_assertNumberOfAssets(assetLibrary, adminUserAssetLibraryResource, 4);
+		_assertNumberOfAssets(
+			otherAssetLibrary, adminUserAssetLibraryResource, 2);
+
+		_objectEntryLocalService.moveObjectEntryToTrash(
+			serviceContext.getUserId(), objectEntry, serviceContext);
+
+		_assertNumberOfAssets(assetLibrary, adminUserAssetLibraryResource, 3);
+
+		assetLibraryResource.deleteAssetLibrary(
+			assetLibrary.getExternalReferenceCode());
+		assetLibraryResource.deleteAssetLibrary(
+			otherAssetLibrary.getExternalReferenceCode());
 	}
 
 	private void _testPatchAssetLibraryExternalReferenceCodeAndFriendlyURL()
@@ -1154,6 +1353,15 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 	@Inject
 	private Language _language;
+
+	@Inject
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Inject
+	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
+
+	@Inject
+	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
