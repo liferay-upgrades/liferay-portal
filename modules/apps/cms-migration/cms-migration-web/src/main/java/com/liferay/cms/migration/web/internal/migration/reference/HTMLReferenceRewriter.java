@@ -64,6 +64,46 @@ public class HTMLReferenceRewriter {
 		_portal = portal;
 	}
 
+	public FileEntry getAttachmentFileEntry(
+		CMSMigrationContext cmsMigrationContext, FileEntry fileEntry) {
+
+		if ((fileEntry == null) ||
+			(fileEntry.getGroupId() == cmsMigrationContext.getDepotGroupId())) {
+
+			return null;
+		}
+
+		try {
+			ObjectEntry objectEntry = cmsMigrationContext.getOrMigrateFileEntry(
+				fileEntry);
+
+			if (objectEntry == null) {
+				return null;
+			}
+
+			Map<String, Serializable> values = objectEntry.getValues();
+
+			long fileEntryId = GetterUtil.getLong(
+				values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE));
+
+			if (fileEntryId == 0) {
+				return null;
+			}
+
+			return _dlAppLocalService.getFileEntry(fileEntryId);
+		}
+		catch (Exception exception) {
+			cmsMigrationContext.getCMSMigrationReport(
+			).addWarning(
+				StringBundler.concat(
+					"Unable to migrate the file ", fileEntry.getTitle(),
+					" referenced by HTML content: ", exception.getMessage())
+			);
+
+			return null;
+		}
+	}
+
 	public String getFileEntryURL(FileEntry fileEntry) {
 		try {
 			return _dlURLHelper.getPreviewURL(
@@ -182,7 +222,7 @@ public class HTMLReferenceRewriter {
 		return _replace(
 			_fileEntryIdAttributePattern, html,
 			matcher -> {
-				FileEntry fileEntry = _getAttachmentFileEntry(
+				FileEntry fileEntry = getAttachmentFileEntry(
 					cmsMigrationContext,
 					_fetchFileEntry(GetterUtil.getLong(matcher.group(1))));
 
@@ -257,50 +297,10 @@ public class HTMLReferenceRewriter {
 		}
 	}
 
-	private FileEntry _getAttachmentFileEntry(
-		CMSMigrationContext cmsMigrationContext, FileEntry fileEntry) {
-
-		if ((fileEntry == null) ||
-			(fileEntry.getGroupId() == cmsMigrationContext.getDepotGroupId())) {
-
-			return null;
-		}
-
-		try {
-			ObjectEntry objectEntry = cmsMigrationContext.getOrMigrateFileEntry(
-				fileEntry);
-
-			if (objectEntry == null) {
-				return null;
-			}
-
-			Map<String, Serializable> values = objectEntry.getValues();
-
-			long fileEntryId = GetterUtil.getLong(
-				values.get(CMSMigrationConstants.OBJECT_FIELD_NAME_FILE));
-
-			if (fileEntryId == 0) {
-				return null;
-			}
-
-			return _dlAppLocalService.getFileEntry(fileEntryId);
-		}
-		catch (Exception exception) {
-			cmsMigrationContext.getCMSMigrationReport(
-			).addWarning(
-				StringBundler.concat(
-					"Unable to migrate the file ", fileEntry.getTitle(),
-					" referenced by HTML content: ", exception.getMessage())
-			);
-
-			return null;
-		}
-	}
-
 	private String _getFileEntryURL(
 		CMSMigrationContext cmsMigrationContext, FileEntry fileEntry) {
 
-		FileEntry attachmentFileEntry = _getAttachmentFileEntry(
+		FileEntry attachmentFileEntry = getAttachmentFileEntry(
 			cmsMigrationContext, fileEntry);
 
 		if (attachmentFileEntry == null) {
