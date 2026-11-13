@@ -133,6 +133,8 @@ public class PortletReferenceRewriter {
 					setUpdateLayoutModifiedDateWithSafeCloseable(
 						updateLayoutModifiedDate)) {
 
+			String pageDescription = _getPageDescription(layout);
+
 			for (com.liferay.portal.kernel.model.PortletPreferences
 					portletPreferences :
 						_portletPreferencesLocalService.
@@ -184,8 +186,7 @@ public class PortletReferenceRewriter {
 					).addError(
 						StringBundler.concat(
 							"Unable to rewrite the widget ", portletId, " on ",
-							layout.getFriendlyURL(), ": ",
-							exception.getMessage())
+							pageDescription, ": ", exception.getMessage())
 					);
 				}
 			}
@@ -203,15 +204,12 @@ public class PortletReferenceRewriter {
 			return;
 		}
 
-		Group group = layout.getGroup();
-
 		cmsMigrationContext.getCMSMigrationReport(
 		).addWarning(
 			StringBundler.concat(
 				"The Documents and Media widget on the page ",
-				layout.getFriendlyURL(), " (site ", group.getDescriptiveName(),
-				", plid ", layout.getPlid(),
-				") browses the classic library and has no counterpart for CMS ",
+				_getPageDescription(layout),
+				" browses the classic library and has no counterpart for CMS ",
 				"files")
 		);
 	}
@@ -359,6 +357,14 @@ public class PortletReferenceRewriter {
 
 		return _journalArticleLocalService.fetchLatestArticle(
 			groupId, articleId, WorkflowConstants.STATUS_ANY);
+	}
+
+	private String _getPageDescription(Layout layout) throws Exception {
+		Group group = layout.getGroup();
+
+		return StringBundler.concat(
+			layout.getFriendlyURL(), " (site ", group.getDescriptiveName(),
+			", plid ", layout.getPlid(), ")");
 	}
 
 	private String _getValue(Map<String, String[]> settings, String key) {
@@ -649,7 +655,7 @@ public class PortletReferenceRewriter {
 				StringBundler.concat(
 					"The template ", ddmTemplateKey, " of the web content ",
 					journalArticle.getArticleId(), " on ",
-					layout.getFriendlyURL(), " was not migrated")
+					_getPageDescription(layout), " was not migrated")
 			);
 		}
 
@@ -757,7 +763,7 @@ public class PortletReferenceRewriter {
 						layout.getGroupId()
 				}));
 
-		String label = "The Asset Publisher on " + layout.getFriendlyURL();
+		String label = "The Asset Publisher on " + _getPageDescription(layout);
 		String selectionStyle = portletPreferences.getValue(
 			"selectionStyle", "dynamic");
 
