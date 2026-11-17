@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayButton from '@clayui/button';
+import ClayIcon from '@clayui/icon';
 import ClayLabel, {LabelDisplayType} from '@clayui/label';
 import ClayLayout from '@clayui/layout';
 import ClayPanel from '@clayui/panel';
@@ -10,6 +12,8 @@ import ClayProgressBar from '@clayui/progress-bar';
 import {useSessionState} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useEffect, useMemo} from 'react';
+
+import {downloadCSV} from './utils/downloadCSV';
 
 export interface IMigration {
 	backgroundTaskId: number;
@@ -155,6 +159,28 @@ function Migration({
 						{statusLabel}
 					</ClayLabel>
 				</ClayLayout.ContentCol>
+
+				{completed && (!!errors.length || !!warnings.length) && (
+					<ClayLayout.ContentCol>
+						<ClayButton
+							aria-label={sub(
+								Liferay.Language.get('download-x'),
+								name
+							)}
+							displayType="secondary"
+							onClick={() =>
+								downloadCSV({errors, name, warnings})
+							}
+							size="sm"
+						>
+							<span className="inline-item inline-item-before">
+								<ClayIcon symbol="download" />
+							</span>
+
+							{Liferay.Language.get('download')}
+						</ClayButton>
+					</ClayLayout.ContentCol>
+				)}
 			</ClayLayout.ContentRow>
 
 			{inProgress && (
