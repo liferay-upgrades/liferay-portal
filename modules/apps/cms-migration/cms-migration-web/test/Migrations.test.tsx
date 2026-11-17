@@ -36,6 +36,11 @@ describe('Migrations', () => {
 	});
 
 	afterEach(() => {
+		jest.restoreAllMocks();
+
+		Reflect.deleteProperty(URL, 'createObjectURL');
+		Reflect.deleteProperty(URL, 'revokeObjectURL');
+
 		(Liferay.Language.get as jest.Mock).mockImplementation(
 			languageGetImplementation
 		);
@@ -409,5 +414,144 @@ describe('Migrations', () => {
 		expect(
 			screen.queryByRole('button', {name: 'x-y'})
 		).not.toBeInTheDocument();
+	});
+
+	it('downloads the errors and the warnings of a completed migration as CSV', async () => {
+		jest.setSystemTime(new Date(2026, 0, 5, 9, 7));
+
+		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
+			key === 'download-x' ? 'Download {0}' : key
+		);
+
+		const createObjectURL = jest.fn((_blob: Blob) => 'blob:csv');
+
+		Object.defineProperty(URL, 'createObjectURL', {
+			configurable: true,
+			value: createObjectURL,
+		});
+		Object.defineProperty(URL, 'revokeObjectURL', {
+			configurable: true,
+			value: jest.fn(),
+		});
+
+		const clickSpy = jest
+			.spyOn(HTMLAnchorElement.prototype, 'click')
+			.mockImplementation(() => {});
+
+		const user = userEvent.setup({
+			advanceTimers: jest.advanceTimersByTime,
+		});
+
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[
+					{
+						...COMPLETED_MIGRATION,
+						errors: ['+Error 1', 'Error "2", with a comma'],
+						name: 'Migração São Paulo!',
+						warnings: ['=Warning 1', '-Warning 2', '@Warning\n3'],
+					},
+				]}
+			/>
+		);
+
+		await user.click(
+			screen.getByRole('button', {name: 'Download Migração São Paulo!'})
+		);
+
+		expect(clickSpy).toHaveBeenCalledTimes(1);
+		expect(clickSpy.mock.instances[0]).toHaveAttribute(
+			'download',
+			'cms-migration-migracao-sao-paulo-2026-01-05-0907.csv'
+		);
+
+		const fileReader = new FileReader();
+
+		const messagesCSVPromise = new Promise((resolve) => {
+			fileReader.onload = () =>
+				resolve(
+					new TextDecoder('utf-8', {ignoreBOM: true}).decode(
+						fileReader.result as ArrayBuffer
+					)
+				);
+		});
+
+		fileReader.readAsArrayBuffer(createObjectURL.mock.calls[0][0]);
+
+		act(() => {
+			jest.runAllTimers();
+		});
+
+		expect(await messagesCSVPromise).toBe(
+			'﻿type,message\r\n' +
+				"error,'+Error 1\r\n" +
+				'error,"Error ""2"", with a comma"\r\n' +
+				"warning,'=Warning 1\r\n" +
+				"warning,'-Warning 2\r\n" +
+				'warning,"\'@Warning\n3"\r\n'
+		);
+	});
+
+	it('does not show the download button without errors or warnings, or before the migration is completed', () => {
+		render(
+			<Migrations
+				migrationIncomplete={true}
+				migrations={[
+					COMPLETED_MIGRATION,
+					{
+						...IN_PROGRESS_MIGRATION,
+						errors: ['Error 1'],
+						warnings: ['Warning 1'],
+					},
+				]}
+			/>
+		);
+
+		expect(
+			screen.queryByRole('button', {name: 'download-x'})
+		).not.toBeInTheDocument();
+	});
+
+	it.each([
+		['errors', {errors: ['Error 1']}],
+		['warnings', {warnings: ['Warning 1']}],
+	])(
+		'shows the download button of a completed migration with only %s',
+		(_type, messages) => {
+			render(
+				<Migrations
+					migrationIncomplete={false}
+					migrations={[{...COMPLETED_MIGRATION, ...messages}]}
+				/>
+			);
+
+			expect(
+				screen.getByRole('button', {name: 'download-x'})
+			).toBeInTheDocument();
+		}
+	);
+
+	it('has no accessibility violations with the download button', async () => {
+		jest.useRealTimers();
+
+		const {container} = render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[
+					{
+						...COMPLETED_MIGRATION,
+						errors: ['Error 1'],
+						warnings: ['Warning 1'],
+					},
+				]}
+			/>
+		);
+
+		expect(
+			screen.getByRole('button', {name: 'download-x'})
+		).toBeInTheDocument();
+
+		await checkAccessibility({bestPractices: true, context: container});
 	});
 });
