@@ -60,6 +60,12 @@ public class AssetListEntryReferenceRewriter {
 		_infoItemReferenceMapper = infoItemReferenceMapper;
 	}
 
+	public int getCount(long groupId) {
+		return _assetListEntryLocalService.getAssetListEntries(
+			groupId
+		).size();
+	}
+
 	public void rewrite(CMSMigrationContext cmsMigrationContext) {
 		for (AssetListEntry assetListEntry :
 				_assetListEntryLocalService.getAssetListEntries(

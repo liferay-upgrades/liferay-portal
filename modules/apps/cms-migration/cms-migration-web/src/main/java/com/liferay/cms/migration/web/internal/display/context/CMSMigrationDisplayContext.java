@@ -177,6 +177,19 @@ public class CMSMigrationDisplayContext {
 		return groups;
 	}
 
+	private int _getOverallProgress(BackgroundTask backgroundTask) {
+		BackgroundTaskStatus backgroundTaskStatus =
+			BackgroundTaskStatusRegistryUtil.getBackgroundTaskStatus(
+				backgroundTask.getBackgroundTaskId());
+
+		if (backgroundTaskStatus == null) {
+			return 0;
+		}
+
+		return GetterUtil.getInteger(
+			backgroundTaskStatus.getAttribute("overallProgress"));
+	}
+
 	private int _getProgress(BackgroundTask backgroundTask) {
 		BackgroundTaskStatus backgroundTaskStatus =
 			BackgroundTaskStatusRegistryUtil.getBackgroundTaskStatus(
@@ -280,6 +293,8 @@ public class CMSMigrationDisplayContext {
 			"inProgress", backgroundTask.isInProgress()
 		).put(
 			"name", backgroundTask.getName()
+		).put(
+			"overallProgress", _getOverallProgress(backgroundTask)
 		).put(
 			"progress", _getProgress(backgroundTask)
 		).put(
