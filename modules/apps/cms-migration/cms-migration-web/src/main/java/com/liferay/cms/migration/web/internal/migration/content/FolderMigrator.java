@@ -176,6 +176,8 @@ public class FolderMigrator {
 				continue;
 			}
 
+			cmsMigrationContext.sendStatus(dlFolder.getName());
+
 			ObjectEntryFolder objectEntryFolder = _getOrAddObjectEntryFolder(
 				cmsMigrationContext, dlFolder.getDescription(),
 				CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DL_FOLDER +
@@ -201,6 +203,8 @@ public class FolderMigrator {
 		for (JournalFolder journalFolder :
 				_journalFolderLocalService.getFolders(
 					cmsMigrationContext.getSourceGroupId(), parentFolderId)) {
+
+			cmsMigrationContext.sendStatus(journalFolder.getName());
 
 			ObjectEntryFolder objectEntryFolder = _getOrAddObjectEntryFolder(
 				cmsMigrationContext, journalFolder.getDescription(),

@@ -205,9 +205,7 @@ public class CMSMigrationBackgroundTaskExecutor
 					serviceContext,
 					GetterUtil.getBoolean(
 						taskContextMap.get("skipUnchangedEntries")),
-					sourceGroup,
-					cmsMigrationBackgroundTaskStatusMessageSender::
-						sendItemStatusMessage,
+					sourceGroup, cmsMigrationBackgroundTaskStatusMessageSender,
 					StringUtil.split(
 						GetterUtil.getString(
 							taskContextMap.get("titleObjectFieldNames"))),
