@@ -22,6 +22,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -39,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,6 +64,56 @@ public class JournalTemplateMigrator {
 		_infoItemReferenceMapper = infoItemReferenceMapper;
 		_portal = portal;
 		_templateEntryLocalService = templateEntryLocalService;
+	}
+
+	public long getCount(CMSMigrationContext cmsMigrationContext) {
+		long count = 0;
+
+		for (DDMStructure ddmStructure :
+				cmsMigrationContext.getDDMStructures()) {
+
+			ObjectDefinition objectDefinition =
+				cmsMigrationContext.getObjectDefinition(
+					JournalArticle.class.getName(),
+					ddmStructure.getStructureId());
+
+			if (objectDefinition == null) {
+				continue;
+			}
+
+			try {
+				for (DDMTemplate ddmTemplate :
+						_getWebContentDDMTemplates(
+							cmsMigrationContext, ddmStructure)) {
+
+					if (CMSMigrationDDMTemplateUtil.isFreeMarker(ddmTemplate)) {
+						count++;
+					}
+				}
+			}
+			catch (PortalException portalException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(portalException);
+				}
+			}
+
+			for (TemplateEntry templateEntry :
+					_getInformationTemplateEntries(
+						cmsMigrationContext, ddmStructure)) {
+
+				DDMTemplate ddmTemplate =
+					_ddmTemplateLocalService.fetchDDMTemplate(
+						templateEntry.getDDMTemplateId());
+
+				if ((ddmTemplate != null) &&
+					CMSMigrationDDMTemplateUtil.isFreeMarker(ddmTemplate)) {
+
+					count++;
+				}
+			}
+		}
+
+		return count;
 	}
 
 	public String getScript(
@@ -124,7 +177,9 @@ public class JournalTemplateMigrator {
 		for (DDMStructure ddmStructure :
 				new ArrayList<>(cmsMigrationContext.getDDMStructures())) {
 
-			migrate(cmsMigrationContext, ddmStructure);
+			_migrateTemplates(
+				cmsMigrationContext, ddmStructure,
+				cmsMigrationContext::sendStatus);
 		}
 	}
 
@@ -137,76 +192,10 @@ public class JournalTemplateMigrator {
 	public void migrate(
 		CMSMigrationContext cmsMigrationContext, DDMStructure ddmStructure) {
 
-		ObjectDefinition objectDefinition =
-			cmsMigrationContext.getObjectDefinition(
-				JournalArticle.class.getName(), ddmStructure.getStructureId());
-
-		if ((objectDefinition == null) ||
-			!cmsMigrationContext.addTemplateDDMStructureId(
-				ddmStructure.getStructureId())) {
-
-			return;
-		}
-
-		List<DDMTemplate> ddmTemplates = Collections.emptyList();
-
-		try {
-			ddmTemplates = _ddmTemplateLocalService.getTemplates(
-				cmsMigrationContext.getSourceGroupId(),
-				_portal.getClassNameId(DDMStructure.class),
-				ddmStructure.getStructureId(), true);
-		}
-		catch (PortalException portalException) {
-			cmsMigrationContext.getCMSMigrationReport(
-			).addError(
-				StringBundler.concat(
-					"Unable to get the templates of the structure ",
-					ddmStructure.getStructureKey(), ": ",
-					portalException.getMessage())
-			);
-		}
-
-		for (DDMTemplate ddmTemplate : ddmTemplates) {
-			cmsMigrationContext.sendStatus(ddmTemplate.getTemplateKey());
-
-			try {
-				_migrate(
-					cmsMigrationContext, ddmStructure, ddmTemplate,
-					objectDefinition);
-			}
-			catch (Exception exception) {
-				cmsMigrationContext.getCMSMigrationReport(
-				).addError(
-					StringBundler.concat(
-						"Unable to migrate the template ",
-						CMSMigrationDDMTemplateUtil.getLabel(ddmTemplate), ": ",
-						exception.getMessage())
-				);
-			}
-		}
-
-		for (TemplateEntry templateEntry :
-				_templateEntryLocalService.getTemplateEntries(
-					cmsMigrationContext.getSourceGroupId(),
-					JournalArticle.class.getName(),
-					String.valueOf(ddmStructure.getStructureId()),
-					QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
-
-			try {
-				_migrateInformationTemplate(
-					cmsMigrationContext, ddmStructure, objectDefinition,
-					templateEntry);
-			}
-			catch (Exception exception) {
-				cmsMigrationContext.getCMSMigrationReport(
-				).addError(
-					StringBundler.concat(
-						"Unable to migrate the information template ",
-						templateEntry.getTemplateEntryId(), ": ",
-						exception.getMessage())
-				);
-			}
-		}
+		_migrateTemplates(
+			cmsMigrationContext, ddmStructure,
+			itemTitle -> {
+			});
 	}
 
 	private TemplateEntry _addOrUpdateTemplateEntry(
@@ -261,6 +250,16 @@ public class JournalTemplateMigrator {
 			StringPool.BLANK, cmsMigrationContext.getServiceContext());
 	}
 
+	private List<TemplateEntry> _getInformationTemplateEntries(
+		CMSMigrationContext cmsMigrationContext, DDMStructure ddmStructure) {
+
+		return _templateEntryLocalService.getTemplateEntries(
+			cmsMigrationContext.getSourceGroupId(),
+			JournalArticle.class.getName(),
+			String.valueOf(ddmStructure.getStructureId()), QueryUtil.ALL_POS,
+			QueryUtil.ALL_POS, null);
+	}
+
 	private String _getInformationTemplateScript(
 		CMSMigrationContext cmsMigrationContext, DDMStructure ddmStructure,
 		DDMTemplate ddmTemplate, ObjectDefinition objectDefinition) {
@@ -290,9 +289,131 @@ public class JournalTemplateMigrator {
 		return variableNames;
 	}
 
-	private void _migrate(
+	private List<DDMTemplate> _getWebContentDDMTemplates(
+			CMSMigrationContext cmsMigrationContext, DDMStructure ddmStructure)
+		throws PortalException {
+
+		return _ddmTemplateLocalService.getTemplates(
+			cmsMigrationContext.getSourceGroupId(),
+			_portal.getClassNameId(DDMStructure.class),
+			ddmStructure.getStructureId(), true);
+	}
+
+	private void _migrateInformationTemplate(
 			CMSMigrationContext cmsMigrationContext, DDMStructure ddmStructure,
-			DDMTemplate ddmTemplate, ObjectDefinition objectDefinition)
+			ObjectDefinition objectDefinition, Consumer<String> statusConsumer,
+			TemplateEntry templateEntry)
+		throws PortalException {
+
+		DDMTemplate ddmTemplate = _ddmTemplateLocalService.getDDMTemplate(
+			templateEntry.getDDMTemplateId());
+
+		if (!CMSMigrationDDMTemplateUtil.isFreeMarker(ddmTemplate)) {
+			cmsMigrationContext.getCMSMigrationReport(
+			).addWarning(
+				StringBundler.concat(
+					"Skipped the information template ",
+					CMSMigrationDDMTemplateUtil.getLabel(ddmTemplate),
+					" because only FreeMarker templates can be migrated")
+			);
+
+			return;
+		}
+
+		statusConsumer.accept(ddmTemplate.getName(LocaleUtil.getSiteDefault()));
+
+		TemplateEntry newTemplateEntry = _addOrUpdateTemplateEntry(
+			cmsMigrationContext, ddmTemplate,
+			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DDM_TEMPLATE +
+				ddmTemplate.getTemplateId(),
+			objectDefinition,
+			_getInformationTemplateScript(
+				cmsMigrationContext, ddmStructure, ddmTemplate,
+				objectDefinition));
+
+		cmsMigrationContext.addInformationTemplateEntryId(
+			templateEntry.getTemplateEntryId(),
+			newTemplateEntry.getTemplateEntryId());
+
+		cmsMigrationContext.getCMSMigrationReport(
+		).increment(
+			CMSMigrationConstants.PHASE_TEMPLATES
+		);
+	}
+
+	private void _migrateTemplates(
+		CMSMigrationContext cmsMigrationContext, DDMStructure ddmStructure,
+		Consumer<String> statusConsumer) {
+
+		ObjectDefinition objectDefinition =
+			cmsMigrationContext.getObjectDefinition(
+				JournalArticle.class.getName(), ddmStructure.getStructureId());
+
+		if ((objectDefinition == null) ||
+			!cmsMigrationContext.addTemplateDDMStructureId(
+				ddmStructure.getStructureId())) {
+
+			return;
+		}
+
+		List<DDMTemplate> ddmTemplates = Collections.emptyList();
+
+		try {
+			ddmTemplates = _getWebContentDDMTemplates(
+				cmsMigrationContext, ddmStructure);
+		}
+		catch (PortalException portalException) {
+			cmsMigrationContext.getCMSMigrationReport(
+			).addError(
+				StringBundler.concat(
+					"Unable to get the templates of the structure ",
+					ddmStructure.getStructureKey(), ": ",
+					portalException.getMessage())
+			);
+		}
+
+		for (DDMTemplate ddmTemplate : ddmTemplates) {
+			try {
+				_migrateWebContentTemplate(
+					cmsMigrationContext, ddmStructure, ddmTemplate,
+					objectDefinition, statusConsumer);
+			}
+			catch (Exception exception) {
+				cmsMigrationContext.getCMSMigrationReport(
+				).addError(
+					StringBundler.concat(
+						"Unable to migrate the template ",
+						CMSMigrationDDMTemplateUtil.getLabel(ddmTemplate), ": ",
+						exception.getMessage())
+				);
+			}
+		}
+
+		for (TemplateEntry templateEntry :
+				_getInformationTemplateEntries(
+					cmsMigrationContext, ddmStructure)) {
+
+			try {
+				_migrateInformationTemplate(
+					cmsMigrationContext, ddmStructure, objectDefinition,
+					statusConsumer, templateEntry);
+			}
+			catch (Exception exception) {
+				cmsMigrationContext.getCMSMigrationReport(
+				).addError(
+					StringBundler.concat(
+						"Unable to migrate the information template ",
+						templateEntry.getTemplateEntryId(), ": ",
+						exception.getMessage())
+				);
+			}
+		}
+	}
+
+	private void _migrateWebContentTemplate(
+			CMSMigrationContext cmsMigrationContext, DDMStructure ddmStructure,
+			DDMTemplate ddmTemplate, ObjectDefinition objectDefinition,
+			Consumer<String> statusConsumer)
 		throws PortalException {
 
 		if (!CMSMigrationDDMTemplateUtil.isFreeMarker(ddmTemplate)) {
@@ -307,6 +428,8 @@ public class JournalTemplateMigrator {
 			return;
 		}
 
+		statusConsumer.accept(ddmTemplate.getName(LocaleUtil.getSiteDefault()));
+
 		TemplateEntry templateEntry = _addOrUpdateTemplateEntry(
 			cmsMigrationContext, ddmTemplate,
 			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DDM_TEMPLATE +
@@ -316,47 +439,6 @@ public class JournalTemplateMigrator {
 		cmsMigrationContext.addTemplateEntryId(
 			ddmStructure.getStructureId(), ddmTemplate.getTemplateKey(),
 			templateEntry.getTemplateEntryId());
-
-		cmsMigrationContext.getCMSMigrationReport(
-		).increment(
-			CMSMigrationConstants.PHASE_TEMPLATES
-		);
-	}
-
-	private void _migrateInformationTemplate(
-			CMSMigrationContext cmsMigrationContext, DDMStructure ddmStructure,
-			ObjectDefinition objectDefinition, TemplateEntry templateEntry)
-		throws PortalException {
-
-		DDMTemplate ddmTemplate = _ddmTemplateLocalService.getDDMTemplate(
-			templateEntry.getDDMTemplateId());
-
-		cmsMigrationContext.sendStatus(ddmTemplate.getTemplateKey());
-
-		if (!CMSMigrationDDMTemplateUtil.isFreeMarker(ddmTemplate)) {
-			cmsMigrationContext.getCMSMigrationReport(
-			).addWarning(
-				StringBundler.concat(
-					"Skipped the information template ",
-					CMSMigrationDDMTemplateUtil.getLabel(ddmTemplate),
-					" because only FreeMarker templates can be migrated")
-			);
-
-			return;
-		}
-
-		TemplateEntry newTemplateEntry = _addOrUpdateTemplateEntry(
-			cmsMigrationContext, ddmTemplate,
-			CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DDM_TEMPLATE +
-				ddmTemplate.getTemplateId(),
-			objectDefinition,
-			_getInformationTemplateScript(
-				cmsMigrationContext, ddmStructure, ddmTemplate,
-				objectDefinition));
-
-		cmsMigrationContext.addInformationTemplateEntryId(
-			templateEntry.getTemplateEntryId(),
-			newTemplateEntry.getTemplateEntryId());
 
 		cmsMigrationContext.getCMSMigrationReport(
 		).increment(
@@ -462,6 +544,9 @@ public class JournalTemplateMigrator {
 		"reserved-article-url-title", "reserved-article-version",
 		"templatesPath", "viewMode"
 	};
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		JournalTemplateMigrator.class);
 
 	private static final Pattern _informationTemplateQuotedVariablePattern =
 		Pattern.compile(
