@@ -81,6 +81,8 @@ public class CMSMigrationConstants {
 
 	public static final String PHASE_BLOGS_ENTRIES = "blogs-entries";
 
+	public static final String PHASE_CONTENT_LINKS = "content-links";
+
 	public static final String PHASE_DISPLAY_PAGE_TEMPLATES =
 		"display-page-templates";
 

@@ -295,10 +295,16 @@ public class CMSMigrationManager {
 	}
 
 	private void _rewriteContentLinks(CMSMigrationContext cmsMigrationContext) {
-		for (ObjectEntry objectEntry :
-				new ArrayList<>(cmsMigrationContext.getObjectEntries())) {
+		List<ObjectEntry> objectEntries = new ArrayList<>(
+			cmsMigrationContext.getObjectEntries());
 
+		_sendPhase(
+			CMSMigrationConstants.PHASE_CONTENT_LINKS, objectEntries.size());
+
+		for (ObjectEntry objectEntry : objectEntries) {
 			try {
+				cmsMigrationContext.sendStatus(objectEntry.getTitleValue());
+
 				_rewriteContentLinks(cmsMigrationContext, objectEntry);
 			}
 			catch (Exception exception) {
