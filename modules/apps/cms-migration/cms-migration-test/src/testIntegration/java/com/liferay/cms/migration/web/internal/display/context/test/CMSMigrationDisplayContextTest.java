@@ -29,6 +29,8 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.TimeZoneUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -37,6 +39,8 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portlet.test.MockLiferayPortletContext;
 
 import jakarta.portlet.Portlet;
+
+import java.io.Serializable;
 
 import java.text.Format;
 
@@ -109,10 +113,49 @@ public class CMSMigrationDisplayContextTest {
 
 		String itemTitle = RandomTestUtil.randomString();
 
-		backgroundTaskStatus.setAttribute("counter", 4L);
+		backgroundTaskStatus.setAttribute(
+			"bars",
+			(Serializable)ListUtil.fromArray(
+				HashMapBuilder.<String, Serializable>put(
+					"completed", 4L
+				).put(
+					"current", true
+				).put(
+					"key", "web-content"
+				).put(
+					"pending", true
+				).put(
+					"phases",
+					(Serializable)ListUtil.fromArray(
+						HashMapBuilder.<String, Serializable>put(
+							"completed", 4L
+						).put(
+							"current", true
+						).put(
+							"key", "journal-articles"
+						).put(
+							"pending", false
+						).put(
+							"total", 10L
+						).build(),
+						HashMapBuilder.<String, Serializable>put(
+							"completed", 0L
+						).put(
+							"current", false
+						).put(
+							"key", "templates"
+						).put(
+							"pending", true
+						).put(
+							"total", 0L
+						).build())
+				).put(
+					"progress", 40
+				).put(
+					"total", 10L
+				).build()));
 		backgroundTaskStatus.setAttribute("itemTitle", itemTitle);
-		backgroundTaskStatus.setAttribute("phase", "journal-articles");
-		backgroundTaskStatus.setAttribute("total", 10L);
+		backgroundTaskStatus.setAttribute("overallProgress", 40);
 
 		try {
 			Map<String, Object> props = _getProps();
@@ -179,12 +222,44 @@ public class CMSMigrationDisplayContextTest {
 			Assert.assertFalse(jsonObject.getBoolean("completed"));
 			Assert.assertFalse(jsonObject.has("deleteURL"));
 			Assert.assertTrue(jsonObject.getBoolean("inProgress"));
-			Assert.assertEquals(itemTitle, jsonObject.getString("itemTitle"));
+
+			JSONArray barsJSONArray = jsonObject.getJSONArray("bars");
+
+			Assert.assertEquals(1, barsJSONArray.length());
+
+			JSONObject barJSONObject = barsJSONArray.getJSONObject(0);
+
+			Assert.assertEquals(4, barJSONObject.getLong("completed"));
+			Assert.assertTrue(barJSONObject.getBoolean("current"));
+			Assert.assertEquals("web-content", barJSONObject.getString("key"));
 			Assert.assertEquals(
-				LanguageUtil.get(
-					LocaleUtil.US, "cms-migration-journal-articles"),
-				jsonObject.getString("phaseLabel"));
-			Assert.assertEquals(40, jsonObject.getInt("progress"));
+				LanguageUtil.get(LocaleUtil.US, "web-content"),
+				barJSONObject.getString("label"));
+			Assert.assertTrue(barJSONObject.getBoolean("pending"));
+			Assert.assertEquals(40, barJSONObject.getInt("progress"));
+			Assert.assertEquals(10, barJSONObject.getLong("total"));
+
+			JSONArray phasesJSONArray = barJSONObject.getJSONArray("phases");
+
+			Assert.assertEquals(2, phasesJSONArray.length());
+
+			JSONObject phaseJSONObject = phasesJSONArray.getJSONObject(0);
+
+			Assert.assertEquals(4, phaseJSONObject.getLong("completed"));
+			Assert.assertTrue(phaseJSONObject.getBoolean("current"));
+			Assert.assertEquals(
+				"journal-articles", phaseJSONObject.getString("key"));
+			Assert.assertFalse(phaseJSONObject.has("label"));
+			Assert.assertFalse(phaseJSONObject.getBoolean("pending"));
+			Assert.assertEquals(10, phaseJSONObject.getLong("total"));
+
+			phaseJSONObject = phasesJSONArray.getJSONObject(1);
+
+			Assert.assertEquals("templates", phaseJSONObject.getString("key"));
+			Assert.assertTrue(phaseJSONObject.getBoolean("pending"));
+
+			Assert.assertEquals(itemTitle, jsonObject.getString("itemTitle"));
+			Assert.assertEquals(40, jsonObject.getInt("overallProgress"));
 			Assert.assertEquals(
 				"info", jsonObject.getString("statusDisplayType"));
 
@@ -194,9 +269,9 @@ public class CMSMigrationDisplayContextTest {
 			Assert.assertFalse(jsonObject.getBoolean("completed"));
 			Assert.assertFalse(jsonObject.has("deleteURL"));
 			Assert.assertFalse(jsonObject.getBoolean("inProgress"));
+			Assert.assertFalse(jsonObject.has("bars"));
 			Assert.assertFalse(jsonObject.has("itemTitle"));
-			Assert.assertFalse(jsonObject.has("phaseLabel"));
-			Assert.assertEquals(0, jsonObject.getInt("progress"));
+			Assert.assertFalse(jsonObject.has("overallProgress"));
 			Assert.assertEquals(
 				"info", jsonObject.getString("statusDisplayType"));
 
