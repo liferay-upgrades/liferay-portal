@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayIcon from '@clayui/icon';
 import ClayLabel, {LabelDisplayType} from '@clayui/label';
 import ClayLayout from '@clayui/layout';
 import ClayPanel from '@clayui/panel';
@@ -11,8 +12,18 @@ import {useSessionState} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useEffect, useMemo} from 'react';
 
+interface IMigrationBar {
+	completed: number;
+	current: boolean;
+	key: string;
+	label: string;
+	progress: number;
+	total: number;
+}
+
 export interface IMigration {
 	backgroundTaskId: number;
+	bars?: IMigrationBar[];
 	completed: boolean;
 	counts: {label: string; value: number}[];
 	createDate: string;
@@ -20,8 +31,7 @@ export interface IMigration {
 	inProgress: boolean;
 	itemTitle?: string;
 	name: string;
-	phaseLabel?: string;
-	progress: number;
+	overallProgress?: number;
 	statusDisplayType: LabelDisplayType;
 	statusLabel: string;
 	warnings: string[];
@@ -127,6 +137,7 @@ function Migration({
 }) {
 	const {
 		backgroundTaskId,
+		bars,
 		completed,
 		counts,
 		createDate,
@@ -134,8 +145,7 @@ function Migration({
 		inProgress,
 		itemTitle,
 		name,
-		phaseLabel,
-		progress,
+		overallProgress,
 		statusDisplayType,
 		statusLabel,
 		warnings,
@@ -157,17 +167,46 @@ function Migration({
 				</ClayLayout.ContentCol>
 			</ClayLayout.ContentRow>
 
-			{inProgress && (
-				<>
-					<div className="mt-2">
-						{phaseLabel}
+			{inProgress && !bars?.length && (
+				<div className="mt-2">
+					{Liferay.Language.get('cms-migration-preparing')}
+				</div>
+			)}
 
-						{itemTitle && (
-							<span className="text-secondary"> {itemTitle}</span>
-						)}
+			{inProgress && !!bars?.length && (
+				<>
+					<div className="font-weight-semi-bold mt-2">
+						{Liferay.Language.get('cms-migration-overall')}
 					</div>
 
-					<ClayProgressBar value={progress} />
+					<ClayProgressBar
+						aria-label={Liferay.Language.get(
+							'cms-migration-overall'
+						)}
+						fillBarClassName="rounded-pill"
+						value={overallProgress ?? 0}
+					/>
+
+					<div className="cms-migration-bars mt-2">
+						{bars.map((bar) => (
+							<MigrationBar
+								bar={bar}
+								key={bar.key}
+								numberFormat={numberFormat}
+							/>
+						))}
+					</div>
+
+					{itemTitle && (
+						<div className="mt-2 text-secondary">
+							{sub(
+								Liferay.Language.get(
+									'cms-migration-migrating-x'
+								),
+								itemTitle
+							)}
+						</div>
+					)}
 				</>
 			)}
 
@@ -208,6 +247,52 @@ function Migration({
 				</>
 			)}
 		</div>
+	);
+}
+
+function MigrationBar({
+	bar,
+	numberFormat,
+}: {
+	bar: IMigrationBar;
+	numberFormat: Intl.NumberFormat;
+}) {
+	const {completed, current, label, progress, total} = bar;
+
+	let className: string | undefined = 'text-secondary';
+
+	if (progress === 100) {
+		className = 'text-success';
+	}
+	else if (current) {
+		className = 'font-weight-semi-bold text-info';
+	}
+	else if (completed) {
+		className = undefined;
+	}
+
+	return (
+		<>
+			<div className={className}>
+				{progress === 100 && (
+					<ClayIcon className="mr-2" symbol="check" />
+				)}
+
+				{label}
+			</div>
+
+			<div className="text-right text-secondary">
+				{`${numberFormat.format(completed)} / ${numberFormat.format(total)}`}
+			</div>
+
+			<ClayProgressBar
+				aria-label={label}
+				fillBarClassName="rounded-pill"
+				value={progress}
+			>
+				{`${progress}%`}
+			</ClayProgressBar>
+		</>
 	);
 }
 

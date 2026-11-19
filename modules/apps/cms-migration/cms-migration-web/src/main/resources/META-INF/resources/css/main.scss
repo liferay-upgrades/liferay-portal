@@ -1,0 +1,25 @@
+@import 'atlas-variables';
+
+.cms-migration-bars {
+	align-items: center;
+	column-gap: $spacer * 1.5;
+	display: grid;
+	grid-template-columns: auto auto 1fr;
+	row-gap: $spacer * 0.5;
+
+	.progress {
+		height: 0.3125rem;
+	}
+
+	.progress-group {
+		.progress-group-addon,
+		.progress-group-feedback {
+			color: $secondary;
+			font-weight: $font-weight-normal;
+		}
+	}
+
+	.progress-success .progress-bar {
+		background-color: $success-l1;
+	}
+}

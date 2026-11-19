@@ -145,6 +145,10 @@ describe('Migrations', () => {
 	});
 
 	it('shows the progress of a migration in progress and reloads the page', () => {
+		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
+			key === 'cms-migration-migrating-x' ? 'Migrating "{0}"' : key
+		);
+
 		render(
 			<Migrations
 				migrationIncomplete={true}
@@ -153,12 +157,22 @@ describe('Migrations', () => {
 		);
 
 		expect(screen.getByText('In Progress')).toBeInTheDocument();
+		expect(screen.getByText('cms-migration-overall')).toBeInTheDocument();
+		expect(screen.getByText('Migrating "Welcome"')).toBeInTheDocument();
+		expect(
+			screen.getByRole('progressbar', {name: 'cms-migration-overall'})
+		).toHaveAttribute('aria-valuenow', '40');
+		expect(
+			screen.getByRole('progressbar', {name: 'Web Content'})
+		).toHaveAttribute('aria-valuenow', '40');
+		expect(
+			screen.getByRole('progressbar', {name: 'Update Pages'})
+		).toHaveAttribute('aria-valuenow', '0');
 		expect(screen.getByText('Web Content')).toBeInTheDocument();
-		expect(screen.getByText('Welcome')).toBeInTheDocument();
-		expect(screen.getByRole('progressbar')).toHaveAttribute(
-			'aria-valuenow',
-			'40'
-		);
+		expect(screen.getByText('Update Pages')).toBeInTheDocument();
+		expect(screen.getByText('4 / 10')).toBeInTheDocument();
+		expect(screen.getByText('0 / 5')).toBeInTheDocument();
+		expect(screen.getAllByRole('progressbar')).toHaveLength(3);
 
 		expect(reload).not.toHaveBeenCalled();
 
@@ -167,6 +181,111 @@ describe('Migrations', () => {
 		});
 
 		expect(reload).toHaveBeenCalledTimes(1);
+	});
+
+	it('shows that a migration in progress is preparing while it has no bars', () => {
+		render(
+			<Migrations
+				migrationIncomplete={true}
+				migrations={[{...IN_PROGRESS_MIGRATION, bars: []}]}
+			/>
+		);
+
+		expect(screen.getByText('cms-migration-preparing')).toBeInTheDocument();
+		expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+		expect(screen.queryByText('0')).not.toBeInTheDocument();
+	});
+
+	it('shows the progress of each bar as computed by the server', () => {
+		render(
+			<Migrations
+				migrationIncomplete={true}
+				migrations={[
+					{
+						...IN_PROGRESS_MIGRATION,
+						bars: [
+							{
+								completed: 10,
+								current: true,
+								key: 'web-content',
+								label: 'Web Content',
+								progress: 99,
+								total: 10,
+							},
+						],
+					},
+				]}
+			/>
+		);
+
+		expect(screen.getAllByRole('progressbar')[1]).toHaveAttribute(
+			'aria-valuenow',
+			'99'
+		);
+		expect(screen.getByText('Web Content')).not.toHaveClass('text-success');
+	});
+
+	it('highlights the current bar, marks the complete bars, and dims the bars that have not started', () => {
+		render(
+			<Migrations
+				migrationIncomplete={true}
+				migrations={[
+					{
+						...IN_PROGRESS_MIGRATION,
+						bars: [
+							{
+								completed: 2,
+								current: false,
+								key: 'documents-and-media',
+								label: 'Documents and Media',
+								progress: 100,
+								total: 2,
+							},
+							{
+								completed: 4,
+								current: true,
+								key: 'web-content',
+								label: 'Web Content',
+								progress: 40,
+								total: 10,
+							},
+							{
+								completed: 0,
+								current: false,
+								key: 'update-pages',
+								label: 'Update Pages',
+								progress: 0,
+								total: 5,
+							},
+						],
+					},
+				]}
+			/>
+		);
+
+		expect(screen.getByText('Documents and Media')).toHaveClass(
+			'text-success'
+		);
+		expect(screen.getByText('100%')).toBeInTheDocument();
+		expect(screen.getByText('Web Content')).toHaveClass('text-info');
+		expect(screen.getAllByRole('progressbar')[2]).toHaveAttribute(
+			'aria-valuenow',
+			'40'
+		);
+		expect(screen.getByText('Update Pages')).toHaveClass('text-secondary');
+	});
+
+	it('does not show the item line while no item is being migrated', () => {
+		render(
+			<Migrations
+				migrationIncomplete={true}
+				migrations={[{...IN_PROGRESS_MIGRATION, itemTitle: ''}]}
+			/>
+		);
+
+		expect(
+			screen.queryByText('cms-migration-migrating-x')
+		).not.toBeInTheDocument();
 	});
 
 	it('shows only the name, the date, and the status of a queued migration', () => {
