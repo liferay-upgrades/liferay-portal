@@ -46,6 +46,7 @@ import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.test.util.JournalTestUtil;
+import com.liferay.layout.constants.LayoutTypeSettingsConstants;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
@@ -97,6 +98,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
@@ -146,6 +148,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -421,6 +424,66 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		_assertSuccessful(_execute(_group.getGroupId(), false));
 
 		Assert.assertTrue(_hasViewResourcePermission(objectEntry, _role));
+	}
+
+	@Test
+	public void testExecuteWithEditPages() throws Exception {
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		_assertSuccessful(_execute(_group.getGroupId(), false));
+
+		ObjectEntry objectEntry = _getObjectEntry(journalArticle);
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.getObjectDefinition(
+				objectEntry.getObjectDefinitionId());
+
+		long classNameId = _portal.getClassNameId(
+			objectDefinition.getClassName());
+
+		Group cmsGroup = _groupLocalService.getGroup(
+			_group.getCompanyId(), GroupConstants.CMS);
+
+		_addEditLayoutPageTemplateEntry(true, classNameId, cmsGroup);
+		_addLayoutPageTemplateEntry(
+			classNameId, cmsGroup, "LFR_CMS_COMPARE_" + classNameId);
+		_addLayoutPageTemplateEntry(
+			classNameId, cmsGroup, "LFR_CMS_TRANSLATION_" + classNameId);
+
+		_assertSuccessful(_execute(_group.getGroupId(), false));
+
+		Assert.assertNull(
+			_layoutPageTemplateEntryLocalService.
+				fetchDefaultLayoutPageTemplateEntry(
+					cmsGroup.getGroupId(), classNameId, 0));
+		Assert.assertNull(
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				cmsGroup.getGroupId(), "LFR_CMS_COMPARE_" + classNameId));
+		Assert.assertNull(
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				cmsGroup.getGroupId(), "LFR_CMS_TRANSLATION_" + classNameId));
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_addEditLayoutPageTemplateEntry(false, classNameId, cmsGroup);
+
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), false);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		String statusMessage = backgroundTaskResult.getStatusMessage();
+
+		Assert.assertTrue(
+			statusMessage,
+			statusMessage.contains(
+				"Kept the customized edit page of the structure " +
+					objectDefinition.getExternalReferenceCode()));
+
+		Assert.assertNotNull(
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId()));
 	}
 
 	@Test
@@ -1027,6 +1090,111 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithRepeatableDDMFormFieldAsJSONAndThenAsRepeatableGroup()
+		throws Exception {
+
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
+
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"text", "text", DDMFormFieldTypeConstants.TEXT, "string", false,
+				true, false));
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName(), ddmForm);
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			_group.getGroupId(), _portal.getClassNameId(DDMStructure.class),
+			ddmStructure.getStructureId(),
+			_portal.getClassNameId(JournalArticle.class),
+			TemplateConstants.LANG_TYPE_FTL,
+			"<#list text.getSiblings() as item>[${item.getData()}]</#list>",
+			LocaleUtil.US);
+
+		String[] texts = {
+			RandomTestUtil.randomString(), RandomTestUtil.randomString()
+		};
+
+		JournalArticle journalArticle =
+			JournalTestUtil.addArticleWithXMLContent(
+				_group.getGroupId(), _getTextsContent(texts),
+				ddmStructure.getStructureKey(), null);
+
+		_assertSuccessful(_execute(_group.getGroupId(), false));
+
+		ObjectEntry objectEntry = _getObjectEntry(journalArticle);
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		String text = GetterUtil.getString(values.get("text"));
+
+		Assert.assertTrue(text, text.contains(texts[0]));
+
+		String[] newTexts = {
+			RandomTestUtil.randomString(), RandomTestUtil.randomString()
+		};
+
+		journalArticle = JournalTestUtil.updateArticle(
+			journalArticle, RandomTestUtil.randomString(),
+			_getTextsContent(newTexts), false, true,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), true, false);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		String statusMessage = backgroundTaskResult.getStatusMessage();
+
+		Assert.assertTrue(
+			statusMessage,
+			statusMessage.contains(
+				"as a repeatable group and removed the JSON field text"));
+
+		Assert.assertNull(
+			_objectFieldLocalService.fetchObjectField(
+				objectEntry.getObjectDefinitionId(), "text"));
+
+		List<ObjectEntry> itemObjectEntries = _getItemObjectEntries(
+			objectEntry);
+
+		Assert.assertEquals(
+			itemObjectEntries.toString(), newTexts.length,
+			itemObjectEntries.size());
+
+		String content = _render(ddmTemplate, objectEntry);
+
+		Assert.assertTrue(
+			content,
+			content.contains(
+				StringBundler.concat(
+					"[", newTexts[0], "][", newTexts[1], "]")));
+		Assert.assertFalse(content, content.contains(texts[0]));
+
+		backgroundTaskResult = _execute(
+			_group.getGroupId(), false, false, true);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			backgroundTaskResult.getStatusMessage());
+
+		JSONObject countsJSONObject = jsonObject.getJSONObject("counts");
+
+		Assert.assertEquals(
+			countsJSONObject.toString(), 1,
+			countsJSONObject.getLong("journal-articles"));
+
+		objectEntry = _getObjectEntry(journalArticle);
+
+		values = objectEntry.getValues();
+
+		text = GetterUtil.getString(values.get("text"));
+
+		Assert.assertTrue(text, text.contains(newTexts[0]));
+	}
+
+	@Test
 	public void testExecuteWithRepeatableDDMFormFieldAsRepeatableGroupAndResourcePermissions()
 		throws Exception {
 
@@ -1139,7 +1307,35 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			_getTextsContent(newTexts), false, true,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		_assertSuccessful(_execute(_group.getGroupId(), false));
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), false);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		String statusMessage = backgroundTaskResult.getStatusMessage();
+
+		Assert.assertTrue(
+			statusMessage,
+			statusMessage.contains("as JSON and removed the repeatable group"));
+
+		List<ObjectRelationship> objectRelationships =
+			_objectRelationshipLocalService.getObjectRelationships(
+				objectEntry.getObjectDefinitionId(), true);
+
+		Assert.assertEquals(
+			objectRelationships.toString(), 0, objectRelationships.size());
+
+		ObjectEntry itemObjectEntry = itemObjectEntries.get(0);
+
+		Assert.assertNull(
+			_objectDefinitionLocalService.fetchObjectDefinition(
+				itemObjectEntry.getObjectDefinitionId()));
+
+		for (ObjectEntry curItemObjectEntry : itemObjectEntries) {
+			Assert.assertNull(
+				_objectEntryLocalService.fetchObjectEntry(
+					curItemObjectEntry.getObjectEntryId()));
+		}
 
 		String content = _render(ddmTemplate, objectEntry);
 
@@ -1155,7 +1351,7 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			false, true,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		_assertSuccessful(_execute(_group.getGroupId(), false));
+		_assertSuccessful(_execute(_group.getGroupId(), false, false, true));
 
 		objectEntry = _getObjectEntry(journalArticle);
 
@@ -3728,6 +3924,95 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithUnchangedEntries() throws Exception {
+		BlogsEntry blogsEntry = _blogsEntryLocalService.addEntry(
+			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
+			"<p>" + RandomTestUtil.randomString() + "</p>",
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		FileEntry fileEntry = _addFileEntry(StringPool.BLANK);
+
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		_assertSuccessful(_execute(_group.getGroupId(), false, false, true));
+
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), false, false, true);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			backgroundTaskResult.getStatusMessage());
+
+		JSONObject countsJSONObject = jsonObject.getJSONObject("counts");
+
+		Assert.assertEquals(
+			countsJSONObject.toString(), 0,
+			countsJSONObject.getLong("journal-articles"));
+		Assert.assertEquals(
+			countsJSONObject.toString(), 3,
+			countsJSONObject.getLong("unchanged-entries"));
+
+		AssetEntry assetEntry = _assetEntryLocalService.getEntry(
+			BlogsEntry.class.getName(), blogsEntry.getEntryId());
+
+		assetEntry.setPriority(2.5);
+
+		_assetEntryLocalService.updateAssetEntry(assetEntry);
+
+		_objectEntryLocalService.moveObjectEntryToTrash(
+			TestPropsValues.getUserId(), _getObjectEntry(fileEntry),
+			ServiceContextTestUtil.getServiceContext(_depotEntry.getGroupId()));
+
+		JournalTestUtil.updateArticle(journalArticle);
+
+		backgroundTaskResult = _execute(
+			_group.getGroupId(), false, false, true);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		jsonObject = JSONFactoryUtil.createJSONObject(
+			backgroundTaskResult.getStatusMessage());
+
+		countsJSONObject = jsonObject.getJSONObject("counts");
+
+		Assert.assertEquals(
+			countsJSONObject.toString(), 1,
+			countsJSONObject.getLong("blogs-entries"));
+		Assert.assertEquals(
+			countsJSONObject.toString(), 1,
+			countsJSONObject.getLong("file-entries"));
+		Assert.assertEquals(
+			countsJSONObject.toString(), 1,
+			countsJSONObject.getLong("journal-articles"));
+		Assert.assertEquals(
+			countsJSONObject.toString(), 0,
+			countsJSONObject.getLong("unchanged-entries"));
+
+		ObjectEntry objectEntry = _getObjectEntry(fileEntry);
+
+		Assert.assertFalse(objectEntry.isInTrash());
+
+		backgroundTaskResult = _execute(_group.getGroupId(), false);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		jsonObject = JSONFactoryUtil.createJSONObject(
+			backgroundTaskResult.getStatusMessage());
+
+		countsJSONObject = jsonObject.getJSONObject("counts");
+
+		Assert.assertEquals(
+			countsJSONObject.toString(), 1,
+			countsJSONObject.getLong("file-entries"));
+		Assert.assertEquals(
+			countsJSONObject.toString(), 0,
+			countsJSONObject.getLong("unchanged-entries"));
+	}
+
+	@Test
 	public void testExecuteWithUntranslatedDDMStructureName() throws Exception {
 		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
 			_group.getGroupId(), JournalArticle.class.getName());
@@ -3913,6 +4198,36 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		dynamicContentElement.addCDATA(data);
 	}
 
+	private LayoutPageTemplateEntry _addEditLayoutPageTemplateEntry(
+			boolean autogenerated, long classNameId, Group group)
+		throws Exception {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
+				null, TestPropsValues.getUserId(), group.getGroupId(), 0, null,
+				classNameId, null, RandomTestUtil.randomString(),
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, 0, true, 0,
+				0, 0, WorkflowConstants.STATUS_APPROVED,
+				ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+
+		Layout layout = _layoutLocalService.getLayout(
+			layoutPageTemplateEntry.getPlid());
+
+		Layout draftLayout = layout.fetchDraftLayout();
+
+		UnicodeProperties typeSettingsUnicodeProperties =
+			draftLayout.getTypeSettingsProperties();
+
+		typeSettingsUnicodeProperties.put(
+			LayoutTypeSettingsConstants.KEY_AUTOGENERATED,
+			String.valueOf(autogenerated));
+
+		_layoutLocalService.updateTypeSettings(
+			draftLayout, typeSettingsUnicodeProperties.toString());
+
+		return layoutPageTemplateEntry;
+	}
+
 	private FileEntry _addFileEntry(String description) throws Exception {
 		return _dlAppLocalService.addFileEntry(
 			null, TestPropsValues.getUserId(), _group.getGroupId(),
@@ -4004,6 +4319,19 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 				"groupId",
 				new String[] {String.valueOf(journalArticle.getGroupId())}
 			).build());
+	}
+
+	private void _addLayoutPageTemplateEntry(
+			long classNameId, Group group, String layoutPageTemplateEntryKey)
+		throws Exception {
+
+		_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
+			null, TestPropsValues.getUserId(), group.getGroupId(), 0,
+			layoutPageTemplateEntryKey, classNameId, null,
+			RandomTestUtil.randomString(),
+			LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE, 0, false, 0, 0,
+			0, WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
 	}
 
 	private ObjectEntry _addObjectEntry(
@@ -4185,6 +4513,15 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		throws Exception {
 
 		return _execute(
+			sourceGroupId, migrateRepeatableFields, rewritePages, false);
+	}
+
+	private BackgroundTaskResult _execute(
+			long sourceGroupId, boolean migrateRepeatableFields,
+			boolean rewritePages, boolean skipUnchangedEntries)
+		throws Exception {
+
+		return _execute(
 			HashMapBuilder.<String, Serializable>put(
 				"depotEntryId", _depotEntry.getDepotEntryId()
 			).put(
@@ -4197,6 +4534,8 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 				"migrateRepeatableFields", migrateRepeatableFields
 			).put(
 				"rewritePages", rewritePages
+			).put(
+				"skipUnchangedEntries", skipUnchangedEntries
 			).put(
 				"sourceGroupId", sourceGroupId
 			).build());

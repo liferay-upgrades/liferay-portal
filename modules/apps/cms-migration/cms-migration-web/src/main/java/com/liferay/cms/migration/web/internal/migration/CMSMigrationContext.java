@@ -11,6 +11,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.string.StringBundler;
@@ -42,9 +43,9 @@ public class CMSMigrationContext {
 		boolean migrateFileEntries, boolean migrateJournalArticles,
 		boolean migrateObjectEntries, boolean migrateRepeatableFields,
 		CMSMigrationReport cmsMigrationReport, boolean rewritePages,
-		ServiceContext serviceContext, Group sourceGroup,
-		Consumer<String> statusConsumer, String[] titleObjectFieldNames,
-		long userId) {
+		ServiceContext serviceContext, boolean skipUnchangedEntries,
+		Group sourceGroup, Consumer<String> statusConsumer,
+		String[] titleObjectFieldNames, long userId) {
 
 		_depotEntry = depotEntry;
 		_depotGroup = depotGroup;
@@ -56,6 +57,7 @@ public class CMSMigrationContext {
 		_cmsMigrationReport = cmsMigrationReport;
 		_rewritePages = rewritePages;
 		_serviceContext = serviceContext;
+		_skipUnchangedEntries = skipUnchangedEntries;
 		_sourceGroup = sourceGroup;
 		_statusConsumer = statusConsumer;
 		_titleObjectFieldNames = titleObjectFieldNames;
@@ -92,6 +94,25 @@ public class CMSMigrationContext {
 
 		_layoutPageTemplateEntryIds.put(
 			layoutPageTemplateEntryId, newLayoutPageTemplateEntryId);
+	}
+
+	public void addLeftoverJSONObjectField(
+		ObjectField objectField, String repeatableFieldDescription) {
+
+		_leftoverJSONObjectFields.put(objectField, repeatableFieldDescription);
+	}
+
+	public void addLeftoverRepeatableGroupObjectRelationship(
+		DDMFormField ddmFormField, ObjectRelationship objectRelationship,
+		String repeatableFieldDescription) {
+
+		_leftoverRepeatableGroupDescriptions.put(
+			objectRelationship, repeatableFieldDescription);
+		_leftoverRepeatableGroupObjectRelationships.put(
+			_getKey(
+				ddmFormField.getName(),
+				objectRelationship.getObjectDefinitionId1()),
+			objectRelationship);
 	}
 
 	public void addObjectDefinition(
@@ -132,6 +153,14 @@ public class CMSMigrationContext {
 			_getKey(ddmTemplateKey, ddmStructureId), templateEntryId);
 	}
 
+	public void clearLeftoverJSONObjectFields() {
+		_leftoverJSONObjectFields.clear();
+	}
+
+	public void clearLeftoverRepeatableGroupDescriptions() {
+		_leftoverRepeatableGroupDescriptions.clear();
+	}
+
 	public ReferenceScope getAssetListEntryReferenceScope(
 		long assetListEntryId) {
 
@@ -169,6 +198,23 @@ public class CMSMigrationContext {
 	public long getLayoutPageTemplateEntryId(long layoutPageTemplateEntryId) {
 		return _layoutPageTemplateEntryIds.getOrDefault(
 			layoutPageTemplateEntryId, 0L);
+	}
+
+	public Map<ObjectField, String> getLeftoverJSONObjectFields() {
+		return _leftoverJSONObjectFields;
+	}
+
+	public Map<ObjectRelationship, String>
+		getLeftoverRepeatableGroupDescriptions() {
+
+		return _leftoverRepeatableGroupDescriptions;
+	}
+
+	public ObjectRelationship getLeftoverRepeatableGroupObjectRelationship(
+		DDMFormField ddmFormField, long objectDefinitionId) {
+
+		return _leftoverRepeatableGroupObjectRelationships.get(
+			_getKey(ddmFormField.getName(), objectDefinitionId));
 	}
 
 	public ObjectDefinition getObjectDefinition(
@@ -281,6 +327,10 @@ public class CMSMigrationContext {
 		return false;
 	}
 
+	public boolean isSkipUnchangedEntries() {
+		return _skipUnchangedEntries;
+	}
+
 	public void sendStatus(String itemTitle) {
 		_statusConsumer.accept(itemTitle);
 	}
@@ -312,6 +362,12 @@ public class CMSMigrationContext {
 	private final Map<Long, Long> _informationTemplateEntryIds =
 		new HashMap<>();
 	private final Map<Long, Long> _layoutPageTemplateEntryIds = new HashMap<>();
+	private final Map<ObjectField, String> _leftoverJSONObjectFields =
+		new LinkedHashMap<>();
+	private final Map<ObjectRelationship, String>
+		_leftoverRepeatableGroupDescriptions = new LinkedHashMap<>();
+	private final Map<String, ObjectRelationship>
+		_leftoverRepeatableGroupObjectRelationships = new HashMap<>();
 	private final boolean _migrateBlogsEntries;
 	private final boolean _migrateFileEntries;
 	private final boolean _migrateJournalArticles;
@@ -326,6 +382,7 @@ public class CMSMigrationContext {
 	private Group _rewriteGroup;
 	private final boolean _rewritePages;
 	private final ServiceContext _serviceContext;
+	private final boolean _skipUnchangedEntries;
 	private final Group _sourceGroup;
 	private final Consumer<String> _statusConsumer;
 	private final Set<Long> _templateDDMStructureIds = new HashSet<>();

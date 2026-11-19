@@ -27,6 +27,8 @@ import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -35,6 +37,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -45,9 +48,10 @@ import java.util.TreeSet;
 /**
  * Adds or updates the object entry that replaces a classic content item. The
  * entry is keyed by an external reference code derived from its source, so a
- * second run updates the entry instead of duplicating it. The entry is written
- * by the user who runs the migration, because attachments are stored per
- * user, and then attributed to the author of the classic item.
+ * second run updates the entry instead of duplicating it, restoring it first
+ * if it was moved to the recycle bin. The entry is written by the user who
+ * runs the migration, because attachments are stored per user, and then
+ * attributed to the author of the classic item.
  *
  * @author Lino Alves
  */
@@ -69,6 +73,62 @@ public class ObjectEntryWriter {
 		_portal = portal;
 		_resourcePermissionMigrator = resourcePermissionMigrator;
 		_userLocalService = userLocalService;
+	}
+
+	public void deleteRepeatableGroupItems(
+			CMSMigrationContext cmsMigrationContext, DDMFormField ddmFormField,
+			ObjectEntry objectEntry, ObjectRelationship objectRelationship)
+		throws PortalException {
+
+		_deleteRepeatableGroupItems(
+			ddmFormField, cmsMigrationContext.getDepotGroupId(), 0, objectEntry,
+			objectRelationship.getObjectDefinitionId2());
+	}
+
+	public ObjectEntry fetchRestoredObjectEntry(
+			CMSMigrationContext cmsMigrationContext,
+			String externalReferenceCode, ObjectDefinition objectDefinition)
+		throws PortalException {
+
+		ObjectEntry objectEntry = _objectEntryLocalService.fetchObjectEntry(
+			externalReferenceCode, cmsMigrationContext.getDepotGroupId(),
+			objectDefinition.getObjectDefinitionId());
+
+		if ((objectEntry == null) || !objectEntry.isInTrash()) {
+			return objectEntry;
+		}
+
+		objectEntry = _objectEntryLocalService.restoreObjectEntryFromTrash(
+			cmsMigrationContext.getUserId(), objectEntry,
+			cmsMigrationContext.getServiceContext());
+
+		cmsMigrationContext.getCMSMigrationReport(
+		).addWarning(
+			StringBundler.concat(
+				"Restored the entry ", externalReferenceCode,
+				" from the recycle bin")
+		);
+
+		return objectEntry;
+	}
+
+	public boolean isUnchangedObjectEntry(
+		boolean approved, String className, long classPK,
+		CMSMigrationContext cmsMigrationContext, Date modifiedDate,
+		ObjectDefinition objectDefinition, ObjectEntry objectEntry,
+		long objectEntryFolderId) {
+
+		if (!cmsMigrationContext.isSkipUnchangedEntries() ||
+			(objectEntry == null) || (objectEntry.isDraft() == approved) ||
+			(objectEntry.getObjectEntryFolderId() != objectEntryFolderId) ||
+			!DateUtil.equals(objectEntry.getModifiedDate(), modifiedDate) ||
+			!_isUnchangedAssetEntry(
+				className, classPK, objectDefinition, objectEntry)) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	public void putSmallImageURL(
@@ -112,6 +172,18 @@ public class ObjectEntryWriter {
 		values.put(
 			CMSMigrationConstants.OBJECT_FIELD_NAME_SMALL_IMAGE_URL,
 			smallImageURL);
+	}
+
+	public void registerUnchangedObjectEntry(
+		String className, long classPK, CMSMigrationContext cmsMigrationContext,
+		ObjectEntry objectEntry) {
+
+		cmsMigrationContext.addObjectEntry(className, classPK, objectEntry);
+
+		cmsMigrationContext.getCMSMigrationReport(
+		).increment(
+			"unchanged-entries"
+		);
 	}
 
 	public ObjectEntry write(
@@ -216,7 +288,7 @@ public class ObjectEntryWriter {
 			boolean approved, CMSMigrationContext cmsMigrationContext,
 			DDMFormField ddmFormField,
 			List<ObjectEntryValues> itemObjectEntryValuesList,
-			ObjectEntry objectEntry)
+			Date modifiedDate, ObjectEntry objectEntry)
 		throws PortalException {
 
 		List<ObjectEntry> itemObjectEntries = new ArrayList<>();
@@ -281,13 +353,23 @@ public class ObjectEntryWriter {
 			itemObjectEntry.setUserId(objectEntry.getUserId());
 			itemObjectEntry.setUserName(objectEntry.getUserName());
 			itemObjectEntry.setCreateDate(objectEntry.getCreateDate());
-			itemObjectEntry.setModifiedDate(objectEntry.getModifiedDate());
+			itemObjectEntry.setModifiedDate(modifiedDate);
 
 			itemObjectEntries.add(
 				_objectEntryLocalService.updateObjectEntry(itemObjectEntry));
 		}
 
-		int index = itemObjectEntryValuesList.size();
+		_deleteRepeatableGroupItems(
+			ddmFormField, depotGroupId, itemObjectEntryValuesList.size(),
+			objectEntry, repeatableGroupObjectDefinitionId);
+
+		return itemObjectEntries;
+	}
+
+	private void _deleteRepeatableGroupItems(
+			DDMFormField ddmFormField, long depotGroupId, int index,
+			ObjectEntry objectEntry, long repeatableGroupObjectDefinitionId)
+		throws PortalException {
 
 		ObjectEntry itemObjectEntry = null;
 
@@ -306,8 +388,6 @@ public class ObjectEntryWriter {
 			index++;
 		}
 		while (itemObjectEntry != null);
-
-		return itemObjectEntries;
 	}
 
 	private String _getAvailableDefaultLanguageId(
@@ -391,6 +471,35 @@ public class ObjectEntryWriter {
 		}
 
 		return serviceContext;
+	}
+
+	private boolean _isUnchangedAssetEntry(
+		String className, long classPK, ObjectDefinition objectDefinition,
+		ObjectEntry objectEntry) {
+
+		AssetEntry sourceAssetEntry = _assetEntryLocalService.fetchEntry(
+			className, classPK);
+
+		if (sourceAssetEntry == null) {
+			return true;
+		}
+
+		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
+			objectDefinition.getClassName(), objectEntry.getObjectEntryId());
+
+		if ((assetEntry == null) ||
+			(assetEntry.getPriority() != sourceAssetEntry.getPriority()) ||
+			!Arrays.equals(
+				ArrayUtil.sortedUnique(assetEntry.getCategoryIds()),
+				ArrayUtil.sortedUnique(sourceAssetEntry.getCategoryIds())) ||
+			!Arrays.equals(
+				ArrayUtil.sortedUnique(assetEntry.getTagNames()),
+				ArrayUtil.sortedUnique(sourceAssetEntry.getTagNames()))) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	private void _putAvailableLocalizedValues(
