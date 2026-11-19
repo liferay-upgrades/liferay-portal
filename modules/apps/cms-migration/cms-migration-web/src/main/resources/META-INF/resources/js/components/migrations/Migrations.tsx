@@ -15,6 +15,7 @@ import React, {useMemo} from 'react';
 
 import {IMigration} from '../../types/Migration';
 import {downloadCSV} from '../../utils/downloadCSV';
+import MigrationBar from './MigrationBar';
 
 interface IMigrationProps {
 	migration: IMigration;
@@ -108,6 +109,7 @@ export default function Migrations({migrationIncomplete, migrations}: IProps) {
 function MigrationRow({migration, numberFormat}: IMigrationProps) {
 	const {
 		backgroundTaskId,
+		bars,
 		completed,
 		counts,
 		createDate,
@@ -115,8 +117,7 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 		inProgress,
 		itemTitle,
 		name,
-		phaseLabel,
-		progress,
+		overallProgress,
 		statusDisplayType,
 		statusLabel,
 		warnings,
@@ -158,17 +159,46 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 				)}
 			</ClayLayout.ContentRow>
 
-			{inProgress && (
-				<>
-					<div className="mt-2">
-						{phaseLabel}
+			{inProgress && !bars?.length && (
+				<div className="mt-2">
+					{Liferay.Language.get('cms-migration-preparing')}
+				</div>
+			)}
 
-						{itemTitle && (
-							<span className="text-secondary"> {itemTitle}</span>
-						)}
+			{inProgress && !!bars?.length && (
+				<>
+					<div className="font-weight-semi-bold mt-2">
+						{Liferay.Language.get('cms-migration-overall')}
 					</div>
 
-					<ClayProgressBar value={progress} />
+					<ClayProgressBar
+						aria-label={Liferay.Language.get(
+							'cms-migration-overall'
+						)}
+						fillBarClassName="rounded-pill"
+						value={overallProgress ?? 0}
+					/>
+
+					{itemTitle && (
+						<div className="text-secondary">
+							{sub(
+								Liferay.Language.get(
+									'cms-migration-migrating-x'
+								),
+								itemTitle
+							)}
+						</div>
+					)}
+
+					<div className="cms-migration-bars mt-2">
+						{bars.map((bar) => (
+							<MigrationBar
+								bar={bar}
+								key={bar.key}
+								numberFormat={numberFormat}
+							/>
+						))}
+					</div>
 				</>
 			)}
 

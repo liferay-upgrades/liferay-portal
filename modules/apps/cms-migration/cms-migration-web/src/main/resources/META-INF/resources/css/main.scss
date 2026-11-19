@@ -1,0 +1,35 @@
+@import 'atlas-variables';
+
+.cms-migration-bars {
+	align-items: center;
+	column-gap: $spacer * 1.5;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	row-gap: $spacer * 0.5;
+
+	@include media-breakpoint-up(lg) {
+		grid-template-columns: auto auto 1fr;
+	}
+
+	.progress {
+		height: 0.3125rem;
+	}
+
+	.progress-group {
+		grid-column: 1 / -1;
+
+		@include media-breakpoint-up(lg) {
+			grid-column: auto;
+		}
+
+		.progress-group-addon,
+		.progress-group-feedback {
+			color: $secondary;
+			font-weight: $font-weight-normal;
+		}
+	}
+
+	.progress-success .progress-bar {
+		background-color: $success-l1;
+	}
+}
