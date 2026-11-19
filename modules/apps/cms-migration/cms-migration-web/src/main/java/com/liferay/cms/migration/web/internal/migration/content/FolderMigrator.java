@@ -40,6 +40,21 @@ public class FolderMigrator {
 		_objectEntryFolderLocalService = objectEntryFolderLocalService;
 	}
 
+	public long getDLFoldersCount(CMSMigrationContext cmsMigrationContext)
+		throws PortalException {
+
+		return _getDLFoldersCount(
+			cmsMigrationContext, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+	}
+
+	public long getJournalFoldersCount(CMSMigrationContext cmsMigrationContext)
+		throws PortalException {
+
+		return _getJournalFoldersCount(
+			cmsMigrationContext,
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+	}
+
 	public void migrateDLFolders(CMSMigrationContext cmsMigrationContext)
 		throws PortalException {
 
@@ -86,6 +101,49 @@ public class FolderMigrator {
 			DLFolder.class.getName(),
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			objectEntryFolder.getObjectEntryFolderId());
+	}
+
+	private long _getDLFoldersCount(
+			CMSMigrationContext cmsMigrationContext, long parentFolderId)
+		throws PortalException {
+
+		long count = 0;
+
+		for (DLFolder dlFolder :
+				_dlFolderLocalService.getFolders(
+					cmsMigrationContext.getSourceGroupId(), parentFolderId,
+					false)) {
+
+			if (dlFolder.isHidden()) {
+				continue;
+			}
+
+			long dlFoldersCount = _getDLFoldersCount(
+				cmsMigrationContext, dlFolder.getFolderId());
+
+			count += 1 + dlFoldersCount;
+		}
+
+		return count;
+	}
+
+	private long _getJournalFoldersCount(
+			CMSMigrationContext cmsMigrationContext, long parentFolderId)
+		throws PortalException {
+
+		long count = 0;
+
+		for (JournalFolder journalFolder :
+				_journalFolderLocalService.getFolders(
+					cmsMigrationContext.getSourceGroupId(), parentFolderId)) {
+
+			long journalFoldersCount = _getJournalFoldersCount(
+				cmsMigrationContext, journalFolder.getFolderId());
+
+			count += 1 + journalFoldersCount;
+		}
+
+		return count;
 	}
 
 	private ObjectEntryFolder _getOrAddObjectEntryFolder(
@@ -146,6 +204,8 @@ public class FolderMigrator {
 				continue;
 			}
 
+			cmsMigrationContext.sendStatus(dlFolder.getName());
+
 			ObjectEntryFolder objectEntryFolder = _getOrAddObjectEntryFolder(
 				cmsMigrationContext, dlFolder.getDescription(),
 				CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DL_FOLDER +
@@ -171,6 +231,8 @@ public class FolderMigrator {
 		for (JournalFolder journalFolder :
 				_journalFolderLocalService.getFolders(
 					cmsMigrationContext.getSourceGroupId(), parentFolderId)) {
+
+			cmsMigrationContext.sendStatus(journalFolder.getName());
 
 			ObjectEntryFolder objectEntryFolder = _getOrAddObjectEntryFolder(
 				cmsMigrationContext, journalFolder.getDescription(),
