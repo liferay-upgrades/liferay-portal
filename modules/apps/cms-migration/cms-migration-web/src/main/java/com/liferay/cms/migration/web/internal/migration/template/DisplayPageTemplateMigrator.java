@@ -73,21 +73,34 @@ public class DisplayPageTemplateMigrator {
 		_portal = portal;
 	}
 
+	public long getCount(long groupId) {
+		long count = 0;
+
+		for (LayoutPageTemplateEntry layoutPageTemplateEntry :
+				_layoutPageTemplateEntryLocalService.
+					getLayoutPageTemplateEntries(groupId)) {
+
+			String sourceClassName = _getSourceClassName(
+				layoutPageTemplateEntry);
+
+			if (sourceClassName == null) {
+				continue;
+			}
+
+			count++;
+		}
+
+		return count;
+	}
+
 	public void migrate(CMSMigrationContext cmsMigrationContext) {
 		for (LayoutPageTemplateEntry layoutPageTemplateEntry :
 				_layoutPageTemplateEntryLocalService.
 					getLayoutPageTemplateEntries(
 						cmsMigrationContext.getRewriteGroupId())) {
 
-			if (layoutPageTemplateEntry.getType() !=
-					LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE) {
-
-				continue;
-			}
-
-			String sourceClassName =
-				_infoItemReferenceMapper.getSourceClassName(
-					layoutPageTemplateEntry.getClassNameId());
+			String sourceClassName = _getSourceClassName(
+				layoutPageTemplateEntry);
 
 			if (sourceClassName == null) {
 				continue;
@@ -196,6 +209,19 @@ public class DisplayPageTemplateMigrator {
 
 		return new ReferenceScope(
 			ddmStructure, objectDefinition, sourceClassName);
+	}
+
+	private String _getSourceClassName(
+		LayoutPageTemplateEntry layoutPageTemplateEntry) {
+
+		if (layoutPageTemplateEntry.getType() !=
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE) {
+
+			return null;
+		}
+
+		return _infoItemReferenceMapper.getSourceClassName(
+			layoutPageTemplateEntry.getClassNameId());
 	}
 
 	private void _migrate(
