@@ -98,7 +98,7 @@ public class FileEntryMigrator {
 	}
 
 	public int getCount(CMSMigrationContext cmsMigrationContext) {
-		return _dlFileEntryLocalService.getGroupFileEntriesCount(
+		return _dlFileEntryLocalService.getRepositoryFileEntriesCount(
 			cmsMigrationContext.getSourceGroupId());
 	}
 
@@ -244,17 +244,11 @@ public class FileEntryMigrator {
 
 		for (int start = 0; start < count; start += _BATCH_SIZE) {
 			List<DLFileEntry> dlFileEntries =
-				_dlFileEntryLocalService.getGroupFileEntries(
+				_dlFileEntryLocalService.getRepositoryFileEntries(
 					cmsMigrationContext.getSourceGroupId(), start,
 					start + _BATCH_SIZE);
 
 			for (DLFileEntry dlFileEntry : dlFileEntries) {
-				if (dlFileEntry.getRepositoryId() !=
-						cmsMigrationContext.getSourceGroupId()) {
-
-					continue;
-				}
-
 				cmsMigrationContext.sendStatus(dlFileEntry.getTitle());
 
 				try {
