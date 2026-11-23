@@ -116,6 +116,7 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 		progress,
 		statusDisplayType,
 		statusLabel,
+		targetSpaceName,
 		warnings,
 	} = migration;
 
@@ -126,6 +127,18 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 					<h3 className="h4">{name}</h3>
 
 					<div className="text-secondary">{createDate}</div>
+
+					{targetSpaceName && (
+						<div className="text-secondary">
+							{sub(
+								Liferay.Language.get('x-colon-y'),
+								Liferay.Language.get(
+									'cms-migration-target-space'
+								),
+								targetSpaceName
+							)}
+						</div>
+					)}
 				</ClayLayout.ContentCol>
 
 				<ClayLayout.ContentCol>
