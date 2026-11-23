@@ -6,6 +6,8 @@
 package com.liferay.cms.migration.web.internal.migration;
 
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.cms.migration.reference.CMSMigrationReferenceContext;
+import com.liferay.cms.migration.reference.CMSMigrationReferenceRewriter;
 import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskStatusMessageSender;
 import com.liferay.cms.migration.web.internal.constants.CMSMigrationConstants;
 import com.liferay.cms.migration.web.internal.migration.content.BlogsEntryMigrator;
@@ -14,6 +16,7 @@ import com.liferay.cms.migration.web.internal.migration.content.FolderMigrator;
 import com.liferay.cms.migration.web.internal.migration.content.JournalArticleMigrator;
 import com.liferay.cms.migration.web.internal.migration.content.ObjectEntryScopeMigrator;
 import com.liferay.cms.migration.web.internal.migration.reference.AssetListEntryReferenceRewriter;
+import com.liferay.cms.migration.web.internal.migration.reference.CMSMigrationReferenceContextImpl;
 import com.liferay.cms.migration.web.internal.migration.reference.HTMLReferenceRewriter;
 import com.liferay.cms.migration.web.internal.migration.reference.LayoutReferenceRewriter;
 import com.liferay.cms.migration.web.internal.migration.reference.PortletReferenceRewriter;
@@ -23,6 +26,7 @@ import com.liferay.cms.migration.web.internal.migration.template.JournalTemplate
 import com.liferay.cms.migration.web.internal.migration.template.WidgetTemplateMigrator;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
@@ -63,6 +67,8 @@ public class CMSMigrationManager {
 		BlogsEntryMigrator blogsEntryMigrator,
 		CMSMigrationBackgroundTaskStatusMessageSender
 			cmsMigrationBackgroundTaskStatusMessageSender,
+		List<CMSMigrationReferenceRewriter> cmsMigrationReferenceRewriters,
+		DDMStructureLocalService ddmStructureLocalService,
 		DepotEntryGroupRelLocalService depotEntryGroupRelLocalService,
 		DisplayPageTemplateMigrator displayPageTemplateMigrator,
 		FileEntryMigrator fileEntryMigrator, FolderMigrator folderMigrator,
@@ -86,6 +92,8 @@ public class CMSMigrationManager {
 		_blogsEntryMigrator = blogsEntryMigrator;
 		_cmsMigrationBackgroundTaskStatusMessageSender =
 			cmsMigrationBackgroundTaskStatusMessageSender;
+		_cmsMigrationReferenceRewriters = cmsMigrationReferenceRewriters;
+		_ddmStructureLocalService = ddmStructureLocalService;
 		_depotEntryGroupRelLocalService = depotEntryGroupRelLocalService;
 		_displayPageTemplateMigrator = displayPageTemplateMigrator;
 		_fileEntryMigrator = fileEntryMigrator;
@@ -193,6 +201,8 @@ public class CMSMigrationManager {
 			return;
 		}
 
+		_rewriteCompanyReferences(cmsMigrationContext);
+
 		_rewriteReferences(cmsMigrationContext);
 
 		Group sourceGroup = cmsMigrationContext.getSourceGroup();
@@ -273,6 +283,40 @@ public class CMSMigrationManager {
 		}
 
 		return groups;
+	}
+
+	/**
+	 * Runs the reference rewriters that other modules register. They repoint
+	 * company-wide configurations, so they run once, before the pages that may
+	 * depend on what they rewrite.
+	 */
+	private void _rewriteCompanyReferences(
+		CMSMigrationContext cmsMigrationContext) {
+
+		CMSMigrationReferenceContext cmsMigrationReferenceContext =
+			new CMSMigrationReferenceContextImpl(
+				_cmsMigrationBackgroundTaskStatusMessageSender,
+				cmsMigrationContext, _ddmStructureLocalService,
+				_objectFieldLocalService);
+
+		for (CMSMigrationReferenceRewriter cmsMigrationReferenceRewriter :
+				_cmsMigrationReferenceRewriters) {
+
+			try {
+				cmsMigrationReferenceRewriter.rewrite(
+					cmsMigrationReferenceContext);
+			}
+			catch (Exception exception) {
+				cmsMigrationContext.getCMSMigrationReport(
+				).addError(
+					StringBundler.concat(
+						"Unable to run the reference rewriter ",
+						cmsMigrationReferenceRewriter.getClass(
+						).getName(),
+						": ", exception.getMessage())
+				);
+			}
+		}
 	}
 
 	private void _rewriteContentLinks(CMSMigrationContext cmsMigrationContext) {
@@ -417,6 +461,9 @@ public class CMSMigrationManager {
 	private final BlogsEntryMigrator _blogsEntryMigrator;
 	private final CMSMigrationBackgroundTaskStatusMessageSender
 		_cmsMigrationBackgroundTaskStatusMessageSender;
+	private final List<CMSMigrationReferenceRewriter>
+		_cmsMigrationReferenceRewriters;
+	private final DDMStructureLocalService _ddmStructureLocalService;
 	private final DepotEntryGroupRelLocalService
 		_depotEntryGroupRelLocalService;
 	private final DisplayPageTemplateMigrator _displayPageTemplateMigrator;

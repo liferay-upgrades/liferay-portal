@@ -12,6 +12,7 @@ import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.asset.list.service.AssetListEntrySegmentsEntryRelLocalService;
 import com.liferay.asset.publisher.util.AssetPublisherHelper;
 import com.liferay.blogs.service.BlogsEntryLocalService;
+import com.liferay.cms.migration.reference.CMSMigrationReferenceRewriter;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationManager;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationReport;
@@ -74,6 +75,8 @@ import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskExecutor;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskResult;
@@ -116,7 +119,10 @@ import java.io.Serializable;
 
 import java.util.Map;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -239,6 +245,17 @@ public class CMSMigrationBackgroundTaskExecutor
 		getBackgroundTaskStatusMessageTranslator() {
 
 		return _backgroundTaskStatusMessageTranslator;
+	}
+
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		_cmsMigrationReferenceRewriters = ServiceTrackerListFactory.open(
+			bundleContext, CMSMigrationReferenceRewriter.class);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_cmsMigrationReferenceRewriters.close();
 	}
 
 	private CMSMigrationManager _createCMSMigrationManager(
@@ -391,6 +408,7 @@ public class CMSMigrationBackgroundTaskExecutor
 		return new CMSMigrationManager(
 			_assetEntryLocalService, assetListEntryReferenceRewriter,
 			blogsEntryMigrator, cmsMigrationBackgroundTaskStatusMessageSender,
+			_cmsMigrationReferenceRewriters.toList(), _ddmStructureLocalService,
 			_depotEntryGroupRelLocalService, displayPageTemplateMigrator,
 			fileEntryMigrator, folderMigrator, _groupLocalService,
 			htmlReferenceRewriter, journalArticleMigrator,
@@ -435,6 +453,9 @@ public class CMSMigrationBackgroundTaskExecutor
 
 	@Reference
 	private BlogsEntryLocalService _blogsEntryLocalService;
+
+	private ServiceTrackerList<CMSMigrationReferenceRewriter>
+		_cmsMigrationReferenceRewriters;
 
 	@Reference
 	private DDMFieldLocalService _ddmFieldLocalService;

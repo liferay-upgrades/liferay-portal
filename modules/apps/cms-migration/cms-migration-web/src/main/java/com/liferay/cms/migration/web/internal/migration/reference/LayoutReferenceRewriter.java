@@ -161,6 +161,10 @@ public class LayoutReferenceRewriter {
 		String sourceClassName = _infoItemReferenceMapper.getSourceClassName(
 			collectionJSONObject.getString("itemType"));
 
+		String collectionProviderKey =
+			cmsMigrationContext.getCollectionProviderKey(
+				collectionJSONObject.getString("key"));
+
 		if (Objects.equals(
 				collectionJSONObject.getString("type"),
 				_TYPE_INFO_LIST_ITEM_SELECTOR_RETURN_TYPE)) {
@@ -168,6 +172,13 @@ public class LayoutReferenceRewriter {
 			referenceScope =
 				cmsMigrationContext.getAssetListEntryReferenceScope(
 					collectionJSONObject.getLong("classPK"));
+		}
+		else if (collectionProviderKey != null) {
+			referenceScope =
+				cmsMigrationContext.getCollectionProviderReferenceScope(
+					collectionJSONObject.getString("key"));
+
+			collectionJSONObject.put("key", collectionProviderKey);
 		}
 		else if (sourceClassName != null) {
 			cmsMigrationContext.getCMSMigrationReport(

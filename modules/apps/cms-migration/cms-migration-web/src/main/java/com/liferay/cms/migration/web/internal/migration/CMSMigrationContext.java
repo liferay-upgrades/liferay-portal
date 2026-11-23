@@ -70,6 +70,18 @@ public class CMSMigrationContext {
 		_assetListEntryReferenceScopes.put(assetListEntryId, referenceScope);
 	}
 
+	/**
+	 * Records that the collection provider with the key is replaced by the
+	 * collection provider with the new key, which lists the items of the
+	 * reference scope.
+	 */
+	public void addCollectionProviderKey(
+		String key, String newKey, ReferenceScope referenceScope) {
+
+		_collectionProviderKeys.put(key, newKey);
+		_collectionProviderReferenceScopes.put(key, referenceScope);
+	}
+
 	public void addDDMStructure(DDMStructure ddmStructure) {
 		_ddmStructures.putIfAbsent(ddmStructure.getStructureId(), ddmStructure);
 	}
@@ -140,6 +152,18 @@ public class CMSMigrationContext {
 
 	public CMSMigrationReport getCMSMigrationReport() {
 		return _cmsMigrationReport;
+	}
+
+	/**
+	 * Returns the key of the collection provider that replaces the collection
+	 * provider with the key, or <code>null</code> if it was not replaced.
+	 */
+	public String getCollectionProviderKey(String key) {
+		return _collectionProviderKeys.get(key);
+	}
+
+	public ReferenceScope getCollectionProviderReferenceScope(String key) {
+		return _collectionProviderReferenceScopes.get(key);
 	}
 
 	public long getCompanyId() {
@@ -303,6 +327,9 @@ public class CMSMigrationContext {
 	private final Map<Long, ReferenceScope> _assetListEntryReferenceScopes =
 		new HashMap<>();
 	private final CMSMigrationReport _cmsMigrationReport;
+	private final Map<String, String> _collectionProviderKeys = new HashMap<>();
+	private final Map<String, ReferenceScope>
+		_collectionProviderReferenceScopes = new HashMap<>();
 	private final Map<Long, DDMStructure> _ddmStructures =
 		new LinkedHashMap<>();
 	private final DepotEntry _depotEntry;

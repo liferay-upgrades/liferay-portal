@@ -1,0 +1,148 @@
+{
+	"generalConfiguration": {
+		"clauseContributorsIncludes": [
+			"com.liferay.journal.internal.search.spi.model.query.contributor.JournalArticleKeywordQueryContributor",
+			"com.liferay.object.internal.search.spi.model.query.contributor.ObjectEntryKeywordQueryContributor"
+		],
+		"scope": [
+			"SOURCE",
+			"DEPOT"
+		],
+		"searchableAssetTypes": [
+			"com.liferay.journal.model.JournalArticle",
+			"com.liferay.object.model.ObjectDefinition#200",
+			"com.liferay.portal.kernel.model.Layout"
+		]
+	},
+	"queryConfiguration": {
+		"queryEntries": [
+			{
+				"clauses": [
+					{
+						"occur": "should",
+						"query": {
+							"terms": {
+								"boost": 10,
+								"entryClassName": [
+									"com.liferay.journal.model.JournalArticle",
+									"com.liferay.object.model.ObjectDefinition#200"
+								]
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"terms": {
+								"entryClassName": [
+									"com.liferay.journal.model.JournalArticle",
+									"com.liferay.object.model.ObjectDefinition#200"
+								]
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"bool": {
+								"_name": "CMS_MIGRATION",
+								"minimum_should_match": 1,
+								"should": [
+									{
+										"nested": {
+											"path": "ddmFieldArray",
+											"query": {
+												"bool": {
+													"must": [
+														{
+															"term": {
+																"ddmFieldArray.ddmFieldName": "ddm__keyword__100__Text_en_US"
+															}
+														},
+														{
+															"term": {
+																"ddmFieldArray.ddmFieldValueKeyword_en_US": "Foo"
+															}
+														}
+													]
+												}
+											}
+										}
+									},
+									{
+										"nested": {
+											"path": "nestedFieldArray",
+											"query": {
+												"bool": {
+													"must": [
+														{
+															"term": {
+																"nestedFieldArray.fieldName": "text"
+															}
+														},
+														{
+															"term": {
+																"nestedFieldArray.value_keyword": "foo"
+															}
+														}
+													]
+												}
+											}
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"bool": {
+								"_name": "CMS_MIGRATION",
+								"minimum_should_match": 1,
+								"should": [
+									{
+										"term": {
+											"ddmStructureKey": "KEY"
+										}
+									},
+									{
+										"terms": {
+											"objectDefinitionId": [
+												200
+											]
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"occur": "must_not",
+						"query": {
+							"term": {
+								"entryClassName": "com.liferay.journal.model.JournalArticle"
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"term": {
+								"scopeGroupId": "${context.scope_group_id}"
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"exists": {
+								"field": "ddm__keyword__100__Other_en_US"
+							}
+						}
+					}
+				]
+			}
+		]
+	}
+}

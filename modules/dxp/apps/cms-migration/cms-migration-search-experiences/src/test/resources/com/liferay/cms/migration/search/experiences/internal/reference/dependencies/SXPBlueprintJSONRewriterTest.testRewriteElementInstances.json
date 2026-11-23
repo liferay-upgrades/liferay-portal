@@ -1,0 +1,88 @@
+[
+	{
+		"sxpElement": {
+			"elementDefinition": {
+				"configuration": {
+					"queryConfiguration": {
+						"queryEntries": [
+							{
+								"clauses": [
+									{
+										"occur": "should",
+										"query": {
+											"term": {
+												"entryClassName": {
+													"boost": "${configuration.boost}",
+													"value": "${configuration.entry_class_name}"
+												}
+											}
+										}
+									}
+								]
+							}
+						]
+					}
+				}
+			},
+			"externalReferenceCode": "BOOST_ASSET_TYPE"
+		},
+		"uiConfigurationValues": {
+			"boost": 10,
+			"entry_class_name": "com.liferay.journal.model.JournalArticle"
+		}
+	},
+	{
+		"sxpElement": {
+			"elementDefinition": {
+				"configuration": {
+					"queryConfiguration": {
+						"queryEntries": [
+							{
+								"clauses": [
+									{
+										"occur": "filter",
+										"query": {
+											"term": {
+												"entryClassName": "${configuration.entry_class_name}"
+											}
+										}
+									}
+								]
+							}
+						]
+					}
+				}
+			},
+			"externalReferenceCode": "FILTER_ASSET_TYPE"
+		},
+		"uiConfigurationValues": {
+			"entry_class_name": "com.liferay.journal.model.JournalArticle"
+		}
+	},
+	{
+		"configurationEntry": {
+			"queryConfiguration": {
+				"queryEntries": [
+					{
+						"clauses": [
+							{
+								"occur": "should",
+								"query": {
+									"term": {
+										"entryClassName": "com.liferay.journal.model.JournalArticle"
+									}
+								}
+							}
+						]
+					}
+				]
+			}
+		},
+		"sxpElement": {
+			"externalReferenceCode": "CONFIGURED"
+		},
+		"uiConfigurationValues": {
+			"entry_class_name": "com.liferay.journal.model.JournalArticle"
+		}
+	}
+]

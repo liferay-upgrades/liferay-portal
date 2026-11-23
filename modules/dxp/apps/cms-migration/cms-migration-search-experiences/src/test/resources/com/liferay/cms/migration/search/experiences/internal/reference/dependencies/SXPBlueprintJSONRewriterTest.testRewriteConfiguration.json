@@ -1,0 +1,99 @@
+{
+	"generalConfiguration": {
+		"clauseContributorsIncludes": [
+			"com.liferay.journal.internal.search.spi.model.query.contributor.JournalArticleKeywordQueryContributor"
+		],
+		"scope": [
+			"SOURCE"
+		],
+		"searchableAssetTypes": [
+			"com.liferay.journal.model.JournalArticle",
+			"com.liferay.portal.kernel.model.Layout"
+		]
+	},
+	"queryConfiguration": {
+		"queryEntries": [
+			{
+				"clauses": [
+					{
+						"occur": "should",
+						"query": {
+							"term": {
+								"entryClassName": {
+									"boost": 10,
+									"value": "com.liferay.journal.model.JournalArticle"
+								}
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"terms": {
+								"entryClassName": [
+									"com.liferay.journal.model.JournalArticle"
+								]
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"nested": {
+								"path": "ddmFieldArray",
+								"query": {
+									"bool": {
+										"must": [
+											{
+												"term": {
+													"ddmFieldArray.ddmFieldName": "ddm__keyword__100__Text_en_US"
+												}
+											},
+											{
+												"term": {
+													"ddmFieldArray.ddmFieldValueKeyword_en_US": "Foo"
+												}
+											}
+										]
+									}
+								}
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"term": {
+								"ddmStructureKey": "KEY"
+							}
+						}
+					},
+					{
+						"occur": "must_not",
+						"query": {
+							"term": {
+								"entryClassName": "com.liferay.journal.model.JournalArticle"
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"term": {
+								"scopeGroupId": "${context.scope_group_id}"
+							}
+						}
+					},
+					{
+						"occur": "filter",
+						"query": {
+							"exists": {
+								"field": "ddm__keyword__100__Other_en_US"
+							}
+						}
+					}
+				]
+			}
+		]
+	}
+}
