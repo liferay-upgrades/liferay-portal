@@ -20,6 +20,7 @@ import {flushSync} from 'react-dom';
 
 import Toolbar from '../../common/components/Toolbar';
 import {AI_ASSISTANT_TOOLBAR_TRIGGER_ID} from '../../common/utils/constants';
+import {addRecentlyViewedEntry} from '../../common/utils/recentlyViewed';
 import applyFieldValues from '../utils/applyFieldValues';
 import getFieldValues from '../utils/getFieldValues';
 import {toMomentDate} from './ScheduleField';
@@ -58,6 +59,7 @@ export default function ContentEditorToolbar({
 	hasWorkflow,
 	headerTitle,
 	isNew,
+	objectEntryId,
 	objectFields,
 	title,
 	type,
@@ -70,6 +72,7 @@ export default function ContentEditorToolbar({
 	hasWorkflow: boolean;
 	headerTitle: string;
 	isNew: boolean;
+	objectEntryId?: number | string;
 	objectFields?: Array<{label: string; name: string}>;
 	title: string;
 	type: string;
@@ -169,6 +172,12 @@ export default function ContentEditorToolbar({
 					: Liferay.Language.get('x-was-updated-successfully')
 		);
 	}, [backURL, hasWorkflow, isNew, setSuccessMessage]);
+
+	useEffect(() => {
+		if (!isNew && objectEntryId) {
+			addRecentlyViewedEntry(objectEntryId, window.location.href);
+		}
+	}, [isNew, objectEntryId]);
 
 	useEffect(() => {
 		const form = getForm();

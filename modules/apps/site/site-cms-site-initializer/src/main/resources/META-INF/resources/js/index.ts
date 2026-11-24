@@ -60,6 +60,7 @@ export {default as Dashboards} from './main_view/dashboard/Dashboards';
 
 export {default as EditFolder} from './main_view/folders/EditFolder';
 export {default as QuickActions} from './main_view/home/QuickActions';
+export {default as RecentlyViewed} from './main_view/home/RecentlyViewed';
 export {default as SearchBar} from './main_view/home/SearchBar';
 
 export {default as ViewWorkflowTasks} from './main_view/home/ViewWorkflowTasks';

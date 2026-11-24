@@ -9,6 +9,10 @@ import {addParams, sub} from 'frontend-js-web';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import {SharingPermission} from '../../../common/types/SharingPermission';
+import {
+	addRecentlyViewedEntry,
+	getViewAssetURL,
+} from '../../../common/utils/recentlyViewed';
 import CommentsPanel from '../../../content_editor/components/panels/CommentsPanel';
 import AssetTypeInfoPanel from '../../info_panel/AssetTypeInfoPanelContent';
 import Carousel from './Carousel';
@@ -150,6 +154,17 @@ export default function AssetNavigationModalContent({
 			);
 		};
 	}, [handleOnKeyDown]);
+
+	useEffect(() => {
+		const objectEntryId = currentItem?.embedded?.id;
+
+		if (objectEntryId) {
+			addRecentlyViewedEntry(
+				objectEntryId,
+				getViewAssetURL(objectEntryId)
+			);
+		}
+	}, [currentItem]);
 
 	const activePanel = openSidePanel ? currentPanel : null;
 
