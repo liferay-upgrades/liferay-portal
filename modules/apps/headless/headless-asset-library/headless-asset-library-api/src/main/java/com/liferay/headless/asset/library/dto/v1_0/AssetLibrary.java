@@ -675,6 +675,49 @@ public class AssetLibrary implements Serializable {
 	private Supplier<Map<String, String>> _name_i18nSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The number of this asset library's assets."
+	)
+	public Integer getNumberOfAssets() {
+		if (_numberOfAssetsSupplier != null) {
+			numberOfAssets = _numberOfAssetsSupplier.get();
+
+			_numberOfAssetsSupplier = null;
+		}
+
+		return numberOfAssets;
+	}
+
+	public void setNumberOfAssets(Integer numberOfAssets) {
+		this.numberOfAssets = numberOfAssets;
+
+		_numberOfAssetsSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setNumberOfAssets(
+		UnsafeSupplier<Integer, Exception> numberOfAssetsUnsafeSupplier) {
+
+		_numberOfAssetsSupplier = () -> {
+			try {
+				return numberOfAssetsUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The number of this asset library's assets.")
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Integer numberOfAssets;
+
+	@JsonIgnore
+	private Supplier<Integer> _numberOfAssetsSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The number of this asset library's connected sites."
 	)
 	public Integer getNumberOfConnectedSites() {
@@ -1320,6 +1363,18 @@ public class AssetLibrary implements Serializable {
 			sb.append(_toJSON(name_i18n));
 		}
 
+		Integer numberOfAssets = getNumberOfAssets();
+
+		if (numberOfAssets != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"numberOfAssets\": ");
+
+			sb.append(numberOfAssets);
+		}
+
 		Integer numberOfConnectedSites = getNumberOfConnectedSites();
 
 		if (numberOfConnectedSites != null) {
@@ -1622,4 +1677,4 @@ public class AssetLibrary implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1640342727
+// LIFERAY-REST-BUILDER-HASH:-99299862

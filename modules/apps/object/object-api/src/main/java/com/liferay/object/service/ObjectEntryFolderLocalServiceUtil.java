@@ -409,6 +409,13 @@ public class ObjectEntryFolderLocalServiceUtil {
 	}
 
 	public static int getObjectEntryFoldersCount(
+		long groupId, Integer[] statuses, String treePath) {
+
+		return getService().getObjectEntryFoldersCount(
+			groupId, statuses, treePath);
+	}
+
+	public static int getObjectEntryFoldersCount(
 		long groupId, long companyId, long parentObjectEntryFolderId) {
 
 		return getService().getObjectEntryFoldersCount(
@@ -551,4 +558,4 @@ public class ObjectEntryFolderLocalServiceUtil {
 			ObjectEntryFolderLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-446673031
+// LIFERAY-SERVICE-BUILDER-HASH:-2121906975

@@ -82,6 +82,11 @@ components:
                     description:
                         The localized asset library's name.
                     type: object
+                numberOfAssets:
+                    description:
+                        The number of this asset library's assets.
+                    readOnly: true
+                    type: integer
                 numberOfConnectedSites:
                     description:
                         The number of this asset library's connected sites.
