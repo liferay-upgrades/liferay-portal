@@ -9,6 +9,7 @@ import React, {useContext} from 'react';
 import {SectionHeader} from '../common/SectionHeader';
 import {SpacePicker} from '../common/SpacePicker';
 import {InventoryContext, InventoryContextProvider} from './InventoryContext';
+import {AssetsBySpaceCard} from './components/AssetsBySpaceCard';
 import {ContentCard} from './components/ContentCard';
 import {ExpiredAssetsCard} from './components/ExpiredAssetsCard';
 import {FilesCard} from './components/FilesCard';
@@ -97,6 +98,12 @@ function InventoryDashboardContent() {
 			<ClayLayout.Row className="mb-4">
 				<ClayLayout.Col size={12}>
 					<ExpiredAssetsCard />
+				</ClayLayout.Col>
+			</ClayLayout.Row>
+
+			<ClayLayout.Row className="mb-4">
+				<ClayLayout.Col className="mb-3" lg={12} xl={6}>
+					<AssetsBySpaceCard />
 				</ClayLayout.Col>
 			</ClayLayout.Row>
 		</>
