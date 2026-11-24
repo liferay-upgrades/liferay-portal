@@ -15,20 +15,27 @@ import com.liferay.object.admin.rest.internal.dto.v1_0.util.ObjectDefinitionUtil
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectLayoutLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.service.ObjectValidationRuleLocalService;
 import com.liferay.object.service.ObjectViewLocalService;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.PermissionService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
+import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -80,8 +87,39 @@ public class ObjectDefinitionDTOConverter
 				_workflowDefinitionLinkLocalService);
 
 		objectDefinition.setActions(dtoConverterContext::getActions);
+		objectDefinition.setNumberOfAssets(
+			() -> NestedFieldsSupplier.supply(
+				"numberOfAssets",
+				nestedField -> _getNumberOfAssets(
+					serviceBuilderObjectDefinition.getObjectDefinitionId())));
 
 		return objectDefinition;
+	}
+
+	private int _getNumberOfAssets(long objectDefinitionId) {
+		DynamicQuery dynamicQuery = _objectEntryLocalService.dynamicQuery();
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq(
+				"objectDefinitionId", objectDefinitionId));
+		dynamicQuery.add(RestrictionsFactoryUtil.ne("objectEntryFolderId", 0L));
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.in(
+				"status",
+				new Integer[] {
+					WorkflowConstants.STATUS_APPROVED,
+					WorkflowConstants.STATUS_DRAFT,
+					WorkflowConstants.STATUS_EXPIRED,
+					WorkflowConstants.STATUS_PENDING,
+					WorkflowConstants.STATUS_SCHEDULED
+				}));
+
+		Property objectEntryIdProperty = PropertyFactoryUtil.forName(
+			"objectEntryId");
+
+		dynamicQuery.add(objectEntryIdProperty.eqProperty("headObjectEntryId"));
+
+		return (int)_objectEntryLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
 	@Reference
@@ -95,6 +133,9 @@ public class ObjectDefinitionDTOConverter
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Reference(target = DTOConverterConstants.OBJECT_FIELD_DTO_CONVERTER)
 	private DTOConverter<com.liferay.object.model.ObjectField, ObjectField>
