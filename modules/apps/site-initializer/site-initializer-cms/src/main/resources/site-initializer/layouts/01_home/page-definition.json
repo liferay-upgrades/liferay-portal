@@ -175,6 +175,25 @@
 											"fragmentStyle": {
 												"borderColor": "rgb(205, 206, 217)",
 												"borderRadius": "10px",
+												"borderWidth": "0.05rem",
+												"marginBottom": "3"
+											},
+											"indexed": true
+										},
+										"type": "Fragment"
+									},
+									{
+										"definition": {
+											"fragment": {
+												"key": "com.liferay.site.cms.site.initializer.internal.fragment.renderer.ViewHomeMyDraftsJSPSectionFragmentRenderer"
+											},
+											"fragmentConfig": {
+											},
+											"fragmentFields": [
+											],
+											"fragmentStyle": {
+												"borderColor": "rgb(205, 206, 217)",
+												"borderRadius": "10px",
 												"borderWidth": "0.05rem"
 											},
 											"indexed": true
