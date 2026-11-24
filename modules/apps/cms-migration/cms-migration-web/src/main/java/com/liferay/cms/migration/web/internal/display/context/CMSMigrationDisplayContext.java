@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -133,32 +131,6 @@ public class CMSMigrationDisplayContext {
 				backgroundTask1.getBackgroundTaskId()));
 	}
 
-	private CMSMigrationReport _getCMSMigrationReport(
-		BackgroundTask backgroundTask) {
-
-		String statusMessage = backgroundTask.getStatusMessage();
-
-		if (Validator.isNull(statusMessage)) {
-			return new CMSMigrationReport();
-		}
-
-		try {
-			return CMSMigrationReport.of(
-				JSONFactoryUtil.createJSONObject(statusMessage));
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception);
-			}
-
-			CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
-
-			cmsMigrationReport.addError(statusMessage);
-
-			return cmsMigrationReport;
-		}
-	}
-
 	private List<Group> _getGroups() {
 		List<Group> groups = new ArrayList<>();
 
@@ -247,7 +219,7 @@ public class CMSMigrationDisplayContext {
 	private JSONObject _toJSONObject(BackgroundTask backgroundTask)
 		throws Exception {
 
-		CMSMigrationReport cmsMigrationReport = _getCMSMigrationReport(
+		CMSMigrationReport cmsMigrationReport = CMSMigrationReport.of(
 			backgroundTask);
 
 		Map<String, Long> counts = cmsMigrationReport.getCounts();
@@ -306,6 +278,20 @@ public class CMSMigrationDisplayContext {
 				).setParameter(
 					"backgroundTaskId", backgroundTask.getBackgroundTaskId()
 				).buildString());
+
+			if (ListUtil.isNotEmpty(cmsMigrationReport.getErrors()) ||
+				ListUtil.isNotEmpty(cmsMigrationReport.getWarnings())) {
+
+				jsonObject.put(
+					"saveLogsURL",
+					PortletURLBuilder.createActionURL(
+						PortalUtil.getLiferayPortletResponse(_renderResponse)
+					).setActionName(
+						"/cms_migration/save_cms_migration_logs"
+					).setParameter(
+						"backgroundTaskId", backgroundTask.getBackgroundTaskId()
+					).buildString());
+			}
 		}
 
 		if (backgroundTask.isInProgress()) {
@@ -326,9 +312,6 @@ public class CMSMigrationDisplayContext {
 
 		return jsonObject;
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CMSMigrationDisplayContext.class);
 
 	private final BackgroundTaskManager _backgroundTaskManager;
 	private final DepotEntryLocalService _depotEntryLocalService;
