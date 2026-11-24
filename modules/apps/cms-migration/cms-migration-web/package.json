@@ -6,6 +6,7 @@
 		"@clayui/icon": "^3.166.0",
 		"@clayui/label": "^3.166.0",
 		"@clayui/layout": "^3.166.0",
+		"@clayui/loading-indicator": "^3.166.0",
 		"@clayui/panel": "^3.166.0",
 		"@clayui/progress-bar": "^3.166.0",
 		"@clayui/tooltip": "^3.166.0",
