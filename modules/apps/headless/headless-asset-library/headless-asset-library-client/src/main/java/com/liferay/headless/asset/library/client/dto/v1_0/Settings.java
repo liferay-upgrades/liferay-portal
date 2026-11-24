@@ -89,6 +89,52 @@ public class Settings implements Cloneable, Serializable {
 
 	protected String defaultLanguageId;
 
+	public Boolean getDraftNotificationEnabled() {
+		return draftNotificationEnabled;
+	}
+
+	public void setDraftNotificationEnabled(Boolean draftNotificationEnabled) {
+		this.draftNotificationEnabled = draftNotificationEnabled;
+	}
+
+	public void setDraftNotificationEnabled(
+		UnsafeSupplier<Boolean, Exception>
+			draftNotificationEnabledUnsafeSupplier) {
+
+		try {
+			draftNotificationEnabled =
+				draftNotificationEnabledUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean draftNotificationEnabled;
+
+	public Integer getDraftNotificationMaxAge() {
+		return draftNotificationMaxAge;
+	}
+
+	public void setDraftNotificationMaxAge(Integer draftNotificationMaxAge) {
+		this.draftNotificationMaxAge = draftNotificationMaxAge;
+	}
+
+	public void setDraftNotificationMaxAge(
+		UnsafeSupplier<Integer, Exception>
+			draftNotificationMaxAgeUnsafeSupplier) {
+
+		try {
+			draftNotificationMaxAge =
+				draftNotificationMaxAgeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Integer draftNotificationMaxAge;
+
 	public String getGoogleMapsAPIKey() {
 		return googleMapsAPIKey;
 	}
@@ -332,4 +378,4 @@ public class Settings implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-528503783
+// LIFERAY-REST-BUILDER-HASH:603097669

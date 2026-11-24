@@ -10,6 +10,9 @@ package com.liferay.depot.constants;
  */
 public class DepotPortletKeys {
 
+	public static final String CMS_DRAFT_NOTIFICATION =
+		"com_liferay_site_cms_site_initializer_CMSDraftNotification";
+
 	public static final String DEPOT_ADMIN =
 		"com_liferay_depot_web_portlet_DepotAdminPortlet";
 

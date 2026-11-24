@@ -577,6 +577,17 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 				unicodeProperties.getProperty("autoTaggingEnabled"),
 				settings.getAutoTaggingEnabled())
 		).put(
+			"draftNotificationEnabled",
+			_getBooleanValue(
+				unicodeProperties.getProperty("draftNotificationEnabled"),
+				settings.getDraftNotificationEnabled())
+		).put(
+			"draftNotificationMaxAge",
+			GetterUtil.getInteger(
+				settings.getDraftNotificationMaxAge(),
+				GetterUtil.getInteger(
+					unicodeProperties.getProperty("draftNotificationMaxAge")))
+		).put(
 			"googleMapsAPIKey",
 			() -> {
 				if (!FeatureFlagManagerUtil.isEnabled(
@@ -657,6 +668,12 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		).put(
 			"autoTaggingEnabled",
 			GetterUtil.getBoolean(settings.getAutoTaggingEnabled())
+		).put(
+			"draftNotificationEnabled",
+			GetterUtil.getBoolean(settings.getDraftNotificationEnabled(), true)
+		).put(
+			"draftNotificationMaxAge",
+			GetterUtil.getInteger(settings.getDraftNotificationMaxAge())
 		).put(
 			"googleMapsAPIKey",
 			() -> {

@@ -444,6 +444,9 @@ public interface PropsKeys {
 	public static final String CMS_BROKEN_LINKS_CHECKER_ENABLED =
 		"cms.broken.links.checker.enabled";
 
+	public static final String CMS_DRAFT_NOTIFICATION_ENTRIES_MAX_AGE =
+		"cms.draft.notification.entries.max.age";
+
 	public static final String COMBO_ALLOWED_FILE_EXTENSIONS =
 		"combo.allowed.file.extensions";
 

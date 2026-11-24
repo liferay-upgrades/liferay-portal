@@ -92,6 +92,26 @@ public class SettingsSerDes {
 			sb.append("\"");
 		}
 
+		if (settings.getDraftNotificationEnabled() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"draftNotificationEnabled\": ");
+
+			sb.append(settings.getDraftNotificationEnabled());
+		}
+
+		if (settings.getDraftNotificationMaxAge() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"draftNotificationMaxAge\": ");
+
+			sb.append(settings.getDraftNotificationMaxAge());
+		}
+
 		if (settings.getGoogleMapsAPIKey() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -237,6 +257,24 @@ public class SettingsSerDes {
 				String.valueOf(settings.getDefaultLanguageId()));
 		}
 
+		if (settings.getDraftNotificationEnabled() == null) {
+			map.put("draftNotificationEnabled", null);
+		}
+		else {
+			map.put(
+				"draftNotificationEnabled",
+				String.valueOf(settings.getDraftNotificationEnabled()));
+		}
+
+		if (settings.getDraftNotificationMaxAge() == null) {
+			map.put("draftNotificationMaxAge", null);
+		}
+		else {
+			map.put(
+				"draftNotificationMaxAge",
+				String.valueOf(settings.getDraftNotificationMaxAge()));
+		}
+
 		if (settings.getGoogleMapsAPIKey() == null) {
 			map.put("googleMapsAPIKey", null);
 		}
@@ -330,6 +368,16 @@ public class SettingsSerDes {
 			else if (Objects.equals(jsonParserFieldName, "defaultLanguageId")) {
 				return false;
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "draftNotificationEnabled")) {
+
+				return false;
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "draftNotificationMaxAge")) {
+
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "googleMapsAPIKey")) {
 				return false;
 			}
@@ -384,6 +432,22 @@ public class SettingsSerDes {
 			else if (Objects.equals(jsonParserFieldName, "defaultLanguageId")) {
 				if (jsonParserFieldValue != null) {
 					settings.setDefaultLanguageId((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "draftNotificationEnabled")) {
+
+				if (jsonParserFieldValue != null) {
+					settings.setDraftNotificationEnabled(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "draftNotificationMaxAge")) {
+
+				if (jsonParserFieldValue != null) {
+					settings.setDraftNotificationMaxAge(
+						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "googleMapsAPIKey")) {
@@ -532,4 +596,4 @@ public class SettingsSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-735387560
+// LIFERAY-REST-BUILDER-HASH:-652316698
