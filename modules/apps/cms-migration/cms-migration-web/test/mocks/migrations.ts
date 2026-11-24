@@ -51,3 +51,12 @@ export const QUEUED_MIGRATION: IMigration = {
 	statusLabel: 'Queued',
 	warnings: [],
 };
+
+export const SAVE_LOGS_MIGRATION: IMigration = {
+	...COMPLETED_MIGRATION,
+	errors: ['Error 1'],
+	saveLogsURL: '/save-logs',
+	statusDisplayType: 'warning',
+	statusLabel: 'Completed with Errors',
+	warnings: ['Warning 1'],
+};
