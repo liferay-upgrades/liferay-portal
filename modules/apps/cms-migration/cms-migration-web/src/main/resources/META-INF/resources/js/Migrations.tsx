@@ -3,13 +3,15 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayButton from '@clayui/button';
 import ClayLabel, {LabelDisplayType} from '@clayui/label';
 import ClayLayout from '@clayui/layout';
+import ClayLoadingIndicator from '@clayui/loading-indicator';
 import ClayPanel from '@clayui/panel';
 import ClayProgressBar from '@clayui/progress-bar';
-import {useSessionState} from 'frontend-js-components-web';
-import {sub} from 'frontend-js-web';
-import React, {useEffect, useMemo} from 'react';
+import {openToast, useSessionState} from 'frontend-js-components-web';
+import {escapeHTML, fetch, sub} from 'frontend-js-web';
+import React, {useEffect, useMemo, useState} from 'react';
 
 export interface IMigration {
 	backgroundTaskId: number;
@@ -22,6 +24,7 @@ export interface IMigration {
 	name: string;
 	phaseLabel?: string;
 	progress: number;
+	saveLogsURL?: string;
 	statusDisplayType: LabelDisplayType;
 	statusLabel: string;
 	warnings: string[];
@@ -136,10 +139,47 @@ function Migration({
 		name,
 		phaseLabel,
 		progress,
+		saveLogsURL,
 		statusDisplayType,
 		statusLabel,
 		warnings,
 	} = migration;
+
+	const [saving, setSaving] = useState(false);
+
+	const saveLogs = async () => {
+		setSaving(true);
+
+		try {
+			const response = await fetch(saveLogsURL!, {method: 'POST'});
+
+			const {error, fileName, folderName, folderURL} =
+				await response.json();
+
+			if (error) {
+				openToast({message: escapeHTML(error), type: 'danger'});
+
+				return;
+			}
+
+			openToast({
+				message: sub(
+					Liferay.Language.get('x-has-been-saved-in-x'),
+					escapeHTML(fileName),
+					`<a class="alert-link" href="${escapeHTML(folderURL)}">${escapeHTML(folderName)}</a>`
+				),
+			});
+		}
+		catch {
+			openToast({
+				message: Liferay.Language.get('an-unexpected-error-occurred'),
+				type: 'danger',
+			});
+		}
+		finally {
+			setSaving(false);
+		}
+	};
 
 	return (
 		<div className="border-bottom mb-3 pb-3">
@@ -155,6 +195,30 @@ function Migration({
 						{statusLabel}
 					</ClayLabel>
 				</ClayLayout.ContentCol>
+
+				{saveLogsURL && (
+					<ClayLayout.ContentCol>
+						<ClayButton
+							disabled={saving}
+							displayType="secondary"
+							onClick={saveLogs}
+							size="sm"
+						>
+							{saving && (
+								<span className="inline-item inline-item-before">
+									<ClayLoadingIndicator
+										displayType="secondary"
+										size="sm"
+									/>
+								</span>
+							)}
+
+							{Liferay.Language.get('save-logs')}
+
+							<span className="sr-only">{` ${name}`}</span>
+						</ClayButton>
+					</ClayLayout.ContentCol>
+				)}
 			</ClayLayout.ContentRow>
 
 			{inProgress && (

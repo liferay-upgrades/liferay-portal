@@ -5,10 +5,14 @@
 
 package com.liferay.cms.migration.web.internal.migration;
 
+import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +23,29 @@ import java.util.TreeMap;
  * @author Lino Alves
  */
 public class CMSMigrationReport {
+
+	public static CMSMigrationReport of(BackgroundTask backgroundTask) {
+		String statusMessage = backgroundTask.getStatusMessage();
+
+		if (Validator.isNull(statusMessage)) {
+			return new CMSMigrationReport();
+		}
+
+		try {
+			return of(JSONFactoryUtil.createJSONObject(statusMessage));
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+
+			CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
+
+			cmsMigrationReport.addError(statusMessage);
+
+			return cmsMigrationReport;
+		}
+	}
 
 	public static CMSMigrationReport of(JSONObject jsonObject) {
 		CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
@@ -99,6 +126,9 @@ public class CMSMigrationReport {
 			"warnings", JSONUtil.putAll(_warnings.toArray())
 		);
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		CMSMigrationReport.class);
 
 	private final Map<String, Long> _counts = new TreeMap<>();
 	private final List<String> _errors = new ArrayList<>();

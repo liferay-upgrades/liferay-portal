@@ -5,7 +5,7 @@
 
 // eslint-disable-next-line @liferay/portal/no-cross-module-deep-import
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
-import {act, render, screen, within} from '@testing-library/react';
+import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -16,7 +16,13 @@ import {
 	COMPLETED_MIGRATION,
 	IN_PROGRESS_MIGRATION,
 	QUEUED_MIGRATION,
+	SAVE_LOGS_MIGRATION,
 } from './mocks/migrations';
+
+const fetchMock = fetch as unknown as jest.Mock<Promise<Response>> & {
+	mockRejectOnce: (error: Error) => void;
+	mockResponseOnce: (body: string | (() => Promise<string>)) => void;
+};
 
 describe('Migrations', () => {
 	const languageGetImplementation = (
@@ -100,18 +106,19 @@ describe('Migrations', () => {
 	it('has no accessibility violations', async () => {
 		jest.useRealTimers();
 
+		fetchMock.mockResponseOnce(() => new Promise(() => {}));
+
 		const {container} = render(
 			<Migrations
 				migrationIncomplete={true}
-				migrations={[
-					{
-						...COMPLETED_MIGRATION,
-						errors: ['Error 1'],
-						warnings: ['Warning 1'],
-					},
-					IN_PROGRESS_MIGRATION,
-				]}
+				migrations={[SAVE_LOGS_MIGRATION, IN_PROGRESS_MIGRATION]}
 			/>
+		);
+
+		await checkAccessibility({bestPractices: true, context: container});
+
+		await userEvent.click(
+			screen.getByRole('button', {name: 'save-logs Migration 1'})
 		);
 
 		await checkAccessibility({bestPractices: true, context: container});
@@ -408,6 +415,142 @@ describe('Migrations', () => {
 
 		expect(
 			screen.queryByRole('button', {name: 'x-y'})
+		).not.toBeInTheDocument();
+	});
+
+	it('saves the logs of a completed migration and links to the folder in a toast', async () => {
+		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
+			key === 'x-has-been-saved-in-x' ? '{0} has been saved in {1}.' : key
+		);
+
+		let respond: (body: string) => void = () => {};
+
+		fetchMock.mockResponseOnce(
+			() =>
+				new Promise((resolve) => {
+					respond = resolve;
+				})
+		);
+
+		const user = userEvent.setup({
+			advanceTimers: jest.advanceTimersByTime,
+		});
+
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[SAVE_LOGS_MIGRATION]}
+			/>
+		);
+
+		const button = screen.getByRole('button', {
+			name: 'save-logs Migration 1',
+		});
+
+		await user.click(button);
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'/save-logs',
+			expect.objectContaining({method: 'POST'})
+		);
+		expect(button).toBeDisabled();
+		expect(button.querySelector('.loading-animation')).toBeInTheDocument();
+
+		await act(async () => {
+			respond(
+				JSON.stringify({
+					fileName: 'cms-migration-<b>1</b>-2026-11-24-101530.csv',
+					folderName: 'Migration <b>Logs</b>',
+					folderURL: '/web/cms/e/view-folder/1/2?name="Logs"',
+				})
+			);
+		});
+
+		expect(
+			await screen.findByText(
+				'cms-migration-<b>1</b>-2026-11-24-101530.csv has been saved in',
+				{exact: false}
+			)
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole('link', {name: 'Migration <b>Logs</b>'})
+		).toHaveAttribute('href', '/web/cms/e/view-folder/1/2?name="Logs"');
+		expect(button).toBeEnabled();
+	});
+
+	it('shows the error of the server in a toast when the logs cannot be saved', async () => {
+		fetchMock.mockResponseOnce(
+			JSON.stringify({error: 'Unable to save the <b>logs</b>.'})
+		);
+
+		const user = userEvent.setup({
+			advanceTimers: jest.advanceTimersByTime,
+		});
+
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[SAVE_LOGS_MIGRATION]}
+			/>
+		);
+
+		const button = screen.getByRole('button', {
+			name: 'save-logs Migration 1',
+		});
+
+		await user.click(button);
+
+		expect(
+			(
+				await screen.findByText('Unable to save the <b>logs</b>.')
+			).closest('.alert-danger')
+		).toBeInTheDocument();
+		expect(
+			screen.queryByText('an-unexpected-error-occurred')
+		).not.toBeInTheDocument();
+
+		await waitFor(() => expect(button).toBeEnabled());
+	});
+
+	it('shows an error toast when the request to save the logs fails', async () => {
+		fetchMock.mockRejectOnce(new Error());
+
+		const user = userEvent.setup({
+			advanceTimers: jest.advanceTimersByTime,
+		});
+
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[SAVE_LOGS_MIGRATION]}
+			/>
+		);
+
+		const button = screen.getByRole('button', {
+			name: 'save-logs Migration 1',
+		});
+
+		await user.click(button);
+
+		expect(
+			(await screen.findByText('an-unexpected-error-occurred')).closest(
+				'.alert-danger'
+			)
+		).toBeInTheDocument();
+
+		await waitFor(() => expect(button).toBeEnabled());
+	});
+
+	it('does not show the save logs button without the URL to save them', () => {
+		render(
+			<Migrations
+				migrationIncomplete={true}
+				migrations={[COMPLETED_MIGRATION, IN_PROGRESS_MIGRATION]}
+			/>
+		);
+
+		expect(
+			screen.queryByRole('button', {name: /save-logs/})
 		).not.toBeInTheDocument();
 	});
 });
