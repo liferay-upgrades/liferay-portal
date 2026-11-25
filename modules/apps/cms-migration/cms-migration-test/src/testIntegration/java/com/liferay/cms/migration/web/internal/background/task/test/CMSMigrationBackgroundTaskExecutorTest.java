@@ -5032,7 +5032,7 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		return StringBundler.concat(
 			"The Documents and Media widget on the page ",
 			layout.getFriendlyURL(), " (site ", group.getDescriptiveName(),
-			", plid ", layout.getPlid(), ")");
+			", PLID ", layout.getPlid(), ")");
 	}
 
 	private String _getDynamicElement(

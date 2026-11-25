@@ -13,6 +13,7 @@ import com.liferay.blogs.constants.BlogsPortletKeys;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.cms.migration.web.internal.constants.CMSMigrationPortletKeys;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationContext;
+import com.liferay.cms.migration.web.internal.migration.CMSMigrationLayoutUtil;
 import com.liferay.cms.migration.web.internal.migration.template.WidgetTemplateMigrator;
 import com.liferay.document.library.constants.DLPortletKeys;
 import com.liferay.fragment.constants.FragmentConstants;
@@ -133,8 +134,6 @@ public class PortletReferenceRewriter {
 					setUpdateLayoutModifiedDateWithSafeCloseable(
 						updateLayoutModifiedDate)) {
 
-			String pageDescription = _getPageDescription(layout);
-
 			for (com.liferay.portal.kernel.model.PortletPreferences
 					portletPreferences :
 						_portletPreferencesLocalService.
@@ -186,7 +185,8 @@ public class PortletReferenceRewriter {
 					).addError(
 						StringBundler.concat(
 							"Unable to rewrite the widget ", portletId, " on ",
-							pageDescription, ": ", exception.getMessage())
+							CMSMigrationLayoutUtil.getDescription(layout), ": ",
+							exception.getMessage())
 					);
 				}
 			}
@@ -208,7 +208,7 @@ public class PortletReferenceRewriter {
 		).addWarning(
 			StringBundler.concat(
 				"The Documents and Media widget on the page ",
-				_getPageDescription(layout),
+				CMSMigrationLayoutUtil.getDescription(layout),
 				" browses the classic library and has no counterpart for CMS ",
 				"files")
 		);
@@ -357,14 +357,6 @@ public class PortletReferenceRewriter {
 
 		return _journalArticleLocalService.fetchLatestArticle(
 			groupId, articleId, WorkflowConstants.STATUS_ANY);
-	}
-
-	private String _getPageDescription(Layout layout) throws Exception {
-		Group group = layout.getGroup();
-
-		return StringBundler.concat(
-			layout.getFriendlyURL(), " (site ", group.getDescriptiveName(),
-			", plid ", layout.getPlid(), ")");
 	}
 
 	private String _getValue(Map<String, String[]> settings, String key) {
@@ -655,7 +647,8 @@ public class PortletReferenceRewriter {
 				StringBundler.concat(
 					"The template ", ddmTemplateKey, " of the web content ",
 					journalArticle.getArticleId(), " on ",
-					_getPageDescription(layout), " was not migrated")
+					CMSMigrationLayoutUtil.getDescription(layout),
+					" was not migrated")
 			);
 		}
 
@@ -763,7 +756,9 @@ public class PortletReferenceRewriter {
 						layout.getGroupId()
 				}));
 
-		String label = "The Asset Publisher on " + _getPageDescription(layout);
+		String label =
+			"The Asset Publisher on " +
+				CMSMigrationLayoutUtil.getDescription(layout);
 		String selectionStyle = portletPreferences.getValue(
 			"selectionStyle", "dynamic");
 
