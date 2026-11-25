@@ -1,0 +1,24 @@
+@import '_atlas-custom-properties-variables';
+
+.cms-migration-completed-migrations {
+	@include media-breakpoint-up(md) {
+		display: grid;
+		grid-template-columns: auto auto 1fr;
+
+		.cms-migration-row {
+			display: grid;
+			grid-column: 1 / -1;
+			grid-template-columns: subgrid;
+
+			> * {
+				grid-column: 1 / -1;
+			}
+
+			> .cms-migration-counts {
+				display: grid;
+				grid-column: 1 / 3;
+				grid-template-columns: subgrid;
+			}
+		}
+	}
+}

@@ -16,6 +16,8 @@ import React, {useMemo} from 'react';
 import {IMigration} from '../../types/Migration';
 import {downloadCSV} from '../../utils/downloadCSV';
 
+import '../../../css/components/Migrations.scss';
+
 interface IMigrationProps {
 	migration: IMigration;
 	numberFormat: Intl.NumberFormat;
@@ -89,7 +91,7 @@ export default function Migrations({migrationIncomplete, migrations}: IProps) {
 							} as React.CSSProperties
 						}
 					>
-						<ClayPanel.Body className="text-body">
+						<ClayPanel.Body className="cms-migration-completed-migrations text-body">
 							{completedMigrations.map((migration) => (
 								<Migration
 									key={migration.backgroundTaskId}
@@ -123,7 +125,7 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 	} = migration;
 
 	return (
-		<div className="border-bottom mb-3 pb-3">
+		<div className="border-bottom cms-migration-row mb-3 pb-3">
 			<ClayLayout.ContentRow noGutters="x" padded verticalAlign="center">
 				<ClayLayout.ContentCol expand>
 					<h3 className="h4">{name}</h3>
@@ -174,12 +176,9 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 
 			{completed && (
 				<>
-					<ul
-						className="c-gapx-5 d-md-grid list-unstyled mt-2"
-						style={{gridTemplateColumns: 'repeat(2, max-content)'}}
-					>
+					<ul className="c-gapx-5 cms-migration-counts list-unstyled mt-2">
 						{counts.map(({label, value}) => (
-							<li className="text-nowrap" key={label}>
+							<li key={label}>
 								<strong>{numberFormat.format(value)}</strong>
 
 								{` ${label}`}
@@ -231,7 +230,6 @@ function Messages({
 
 	return (
 		<ClayPanel
-			className="mt-2"
 			collapsable
 			displayTitle={
 				<ClayPanel.Title className={className}>{label}</ClayPanel.Title>
