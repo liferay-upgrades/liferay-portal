@@ -62,10 +62,6 @@ const CONTENT_TYPES = [
 
 const CREATE_NEW_SPACE = '0';
 
-const UncontrolledClayCheckbox = ClayCheckbox as unknown as React.ComponentType<
-	Omit<React.ComponentProps<typeof ClayCheckbox>, 'checked'>
->;
-
 export default function Configuration({
 	groups,
 	migrationIncomplete,
@@ -74,6 +70,9 @@ export default function Configuration({
 	startCMSMigrationURL,
 	title,
 }: IProps) {
+	const [checkedContentTypes, setCheckedContentTypes] = useState<
+		Record<string, boolean>
+	>({});
 	const [depotEntryId, setDepotEntryId] = useState(
 		spaces.length ? spaces[0].value : CREATE_NEW_SPACE
 	);
@@ -185,14 +184,28 @@ export default function Configuration({
 									className="align-items-start d-flex"
 									key={name}
 								>
-									<UncontrolledClayCheckbox
+									<ClayCheckbox
+										checked={
+											checkedContentTypes[name] ??
+											defaultChecked ??
+											true
+										}
 										containerProps={{
 											className:
 												'custom-control-primary mb-0',
 										}}
-										defaultChecked={defaultChecked ?? true}
 										label={label}
 										name={`${portletNamespace}${name}`}
+										onChange={({target: {checked}}) =>
+											setCheckedContentTypes(
+												(
+													previousCheckedContentTypes
+												) => ({
+													...previousCheckedContentTypes,
+													[name]: checked,
+												})
+											)
+										}
 										value="true"
 									/>
 
