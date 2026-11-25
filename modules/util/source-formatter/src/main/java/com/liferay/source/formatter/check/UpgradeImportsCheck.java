@@ -161,7 +161,8 @@ public class UpgradeImportsCheck extends BaseFileCheck {
 			String className = entry.getKey();
 
 			String regex = StringBundler.concat(
-				"(?<!\\w-)(\\w*)", className, "(?!\\w)");
+				"((?<![-:</@])\\b_?\\w*(?=", className,
+				"\\b(?!\\s*\\())|\\bget|\\bset)", className, "\\b");
 
 			String newClassName = entry.getValue();
 
