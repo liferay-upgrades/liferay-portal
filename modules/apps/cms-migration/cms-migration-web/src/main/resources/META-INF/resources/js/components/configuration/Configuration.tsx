@@ -4,15 +4,15 @@
  */
 
 import ClayAlert from '@clayui/alert';
-import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
+import ClayButton from '@clayui/button';
 import ClayForm, {ClayCheckbox, ClayInput, ClaySelect} from '@clayui/form';
-import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
-import {ClayTooltipProvider} from '@clayui/tooltip';
 import React, {useState} from 'react';
 
 import {IOption} from '../../types/Form';
 import {CONTENT_TYPES, CREATE_NEW_SPACE} from '../../utils/constants';
+import FieldWrapper from '../forms/FieldWrapper';
+import HelpTooltipIcon from '../forms/HelpTooltipIcon';
 
 interface IProps {
 	groups: IOption[];
@@ -56,20 +56,13 @@ export default function Configuration({
 				</ClayLayout.SheetHeader>
 
 				<ClayLayout.SheetSection>
-					<ClayForm.Group>
-						<label htmlFor={`${portletNamespace}sourceGroupId`}>
-							{Liferay.Language.get('cms-migration-source-site')}
-
-							<ClayIcon
-								className="ml-1 reference-mark"
-								symbol="asterisk"
-							/>
-
-							<span className="hide-accessible sr-only">
-								{Liferay.Language.get('required')}
-							</span>
-						</label>
-
+					<FieldWrapper
+						fieldId={`${portletNamespace}sourceGroupId`}
+						label={Liferay.Language.get(
+							'cms-migration-source-site'
+						)}
+						required
+					>
 						<ClaySelect
 							id={`${portletNamespace}sourceGroupId`}
 							name={`${portletNamespace}sourceGroupId`}
@@ -83,13 +76,14 @@ export default function Configuration({
 								/>
 							))}
 						</ClaySelect>
-					</ClayForm.Group>
+					</FieldWrapper>
 
-					<ClayForm.Group>
-						<label htmlFor={`${portletNamespace}depotEntryId`}>
-							{Liferay.Language.get('cms-migration-target-space')}
-						</label>
-
+					<FieldWrapper
+						fieldId={`${portletNamespace}depotEntryId`}
+						label={Liferay.Language.get(
+							'cms-migration-target-space'
+						)}
+					>
 						<ClaySelect
 							id={`${portletNamespace}depotEntryId`}
 							name={`${portletNamespace}depotEntryId`}
@@ -113,96 +107,72 @@ export default function Configuration({
 								/>
 							))}
 						</ClaySelect>
-					</ClayForm.Group>
+					</FieldWrapper>
 
 					{depotEntryId === CREATE_NEW_SPACE && (
-						<ClayForm.Group>
-							<label htmlFor={`${portletNamespace}spaceName`}>
-								{Liferay.Language.get(
-									'cms-migration-new-space-name'
-								)}
-							</label>
-
+						<FieldWrapper
+							fieldId={`${portletNamespace}spaceName`}
+							label={Liferay.Language.get(
+								'cms-migration-new-space-name'
+							)}
+						>
 							<ClayInput
 								id={`${portletNamespace}spaceName`}
 								name={`${portletNamespace}spaceName`}
 								type="text"
 							/>
-						</ClayForm.Group>
+						</FieldWrapper>
 					)}
 				</ClayLayout.SheetSection>
 
-				<ClayTooltipProvider>
-					<ClayLayout.SheetSection>
-						<h3 className="sheet-subtitle">
-							{Liferay.Language.get(
-								'cms-migration-content-types'
-							)}
-						</h3>
+				<ClayLayout.SheetSection>
+					<h3 className="sheet-subtitle">
+						{Liferay.Language.get('cms-migration-content-types')}
+					</h3>
 
-						{CONTENT_TYPES.map(
-							({defaultChecked, help, label, name}) => (
-								<ClayForm.Group
-									className="align-items-start d-flex"
-									key={name}
-								>
-									<UncontrolledClayCheckbox
-										containerProps={{
-											className:
-												'custom-control-primary mb-0',
-										}}
-										defaultChecked={defaultChecked ?? true}
-										label={label}
-										name={`${portletNamespace}${name}`}
-										value="true"
-									/>
-
-									{help && (
-										<ClayButtonWithIcon
-											aria-label={help}
-											className="component-action mt-n2"
-											data-tooltip-align="top"
-											displayType="unstyled"
-											size="sm"
-											style={
-												{
-													'--component-action-hover-background-color':
-														'transparent',
-												} as React.CSSProperties
-											}
-											symbol="question-circle-full"
-											title={help}
-										/>
-									)}
-								</ClayForm.Group>
-							)
-						)}
-
-						<ClayForm.Group>
-							<label
-								htmlFor={`${portletNamespace}titleObjectFieldNames`}
+					{CONTENT_TYPES.map(
+						({defaultChecked, help, label, name}) => (
+							<ClayForm.Group
+								className="align-items-start d-flex"
+								key={name}
 							>
+								<UncontrolledClayCheckbox
+									containerProps={{
+										className:
+											'custom-control-primary mb-0',
+									}}
+									defaultChecked={defaultChecked ?? true}
+									label={label}
+									name={`${portletNamespace}${name}`}
+									value="true"
+								/>
+
+								{help && <HelpTooltipIcon message={help} />}
+							</ClayForm.Group>
+						)
+					)}
+
+					<FieldWrapper
+						fieldId={`${portletNamespace}titleObjectFieldNames`}
+						label={Liferay.Language.get(
+							'cms-migration-title-object-field-names'
+						)}
+					>
+						<ClayInput
+							id={`${portletNamespace}titleObjectFieldNames`}
+							name={`${portletNamespace}titleObjectFieldNames`}
+							type="text"
+						/>
+
+						<ClayForm.FeedbackGroup>
+							<ClayForm.Text>
 								{Liferay.Language.get(
-									'cms-migration-title-object-field-names'
+									'cms-migration-title-object-field-names-help'
 								)}
-							</label>
-
-							<ClayInput
-								id={`${portletNamespace}titleObjectFieldNames`}
-								name={`${portletNamespace}titleObjectFieldNames`}
-								type="text"
-							/>
-
-							<ClayForm.FeedbackGroup>
-								<ClayForm.Text>
-									{Liferay.Language.get(
-										'cms-migration-title-object-field-names-help'
-									)}
-								</ClayForm.Text>
-							</ClayForm.FeedbackGroup>
-						</ClayForm.Group>
-					</ClayLayout.SheetSection>
-				</ClayTooltipProvider>
+							</ClayForm.Text>
+						</ClayForm.FeedbackGroup>
+					</FieldWrapper>
+				</ClayLayout.SheetSection>
 
 				{migrationIncomplete && (
 					<ClayAlert
