@@ -112,6 +112,32 @@ describe('Migrations', () => {
 		expect(within(warnings).getAllByRole('listitem')).toHaveLength(2);
 	});
 
+	it('asks for a full reindex only when the migration is successful', () => {
+		const {unmount} = render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[COMPLETED_MIGRATION]}
+			/>
+		);
+
+		expect(screen.getByRole('alert')).toHaveTextContent(
+			'cms-migration-reindex-required-alert'
+		);
+
+		unmount();
+
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[{...COMPLETED_MIGRATION, successful: false}]}
+			/>
+		);
+
+		expect(
+			screen.queryByText('cms-migration-reindex-required-alert')
+		).not.toBeInTheDocument();
+	});
+
 	it('shows the progress of a migration in progress', () => {
 		render(
 			<Migrations
