@@ -51,3 +51,37 @@ export const QUEUED_MIGRATION: IMigration = {
 	statusLabel: 'Queued',
 	warnings: [],
 };
+
+export const COMPLETED_MIGRATION_WITH_URL_MAPPINGS: IMigration = {
+	...COMPLETED_MIGRATION,
+	backgroundTaskId: 5,
+	exportURLMappingsURL: 'http://localhost/export_url_mappings',
+	urlMappings: [
+		{
+			actionRequired: true,
+			newURL: '/documents/20/0/logo.png/uuid',
+			oldURL: '/documents/d/guest/logo-png',
+			status: 'update-manually',
+			statusLabel: 'Update Manually',
+			type: 'Documents',
+		},
+		{
+			actionRequired: true,
+			newURL: '/web/guest/web-content/space/welcome',
+			oldURL: '/web/guest/w/welcome',
+			status: 'update-manually',
+			statusLabel: 'Update Manually',
+			type: 'Web Content',
+		},
+		{
+			actionRequired: false,
+			newURL: '/web/guest/web-content/space/about',
+			oldURL: '/web/guest/w/about',
+			status: 'site-content',
+			statusLabel: 'Not Needed',
+			type: 'Web Content',
+		},
+	],
+	urlMappingsActionRequiredCount: 2,
+	urlMappingsCount: 3,
+};

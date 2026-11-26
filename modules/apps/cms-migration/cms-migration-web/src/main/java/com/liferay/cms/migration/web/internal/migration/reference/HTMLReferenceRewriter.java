@@ -13,6 +13,7 @@ import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
+import com.liferay.friendly.url.model.FriendlyURLEntryLocalization;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
@@ -87,6 +88,20 @@ public class HTMLReferenceRewriter {
 	public String getObjectEntryPath(
 		CMSMigrationContext cmsMigrationContext, ObjectEntry objectEntry) {
 
+		return getObjectEntryPath(
+			cmsMigrationContext, objectEntry,
+			objectEntry.getDefaultLanguageId());
+	}
+
+	/**
+	 * Returns the site relative path of the display page of a migrated object
+	 * entry, using its friendly URL in the language. Falls back to the main
+	 * friendly URL when the entry has none in that language.
+	 */
+	public String getObjectEntryPath(
+		CMSMigrationContext cmsMigrationContext, ObjectEntry objectEntry,
+		String languageId) {
+
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.fetchObjectDefinition(
 				objectEntry.getObjectDefinitionId());
@@ -100,6 +115,14 @@ public class HTMLReferenceRewriter {
 
 		if (friendlyURLEntry != null) {
 			urlTitle = friendlyURLEntry.getUrlTitle();
+
+			FriendlyURLEntryLocalization friendlyURLEntryLocalization =
+				_friendlyURLEntryLocalService.fetchFriendlyURLEntryLocalization(
+					friendlyURLEntry.getFriendlyURLEntryId(), languageId);
+
+			if (friendlyURLEntryLocalization != null) {
+				urlTitle = friendlyURLEntryLocalization.getUrlTitle();
+			}
 		}
 
 		Group depotGroup = cmsMigrationContext.getDepotGroup();

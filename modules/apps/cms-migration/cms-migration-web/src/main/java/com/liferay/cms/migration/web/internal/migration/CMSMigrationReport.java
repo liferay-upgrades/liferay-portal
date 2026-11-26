@@ -5,12 +5,18 @@
 
 package com.liferay.cms.migration.web.internal.migration;
 
+import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -19,6 +25,34 @@ import java.util.TreeMap;
  * @author Lino Alves
  */
 public class CMSMigrationReport {
+
+	/**
+	 * Returns the report that a migration stored as the status message of its
+	 * background task. A status message that is not a report becomes the only
+	 * error of the returned report.
+	 */
+	public static CMSMigrationReport of(BackgroundTask backgroundTask) {
+		String statusMessage = backgroundTask.getStatusMessage();
+
+		if (Validator.isNull(statusMessage)) {
+			return new CMSMigrationReport();
+		}
+
+		try {
+			return of(JSONFactoryUtil.createJSONObject(statusMessage));
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(exception);
+			}
+
+			CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
+
+			cmsMigrationReport.addError(statusMessage);
+
+			return cmsMigrationReport;
+		}
+	}
 
 	public static CMSMigrationReport of(JSONObject jsonObject) {
 		CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
@@ -44,6 +78,16 @@ public class CMSMigrationReport {
 			}
 		}
 
+		JSONArray urlMappingsJSONArray = jsonObject.getJSONArray("urlMappings");
+
+		if (urlMappingsJSONArray != null) {
+			for (int i = 0; i < urlMappingsJSONArray.length(); i++) {
+				cmsMigrationReport._cmsMigrationURLMappings.add(
+					CMSMigrationURLMapping.of(
+						urlMappingsJSONArray.getJSONObject(i)));
+			}
+		}
+
 		JSONArray warningsJSONArray = jsonObject.getJSONArray("warnings");
 
 		if (warningsJSONArray != null) {
@@ -56,12 +100,22 @@ public class CMSMigrationReport {
 		return cmsMigrationReport;
 	}
 
+	public synchronized void addCMSMigrationURLMapping(
+		CMSMigrationURLMapping cmsMigrationURLMapping) {
+
+		_cmsMigrationURLMappings.add(cmsMigrationURLMapping);
+	}
+
 	public synchronized void addError(String error) {
 		_errors.add(error);
 	}
 
 	public synchronized void addWarning(String warning) {
 		_warnings.add(warning);
+	}
+
+	public List<CMSMigrationURLMapping> getCMSMigrationURLMappings() {
+		return _cmsMigrationURLMappings;
 	}
 
 	public Map<String, Long> getCounts() {
@@ -96,10 +150,27 @@ public class CMSMigrationReport {
 		).put(
 			"errors", JSONUtil.putAll(_errors.toArray())
 		).put(
+			"urlMappings",
+			JSONUtil.toJSONArray(
+				ListUtil.sort(
+					_cmsMigrationURLMappings,
+					Comparator.comparing(
+						CMSMigrationURLMapping::isActionRequired
+					).reversed(
+					).thenComparing(
+						CMSMigrationURLMapping::getStatus
+					)),
+				CMSMigrationURLMapping::toJSONObject, _log)
+		).put(
 			"warnings", JSONUtil.putAll(_warnings.toArray())
 		);
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		CMSMigrationReport.class);
+
+	private final List<CMSMigrationURLMapping> _cmsMigrationURLMappings =
+		new ArrayList<>();
 	private final Map<String, Long> _counts = new TreeMap<>();
 	private final List<String> _errors = new ArrayList<>();
 	private final List<String> _warnings = new ArrayList<>();

@@ -41,6 +41,8 @@ import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
 import com.liferay.dynamic.data.mapping.util.DDMUtil;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
+import com.liferay.friendly.url.model.FriendlyURLEntry;
+import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.journal.constants.JournalArticleConstants;
 import com.liferay.journal.constants.JournalContentPortletKeys;
 import com.liferay.journal.constants.JournalFolderConstants;
@@ -3933,6 +3935,124 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	}
 
 	@Test
+	public void testExecuteWithURLMappings() throws Exception {
+		BlogsEntry blogsEntry = _blogsEntryLocalService.addEntry(
+			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
+			"<p>" + RandomTestUtil.randomString() + "</p>",
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+		FileEntry fileEntry = _addFileEntry(StringPool.BLANK);
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		BackgroundTaskResult backgroundTaskResult = _execute(
+			_group.getGroupId(), false);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			backgroundTaskResult.getStatusMessage());
+
+		String groupURL =
+			_portal.getPathFriendlyURLPublic() + _group.getFriendlyURL();
+
+		ObjectEntry blogsEntryObjectEntry = _getObjectEntry(
+			"CMS_MIGRATION_BLOGS_ENTRY",
+			"CMS_MIGRATION_BLOGS_ENTRY_" + blogsEntry.getEntryId());
+
+		_assertURLMapping(
+			jsonObject, groupURL + _getObjectEntryPath(blogsEntryObjectEntry),
+			StringBundler.concat(groupURL, "/b/", blogsEntry.getUrlTitle()),
+			"update-manually", "blogs-entries");
+
+		ObjectEntry journalArticleObjectEntry = _getObjectEntry(journalArticle);
+
+		_assertURLMapping(
+			jsonObject,
+			groupURL + _getObjectEntryPath(journalArticleObjectEntry),
+			StringBundler.concat(
+				groupURL, "/w/",
+				journalArticle.getUrlTitle(LocaleUtil.getSiteDefault())),
+			"update-manually", "journal-articles");
+
+		FriendlyURLEntry friendlyURLEntry =
+			_friendlyURLEntryLocalService.getMainFriendlyURLEntry(
+				_portal.getClassNameId(FileEntry.class),
+				fileEntry.getFileEntryId());
+
+		JSONObject urlMappingJSONObject = _getURLMappingJSONObject(
+			jsonObject,
+			StringBundler.concat(
+				_portal.getPathContext(), "/documents/d",
+				_group.getFriendlyURL(), StringPool.SLASH,
+				friendlyURLEntry.getUrlTitle()));
+
+		Assert.assertEquals(
+			"update-manually", urlMappingJSONObject.getString("status"));
+		Assert.assertEquals(
+			"file-entries", urlMappingJSONObject.getString("type"));
+	}
+
+	@Test
+	public void testExecuteWithURLMappingsAndGlobalSourceGroup()
+		throws Exception {
+
+		Group companyGroup = _groupLocalService.getCompanyGroup(
+			_group.getCompanyId());
+
+		String title = RandomTestUtil.randomString();
+
+		JournalArticle globalJournalArticle = JournalTestUtil.addArticle(
+			companyGroup.getGroupId(), title, RandomTestUtil.randomString());
+
+		JournalTestUtil.addArticle(
+			_group.getGroupId(), title, RandomTestUtil.randomString());
+
+		JournalArticle otherGlobalJournalArticle = JournalTestUtil.addArticle(
+			companyGroup.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		try {
+			BackgroundTaskResult backgroundTaskResult = _execute(
+				companyGroup.getGroupId(), false);
+
+			_assertSuccessful(backgroundTaskResult);
+
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+				backgroundTaskResult.getStatusMessage());
+
+			String groupURL =
+				_portal.getPathFriendlyURLPublic() + _group.getFriendlyURL();
+
+			Locale locale = LocaleUtil.getSiteDefault();
+
+			String objectEntryPath = _getObjectEntryPath(
+				_getObjectEntry(globalJournalArticle));
+
+			_assertURLMapping(
+				jsonObject, groupURL + objectEntryPath,
+				StringBundler.concat(
+					groupURL, "/w/", globalJournalArticle.getUrlTitle(locale)),
+				"site-content", "journal-articles");
+
+			ObjectEntry otherObjectEntry = _getObjectEntry(
+				otherGlobalJournalArticle);
+
+			_assertURLMapping(
+				jsonObject, groupURL + _getObjectEntryPath(otherObjectEntry),
+				StringBundler.concat(
+					groupURL, "/w/",
+					otherGlobalJournalArticle.getUrlTitle(locale)),
+				"update-manually", "journal-articles");
+		}
+		finally {
+			_journalArticleLocalService.deleteArticle(globalJournalArticle);
+			_journalArticleLocalService.deleteArticle(
+				otherGlobalJournalArticle);
+		}
+	}
+
+	@Test
 	public void testExecuteWithUnavailableDefaultLanguage() throws Exception {
 		Map<Locale, String> contentMap = HashMapBuilder.put(
 			LocaleUtil.US, RandomTestUtil.randomString()
@@ -4565,6 +4685,18 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			localizedValues.toString(), localizedValues.containsValue(title));
 	}
 
+	private void _assertURLMapping(
+		JSONObject jsonObject, String newURL, String oldURL, String status,
+		String type) {
+
+		JSONObject urlMappingJSONObject = _getURLMappingJSONObject(
+			jsonObject, oldURL);
+
+		Assert.assertEquals(newURL, urlMappingJSONObject.getString("newURL"));
+		Assert.assertEquals(status, urlMappingJSONObject.getString("status"));
+		Assert.assertEquals(type, urlMappingJSONObject.getString("type"));
+	}
+
 	private void _deleteDepotEntry(DepotEntry depotEntry) throws Exception {
 		for (DepotEntryGroupRel depotEntryGroupRel :
 				_depotEntryGroupRelLocalService.getDepotEntryGroupRels(
@@ -4927,6 +5059,26 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 			objectDefinition.getObjectDefinitionId());
 	}
 
+	private String _getObjectEntryPath(ObjectEntry objectEntry)
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.getObjectDefinition(
+				objectEntry.getObjectDefinitionId());
+
+		FriendlyURLEntry friendlyURLEntry =
+			_friendlyURLEntryLocalService.getMainFriendlyURLEntry(
+				_portal.getClassNameId(objectDefinition.getClassName()),
+				objectEntry.getObjectEntryId());
+
+		Group depotGroup = _depotEntry.getGroup();
+
+		return StringBundler.concat(
+			StringPool.SLASH, objectDefinition.getFriendlyURLSeparator(),
+			depotGroup.getFriendlyURL(), StringPool.SLASH,
+			friendlyURLEntry.getUrlTitle());
+	}
+
 	private ObjectField _getTextObjectField(String name) {
 		return new TextObjectFieldBuilder(
 		).labelMap(
@@ -4951,6 +5103,24 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		sb.append("</root>");
 
 		return sb.toString();
+	}
+
+	private JSONObject _getURLMappingJSONObject(
+		JSONObject jsonObject, String oldURL) {
+
+		JSONArray jsonArray = jsonObject.getJSONArray("urlMappings");
+
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject urlMappingJSONObject = jsonArray.getJSONObject(i);
+
+			if (oldURL.equals(urlMappingJSONObject.getString("oldURL"))) {
+				return urlMappingJSONObject;
+			}
+		}
+
+		throw new AssertionError(
+			StringBundler.concat(
+				"No URL mapping for ", oldURL, " in ", jsonArray));
 	}
 
 	private boolean _hasViewResourcePermission(
@@ -5201,6 +5371,9 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 	@Inject
 	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
+
+	@Inject
+	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 
 	@DeleteAfterTestRun
 	private Group _group;

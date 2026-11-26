@@ -15,6 +15,7 @@ import React, {useMemo} from 'react';
 
 import {IMigration} from '../../types/Migration';
 import {downloadCSV} from '../../utils/downloadCSV';
+import URLMappings from './URLMappings';
 
 interface IMigrationProps {
 	migration: IMigration;
@@ -112,6 +113,7 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 		counts,
 		createDate,
 		errors,
+		exportURLMappingsURL,
 		inProgress,
 		itemTitle,
 		name,
@@ -119,6 +121,9 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 		progress,
 		statusDisplayType,
 		statusLabel,
+		urlMappings,
+		urlMappingsActionRequiredCount,
+		urlMappingsCount,
 		warnings,
 	} = migration;
 
@@ -206,6 +211,19 @@ function MigrationRow({migration, numberFormat}: IMigrationProps) {
 						messages={warnings}
 						sessionKey={`cms-migration-warnings-expanded-${backgroundTaskId}`}
 					/>
+
+					{exportURLMappingsURL && urlMappings && (
+						<URLMappings
+							exportURLMappingsURL={exportURLMappingsURL}
+							numberFormat={numberFormat}
+							sessionKey={`cms-migration-url-mappings-expanded-${backgroundTaskId}`}
+							urlMappings={urlMappings}
+							urlMappingsActionRequiredCount={
+								urlMappingsActionRequiredCount ?? 0
+							}
+							urlMappingsCount={urlMappingsCount ?? 0}
+						/>
+					)}
 				</>
 			)}
 		</div>

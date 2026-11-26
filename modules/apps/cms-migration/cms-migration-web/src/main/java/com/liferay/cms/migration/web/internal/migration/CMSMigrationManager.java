@@ -23,6 +23,7 @@ import com.liferay.cms.migration.web.internal.migration.structure.StructureEditP
 import com.liferay.cms.migration.web.internal.migration.template.DisplayPageTemplateMigrator;
 import com.liferay.cms.migration.web.internal.migration.template.JournalTemplateMigrator;
 import com.liferay.cms.migration.web.internal.migration.template.WidgetTemplateMigrator;
+import com.liferay.cms.migration.web.internal.migration.url.FriendlyURLMapper;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.object.constants.ObjectFieldConstants;
@@ -68,6 +69,7 @@ public class CMSMigrationManager {
 		DepotEntryGroupRelLocalService depotEntryGroupRelLocalService,
 		DisplayPageTemplateMigrator displayPageTemplateMigrator,
 		FileEntryMigrator fileEntryMigrator, FolderMigrator folderMigrator,
+		FriendlyURLMapper friendlyURLMapper,
 		GroupLocalService groupLocalService,
 		HTMLReferenceRewriter htmlReferenceRewriter,
 		JournalArticleMigrator journalArticleMigrator,
@@ -94,6 +96,7 @@ public class CMSMigrationManager {
 		_displayPageTemplateMigrator = displayPageTemplateMigrator;
 		_fileEntryMigrator = fileEntryMigrator;
 		_folderMigrator = folderMigrator;
+		_friendlyURLMapper = friendlyURLMapper;
 		_groupLocalService = groupLocalService;
 		_htmlReferenceRewriter = htmlReferenceRewriter;
 		_journalArticleMigrator = journalArticleMigrator;
@@ -252,6 +255,12 @@ public class CMSMigrationManager {
 		}
 
 		_rewriteContentLinks(cmsMigrationContext);
+
+		_sendPhase(
+			CMSMigrationConstants.PHASE_URL_MAPPINGS,
+			_friendlyURLMapper.getCount(cmsMigrationContext));
+
+		_friendlyURLMapper.mapAll(cmsMigrationContext);
 
 		if (!cmsMigrationContext.isRewritePages()) {
 			return;
@@ -446,6 +455,7 @@ public class CMSMigrationManager {
 	private final DisplayPageTemplateMigrator _displayPageTemplateMigrator;
 	private final FileEntryMigrator _fileEntryMigrator;
 	private final FolderMigrator _folderMigrator;
+	private final FriendlyURLMapper _friendlyURLMapper;
 	private final GroupLocalService _groupLocalService;
 	private final HTMLReferenceRewriter _htmlReferenceRewriter;
 	private final JournalArticleMigrator _journalArticleMigrator;

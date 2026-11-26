@@ -98,4 +98,6 @@ public class CMSMigrationConstants {
 
 	public static final String PHASE_TEMPLATES = "templates";
 
+	public static final String PHASE_URL_MAPPINGS = "url-mappings";
+
 }

@@ -14,6 +14,7 @@ import '@testing-library/jest-dom';
 import Migrations from '../../../src/main/resources/META-INF/resources/js/components/migrations/Migrations';
 import {
 	COMPLETED_MIGRATION,
+	COMPLETED_MIGRATION_WITH_URL_MAPPINGS,
 	IN_PROGRESS_MIGRATION,
 	QUEUED_MIGRATION,
 } from '../../mocks/migrations';
@@ -77,6 +78,7 @@ describe('Migrations', () => {
 						errors: ['Error 1'],
 						warnings: ['Warning 1'],
 					},
+					COMPLETED_MIGRATION_WITH_URL_MAPPINGS,
 					IN_PROGRESS_MIGRATION,
 				]}
 			/>
@@ -376,6 +378,136 @@ describe('Migrations', () => {
 		expect(
 			screen.getByRole('button', {name: 'cms-migration-x-warnings'})
 		).toHaveAttribute('aria-expanded', 'false');
+	});
+
+	it('lists the old URL, the new URL, and the status of every migrated item in a collapsed panel', () => {
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[COMPLETED_MIGRATION_WITH_URL_MAPPINGS]}
+			/>
+		);
+
+		expect(
+			screen.getByRole('button', {name: 'cms-migration-x-url-mappings'})
+		).toHaveAttribute('aria-expanded', 'false');
+
+		const [, documentRow, webContentRow, siteContentRow] = within(
+			screen.getByRole('table', {hidden: true})
+		).getAllByRole('row', {hidden: true});
+
+		expect(documentRow).toHaveTextContent(
+			'Documents/documents/d/guest/logo-png/documents/20/0/logo.png/uuidUpdate Manually'
+		);
+		expect(webContentRow).toHaveTextContent(
+			'Web Content/web/guest/w/welcome/web/guest/web-content/space/welcomeUpdate Manually'
+		);
+		expect(siteContentRow).toHaveTextContent(
+			'Web Content/web/guest/w/about/web/guest/web-content/space/aboutNot Needed'
+		);
+		expect(
+			screen.queryByText('cms-migration-showing-x-of-y-url-mappings')
+		).not.toBeInTheDocument();
+	});
+
+	it('highlights the old URLs that must be updated manually', () => {
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[COMPLETED_MIGRATION_WITH_URL_MAPPINGS]}
+			/>
+		);
+
+		const [documentLabel, webContentLabel] =
+			screen.getAllByText('Update Manually');
+
+		expect(documentLabel.closest('.label')).toHaveClass('label-warning');
+		expect(webContentLabel.closest('.label')).toHaveClass('label-warning');
+		expect(screen.getByText('Not Needed').closest('.label')).toHaveClass(
+			'label-secondary'
+		);
+	});
+
+	it('tells how many old URLs must be updated manually', () => {
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[COMPLETED_MIGRATION_WITH_URL_MAPPINGS]}
+			/>
+		);
+
+		expect(
+			screen.getByText(
+				'cms-migration-x-url-mappings-must-be-updated-manually'
+			)
+		).toBeInTheDocument();
+	});
+
+	it('does not tell to update URLs manually when no old URL must be updated', () => {
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[
+					{
+						...COMPLETED_MIGRATION_WITH_URL_MAPPINGS,
+						urlMappingsActionRequiredCount: 0,
+					},
+				]}
+			/>
+		);
+
+		expect(
+			screen.queryByText(
+				'cms-migration-x-url-mappings-must-be-updated-manually'
+			)
+		).not.toBeInTheDocument();
+	});
+
+	it('tells how many URL mappings are left out of the panel', () => {
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[
+					{
+						...COMPLETED_MIGRATION_WITH_URL_MAPPINGS,
+						urlMappingsCount: 250,
+					},
+				]}
+			/>
+		);
+
+		expect(
+			screen.getByText('cms-migration-showing-x-of-y-url-mappings')
+		).toBeInTheDocument();
+	});
+
+	it('links to the CSV file with every URL mapping', () => {
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[COMPLETED_MIGRATION_WITH_URL_MAPPINGS]}
+			/>
+		);
+
+		expect(
+			screen.getByRole('link', {
+				hidden: true,
+				name: 'cms-migration-download-csv',
+			})
+		).toHaveAttribute('href', 'http://localhost/export_url_mappings');
+	});
+
+	it('does not show the URL mappings panel without URL mappings', () => {
+		render(
+			<Migrations
+				migrationIncomplete={false}
+				migrations={[COMPLETED_MIGRATION]}
+			/>
+		);
+
+		expect(
+			screen.queryByRole('button', {name: 'cms-migration-x-url-mappings'})
+		).not.toBeInTheDocument();
 	});
 
 	it('does not show the completed migrations panel without completed migrations', () => {
