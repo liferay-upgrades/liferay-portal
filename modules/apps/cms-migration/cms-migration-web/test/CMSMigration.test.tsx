@@ -83,6 +83,40 @@ describe('CMSMigration', () => {
 		).toBeEnabled();
 	});
 
+	describe('target space', () => {
+		beforeEach(() => {
+			jest.spyOn(Liferay.Language, 'get').mockImplementation((key) =>
+				key === 'x-colon-y' ? '{0}: {1}' : key
+			);
+		});
+
+		afterEach(() => {
+			jest.restoreAllMocks();
+		});
+
+		it('shows the target space of each migration', () => {
+			renderCMSMigration([
+				{...QUEUED_MIGRATION, targetSpaceName: 'Space 1'},
+				{...COMPLETED_MIGRATION, targetSpaceName: 'Space 2'},
+			]);
+
+			expect(
+				screen.getByText('cms-migration-target-space: Space 1')
+			).toBeInTheDocument();
+			expect(
+				screen.getByText('cms-migration-target-space: Space 2')
+			).toBeInTheDocument();
+		});
+
+		it('does not show the target space when the migration has none', () => {
+			renderCMSMigration([{...COMPLETED_MIGRATION, targetSpaceName: ''}]);
+
+			expect(
+				screen.queryByText(/^cms-migration-target-space: /)
+			).not.toBeInTheDocument();
+		});
+	});
+
 	describe('polling', () => {
 		beforeEach(() => {
 			jest.useFakeTimers();

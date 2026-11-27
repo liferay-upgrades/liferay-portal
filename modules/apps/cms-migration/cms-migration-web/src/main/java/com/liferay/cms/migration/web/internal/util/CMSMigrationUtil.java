@@ -7,6 +7,8 @@ package com.liferay.cms.migration.web.internal.util;
 
 import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationReport;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryLocalServiceUtil;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
@@ -19,6 +21,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -26,6 +29,8 @@ import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.io.Serializable;
 
 import java.text.Format;
 
@@ -144,6 +149,29 @@ public class CMSMigrationUtil {
 			backgroundTaskStatus.getAttributes());
 	}
 
+	private static String _getTargetSpaceName(
+			BackgroundTask backgroundTask, ThemeDisplay themeDisplay)
+		throws Exception {
+
+		Map<String, Serializable> taskContextMap =
+			backgroundTask.getTaskContextMap();
+
+		if (taskContextMap == null) {
+			return null;
+		}
+
+		DepotEntry depotEntry = DepotEntryLocalServiceUtil.fetchDepotEntry(
+			GetterUtil.getLong(taskContextMap.get("depotEntryId")));
+
+		if (depotEntry == null) {
+			return null;
+		}
+
+		Group group = depotEntry.getGroup();
+
+		return group.getDescriptiveName(themeDisplay.getLocale());
+	}
+
 	private static JSONObject _toJSONObject(
 			BackgroundTask backgroundTask,
 			LiferayPortletResponse liferayPortletResponse, String redirect,
@@ -192,6 +220,8 @@ public class CMSMigrationUtil {
 			"statusLabel",
 			LanguageUtil.get(
 				themeDisplay.getLocale(), backgroundTask.getStatusLabel())
+		).put(
+			"targetSpaceName", _getTargetSpaceName(backgroundTask, themeDisplay)
 		).put(
 			"warnings",
 			JSONFactoryUtil.createJSONArray(cmsMigrationReport.getWarnings())

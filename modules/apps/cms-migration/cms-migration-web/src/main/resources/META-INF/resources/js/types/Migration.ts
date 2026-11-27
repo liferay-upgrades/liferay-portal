@@ -18,5 +18,6 @@ export interface IMigration {
 	progress: number;
 	statusDisplayType: LabelDisplayType;
 	statusLabel: string;
+	targetSpaceName?: string;
 	warnings: string[];
 }
