@@ -99,6 +99,7 @@ import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PortletPreferenceValueLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
+import com.liferay.portal.kernel.service.RepositoryLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
@@ -390,7 +391,8 @@ public class CMSMigrationBackgroundTaskExecutor
 				assetQueryReferenceRewriter, _fragmentEntryLinkLocalService,
 				_groupLocalService, infoItemReferenceMapper,
 				_journalArticleLocalService, _jsonFactory, _layoutLocalService,
-				_portal, _portletPreferencesLocalService, _resourceActions,
+				_portal, _portletPreferencesLocalService,
+				_repositoryLocalService, _resourceActions,
 				_resourceLocalService, _resourcePermissionLocalService,
 				_saxReader, widgetTemplateMigrator);
 
@@ -595,6 +597,9 @@ public class CMSMigrationBackgroundTaskExecutor
 
 	@Reference
 	private ReadingTimeEntryLocalService _readingTimeEntryLocalService;
+
+	@Reference
+	private RepositoryLocalService _repositoryLocalService;
 
 	@Reference
 	private ResourceActions _resourceActions;

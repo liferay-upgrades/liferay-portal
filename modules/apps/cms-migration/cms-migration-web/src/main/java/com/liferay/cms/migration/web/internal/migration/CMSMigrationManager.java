@@ -421,8 +421,9 @@ public class CMSMigrationManager {
 				cmsMigrationContext.getCMSMigrationReport(
 				).addError(
 					StringBundler.concat(
-						"Unable to rewrite the page ", layout.getFriendlyURL(),
-						": ", exception.getMessage())
+						"Unable to rewrite the page ",
+						CMSMigrationLayoutUtil.getDescription(layout), ": ",
+						exception.getMessage())
 				);
 			}
 		}
