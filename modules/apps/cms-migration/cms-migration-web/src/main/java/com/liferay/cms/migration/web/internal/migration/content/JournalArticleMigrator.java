@@ -90,6 +90,13 @@ public class JournalArticleMigrator {
 		_objectEntryWriter = objectEntryWriter;
 	}
 
+	public long getCount(CMSMigrationContext cmsMigrationContext) {
+		List<JournalArticleResource> journalArticleResources =
+			getJournalArticleResources(cmsMigrationContext);
+
+		return journalArticleResources.size();
+	}
+
 	public List<JournalArticleResource> getJournalArticleResources(
 		CMSMigrationContext cmsMigrationContext) {
 

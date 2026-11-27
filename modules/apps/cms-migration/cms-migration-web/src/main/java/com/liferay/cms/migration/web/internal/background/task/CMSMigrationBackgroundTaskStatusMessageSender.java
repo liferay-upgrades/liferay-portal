@@ -10,6 +10,8 @@ import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocal;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.messaging.Message;
 
+import java.util.Map;
+
 /**
  * @author Lino Alves
  */
@@ -21,6 +23,16 @@ public class CMSMigrationBackgroundTaskStatusMessageSender {
 		_backgroundTaskStatusMessageSender = backgroundTaskStatusMessageSender;
 	}
 
+	public void sendFinishStatusMessage(String bar, String phase) {
+		Message message = _createMessage("finish");
+
+		message.put("bar", bar);
+		message.put("phase", phase);
+
+		_backgroundTaskStatusMessageSender.sendBackgroundTaskStatusMessage(
+			message);
+	}
+
 	public void sendItemStatusMessage(String itemTitle) {
 		Message message = _createMessage("item");
 
@@ -30,11 +42,34 @@ public class CMSMigrationBackgroundTaskStatusMessageSender {
 			message);
 	}
 
-	public void sendPhaseStatusMessage(String phase, long total) {
+	public void sendItemStatusMessage(
+		String bar, String itemTitle, String phase) {
+
+		Message message = _createMessage("item");
+
+		message.put("bar", bar);
+		message.put("itemTitle", itemTitle);
+		message.put("phase", phase);
+
+		_backgroundTaskStatusMessageSender.sendBackgroundTaskStatusMessage(
+			message);
+	}
+
+	public void sendPhaseStatusMessage(String bar, String phase, long total) {
 		Message message = _createMessage("phase");
 
+		message.put("bar", bar);
 		message.put("phase", phase);
 		message.put("total", total);
+
+		_backgroundTaskStatusMessageSender.sendBackgroundTaskStatusMessage(
+			message);
+	}
+
+	public void sendPlanStatusMessage(Map<String, Map<String, Long>> plan) {
+		Message message = _createMessage("plan");
+
+		message.put("plan", plan);
 
 		_backgroundTaskStatusMessageSender.sendBackgroundTaskStatusMessage(
 			message);

@@ -17,10 +17,13 @@ import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.model.ObjectEntryFolder;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 /**
  * Recreates the Web Content and Documents and Media folder trees as object
@@ -38,6 +41,33 @@ public class FolderMigrator {
 		_dlFolderLocalService = dlFolderLocalService;
 		_journalFolderLocalService = journalFolderLocalService;
 		_objectEntryFolderLocalService = objectEntryFolderLocalService;
+	}
+
+	public long getDLFoldersCount(CMSMigrationContext cmsMigrationContext) {
+		DynamicQuery dynamicQuery = _dlFolderLocalService.dynamicQuery();
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq(
+				"groupId", cmsMigrationContext.getSourceGroupId()));
+		dynamicQuery.add(RestrictionsFactoryUtil.eq("hidden", false));
+		dynamicQuery.add(RestrictionsFactoryUtil.eq("mountPoint", false));
+
+		return _dlFolderLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	public long getJournalFoldersCount(
+		CMSMigrationContext cmsMigrationContext) {
+
+		DynamicQuery dynamicQuery = _journalFolderLocalService.dynamicQuery();
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq(
+				"groupId", cmsMigrationContext.getSourceGroupId()));
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq(
+				"status", WorkflowConstants.STATUS_APPROVED));
+
+		return _journalFolderLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
 	public void migrateDLFolders(CMSMigrationContext cmsMigrationContext)
@@ -146,6 +176,8 @@ public class FolderMigrator {
 				continue;
 			}
 
+			cmsMigrationContext.sendStatus(dlFolder.getName());
+
 			ObjectEntryFolder objectEntryFolder = _getOrAddObjectEntryFolder(
 				cmsMigrationContext, dlFolder.getDescription(),
 				CMSMigrationConstants.EXTERNAL_REFERENCE_CODE_PREFIX_DL_FOLDER +
@@ -171,6 +203,8 @@ public class FolderMigrator {
 		for (JournalFolder journalFolder :
 				_journalFolderLocalService.getFolders(
 					cmsMigrationContext.getSourceGroupId(), parentFolderId)) {
+
+			cmsMigrationContext.sendStatus(journalFolder.getName());
 
 			ObjectEntryFolder objectEntryFolder = _getOrAddObjectEntryFolder(
 				cmsMigrationContext, journalFolder.getDescription(),

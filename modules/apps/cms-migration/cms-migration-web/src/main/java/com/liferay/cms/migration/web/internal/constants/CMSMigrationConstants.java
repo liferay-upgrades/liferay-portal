@@ -10,6 +10,18 @@ package com.liferay.cms.migration.web.internal.constants;
  */
 public class CMSMigrationConstants {
 
+	public static final String BAR_BLOGS = "blogs";
+
+	public static final String BAR_DOCUMENTS_AND_MEDIA = "documents-and-media";
+
+	public static final String BAR_OBJECTS = "objects";
+
+	public static final String BAR_REPEATABLE_FIELDS = "repeatable-fields";
+
+	public static final String BAR_UPDATE_PAGES = "update-pages";
+
+	public static final String BAR_WEB_CONTENT = "web-content";
+
 	public static final String EXTERNAL_REFERENCE_CODE_PREFIX =
 		"CMS_MIGRATION_";
 
@@ -81,6 +93,10 @@ public class CMSMigrationConstants {
 
 	public static final String PHASE_BLOGS_ENTRIES = "blogs-entries";
 
+	public static final String PHASE_COLLECTIONS = "collections";
+
+	public static final String PHASE_CONTENT_LINKS = "content-links";
+
 	public static final String PHASE_DISPLAY_PAGE_TEMPLATES =
 		"display-page-templates";
 
@@ -90,9 +106,13 @@ public class CMSMigrationConstants {
 
 	public static final String PHASE_JOURNAL_ARTICLES = "journal-articles";
 
+	public static final String PHASE_JOURNAL_FOLDERS = "journal-folders";
+
 	public static final String PHASE_OBJECT_ENTRIES = "object-entries";
 
 	public static final String PHASE_PAGES = "pages";
+
+	public static final String PHASE_REPEATABLE_GROUPS = "repeatable-groups";
 
 	public static final String PHASE_STRUCTURES = "structures";
 

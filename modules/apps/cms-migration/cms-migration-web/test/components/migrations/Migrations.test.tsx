@@ -112,7 +112,11 @@ describe('Migrations', () => {
 		expect(within(warnings).getAllByRole('listitem')).toHaveLength(2);
 	});
 
-	it('shows the progress of a migration in progress', () => {
+	it('shows the overall progress, the item being migrated below it, and one bar per option of a migration in progress', () => {
+		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
+			key === 'cms-migration-migrating-x' ? 'Migrating "{0}"' : key
+		);
+
 		render(
 			<Migrations
 				migrationIncomplete={true}
@@ -121,12 +125,24 @@ describe('Migrations', () => {
 		);
 
 		expect(screen.getByText('In Progress')).toBeInTheDocument();
-		expect(screen.getByText('Web Content')).toBeInTheDocument();
-		expect(screen.getByText('Welcome')).toBeInTheDocument();
-		expect(screen.getByRole('progressbar')).toHaveAttribute(
-			'aria-valuenow',
-			'40'
+		expect(screen.getByText('cms-migration-overall')).toBeInTheDocument();
+
+		const overallProgressBar = screen.getByRole('progressbar', {
+			name: 'cms-migration-overall',
+		});
+
+		expect(overallProgressBar).toHaveAttribute('aria-valuenow', '40');
+
+		const item = screen.getByText('Migrating "Welcome"');
+
+		expect(overallProgressBar.compareDocumentPosition(item)).toBe(
+			Node.DOCUMENT_POSITION_FOLLOWING
 		);
+		expect(
+			item.compareDocumentPosition(screen.getByText('Web Content'))
+		).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+		expect(screen.getByText('Update Pages')).toBeInTheDocument();
+		expect(screen.getAllByRole('progressbar')).toHaveLength(3);
 	});
 
 	it('does not rerender a completed migration when the migrations are updated', () => {
@@ -494,5 +510,31 @@ describe('Migrations', () => {
 
 			expect(csv).toMatch(/error,Error 1\s+warning,Warning 1/);
 		});
+	});
+
+	it('shows that a migration in progress is preparing while it has no bars', () => {
+		render(
+			<Migrations
+				migrationIncomplete={true}
+				migrations={[{...IN_PROGRESS_MIGRATION, bars: []}]}
+			/>
+		);
+
+		expect(screen.getByText('cms-migration-preparing')).toBeInTheDocument();
+		expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+		expect(screen.queryByText('0')).not.toBeInTheDocument();
+	});
+
+	it('does not show the item line while no item is being migrated', () => {
+		render(
+			<Migrations
+				migrationIncomplete={true}
+				migrations={[{...IN_PROGRESS_MIGRATION, itemTitle: ''}]}
+			/>
+		);
+
+		expect(
+			screen.queryByText('cms-migration-migrating-x')
+		).not.toBeInTheDocument();
 	});
 });

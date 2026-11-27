@@ -77,6 +77,12 @@ public class BlogsEntryMigrator {
 				QueryUtil.ALL_POS, null));
 	}
 
+	public long getCount(CMSMigrationContext cmsMigrationContext) {
+		return _blogsEntryLocalService.getGroupEntriesCount(
+			cmsMigrationContext.getSourceGroupId(),
+			new QueryDefinition<>(WorkflowConstants.STATUS_ANY));
+	}
+
 	public ObjectEntry migrate(
 			CMSMigrationContext cmsMigrationContext, BlogsEntry blogsEntry)
 		throws PortalException {

@@ -5,6 +5,7 @@
 
 package com.liferay.cms.migration.web.internal.migration;
 
+import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskStatusMessageSender;
 import com.liferay.cms.migration.web.internal.migration.reference.ReferenceScope;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -27,7 +28,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Holds the state of one migration run: the source site, the target space,
@@ -44,7 +44,9 @@ public class CMSMigrationContext {
 		boolean migrateObjectEntries, boolean migrateRepeatableFields,
 		CMSMigrationReport cmsMigrationReport, boolean rewritePages,
 		ServiceContext serviceContext, boolean skipUnchangedEntries,
-		Group sourceGroup, Consumer<String> statusConsumer,
+		Group sourceGroup,
+		CMSMigrationBackgroundTaskStatusMessageSender
+			cmsMigrationBackgroundTaskStatusMessageSender,
 		String[] titleObjectFieldNames, long userId) {
 
 		_depotEntry = depotEntry;
@@ -59,7 +61,8 @@ public class CMSMigrationContext {
 		_serviceContext = serviceContext;
 		_skipUnchangedEntries = skipUnchangedEntries;
 		_sourceGroup = sourceGroup;
-		_statusConsumer = statusConsumer;
+		_cmsMigrationBackgroundTaskStatusMessageSender =
+			cmsMigrationBackgroundTaskStatusMessageSender;
 		_titleObjectFieldNames = titleObjectFieldNames;
 		_userId = userId;
 
@@ -334,7 +337,13 @@ public class CMSMigrationContext {
 	}
 
 	public void sendStatus(String itemTitle) {
-		_statusConsumer.accept(itemTitle);
+		_cmsMigrationBackgroundTaskStatusMessageSender.sendItemStatusMessage(
+			itemTitle);
+	}
+
+	public void sendStatus(String bar, String itemTitle, String phase) {
+		_cmsMigrationBackgroundTaskStatusMessageSender.sendItemStatusMessage(
+			bar, itemTitle, phase);
 	}
 
 	public void setFileEntryResolver(
@@ -354,6 +363,8 @@ public class CMSMigrationContext {
 
 	private final Map<Long, ReferenceScope> _assetListEntryReferenceScopes =
 		new HashMap<>();
+	private final CMSMigrationBackgroundTaskStatusMessageSender
+		_cmsMigrationBackgroundTaskStatusMessageSender;
 	private final CMSMigrationReport _cmsMigrationReport;
 	private final Map<Long, DDMStructure> _ddmStructures =
 		new LinkedHashMap<>();
@@ -386,7 +397,6 @@ public class CMSMigrationContext {
 	private final ServiceContext _serviceContext;
 	private final boolean _skipUnchangedEntries;
 	private final Group _sourceGroup;
-	private final Consumer<String> _statusConsumer;
 	private final Set<Long> _templateDDMStructureIds = new HashSet<>();
 	private final Map<String, Long> _templateEntryIds = new HashMap<>();
 	private final String[] _titleObjectFieldNames;

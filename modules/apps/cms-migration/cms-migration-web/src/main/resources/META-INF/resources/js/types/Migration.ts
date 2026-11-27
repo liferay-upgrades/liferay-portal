@@ -7,6 +7,7 @@ import {LabelDisplayType} from '@clayui/label';
 
 export interface IMigration {
 	backgroundTaskId: number;
+	bars?: IMigrationBar[];
 	completed: boolean;
 	counts: {label: string; value: number}[];
 	createDate: string;
@@ -14,9 +15,18 @@ export interface IMigration {
 	inProgress: boolean;
 	itemTitle?: string;
 	name: string;
-	phaseLabel?: string;
-	progress: number;
+	overallProgress?: number;
 	statusDisplayType: LabelDisplayType;
 	statusLabel: string;
 	warnings: string[];
+}
+
+export interface IMigrationBar {
+	completed: number;
+	current: boolean;
+	key: string;
+	label: string;
+	pending: boolean;
+	progress: number;
+	total: number;
 }

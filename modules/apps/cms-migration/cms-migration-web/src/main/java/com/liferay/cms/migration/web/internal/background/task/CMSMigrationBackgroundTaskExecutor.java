@@ -205,9 +205,7 @@ public class CMSMigrationBackgroundTaskExecutor
 					serviceContext,
 					GetterUtil.getBoolean(
 						taskContextMap.get("skipUnchangedEntries")),
-					sourceGroup,
-					cmsMigrationBackgroundTaskStatusMessageSender::
-						sendItemStatusMessage,
+					sourceGroup, cmsMigrationBackgroundTaskStatusMessageSender,
 					StringUtil.split(
 						GetterUtil.getString(
 							taskContextMap.get("titleObjectFieldNames"))),
@@ -290,11 +288,13 @@ public class CMSMigrationBackgroundTaskExecutor
 		ObjectDefinitionMigrator objectDefinitionMigrator =
 			new ObjectDefinitionMigrator(
 				_ddmStructureLocalService, _ddmStructureVersionLocalService,
-				_language, _listTypeDefinitionLocalService,
-				_listTypeEntryLocalService, _objectDefinitionLocalService,
+				_journalArticleLocalService, _language,
+				_listTypeDefinitionLocalService, _listTypeEntryLocalService,
+				_objectDefinitionLocalService,
 				_objectDefinitionSettingLocalService, _objectEntryLocalService,
 				_objectFieldLocalService, _objectFieldSettingLocalService,
-				_objectFolderLocalService, _objectRelationshipLocalService);
+				_objectFolderLocalService, _objectRelationshipLocalService,
+				_portal);
 
 		ResourcePermissionMigrator resourcePermissionMigrator =
 			new ResourcePermissionMigrator(

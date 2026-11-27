@@ -9,8 +9,6 @@ import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgr
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationReport;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
-import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusRegistryUtil;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -23,7 +21,6 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -81,28 +78,6 @@ public class CMSMigrationUtil {
 		}
 	}
 
-	private static int _getProgress(BackgroundTask backgroundTask) {
-		BackgroundTaskStatus backgroundTaskStatus =
-			BackgroundTaskStatusRegistryUtil.getBackgroundTaskStatus(
-				backgroundTask.getBackgroundTaskId());
-
-		if (backgroundTaskStatus == null) {
-			return 0;
-		}
-
-		long total = GetterUtil.getLong(
-			backgroundTaskStatus.getAttribute("total"));
-
-		if (total == 0) {
-			return 0;
-		}
-
-		long counter = GetterUtil.getLong(
-			backgroundTaskStatus.getAttribute("counter"));
-
-		return (int)Math.min(100, Math.round((double)counter / total * 100));
-	}
-
 	private static String _getStatusDisplayType(int status) {
 		if (status == BackgroundTaskConstants.STATUS_CANCELLED) {
 			return "secondary";
@@ -126,22 +101,6 @@ public class CMSMigrationUtil {
 		}
 
 		return "secondary";
-	}
-
-	private static JSONObject _getStatusJSONObject(
-			BackgroundTask backgroundTask)
-		throws Exception {
-
-		BackgroundTaskStatus backgroundTaskStatus =
-			BackgroundTaskStatusRegistryUtil.getBackgroundTaskStatus(
-				backgroundTask.getBackgroundTaskId());
-
-		if (backgroundTaskStatus == null) {
-			return JSONFactoryUtil.createJSONObject();
-		}
-
-		return JSONFactoryUtil.createJSONObject(
-			backgroundTaskStatus.getAttributes());
 	}
 
 	private static JSONObject _toJSONObject(
@@ -184,8 +143,6 @@ public class CMSMigrationUtil {
 		).put(
 			"name", backgroundTask.getName()
 		).put(
-			"progress", _getProgress(backgroundTask)
-		).put(
 			"statusDisplayType",
 			_getStatusDisplayType(backgroundTask.getStatus())
 		).put(
@@ -212,19 +169,8 @@ public class CMSMigrationUtil {
 		}
 
 		if (backgroundTask.isInProgress()) {
-			JSONObject statusJSONObject = _getStatusJSONObject(backgroundTask);
-
-			jsonObject.put(
-				"itemTitle", statusJSONObject.getString("itemTitle"));
-
-			String phase = statusJSONObject.getString("phase");
-
-			if (Validator.isNotNull(phase)) {
-				jsonObject.put(
-					"phaseLabel",
-					LanguageUtil.get(
-						themeDisplay.getLocale(), "cms-migration-" + phase));
-			}
+			CMSMigrationProgressUtil.putProgress(
+				backgroundTask, jsonObject, themeDisplay.getLocale());
 		}
 
 		return jsonObject;

@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -58,6 +59,13 @@ public class AssetListEntryReferenceRewriter {
 			assetListEntrySegmentsEntryRelLocalService;
 		_assetQueryReferenceRewriter = assetQueryReferenceRewriter;
 		_infoItemReferenceMapper = infoItemReferenceMapper;
+	}
+
+	public long getCount(long groupId) {
+		List<AssetListEntry> assetListEntries =
+			_assetListEntryLocalService.getAssetListEntries(groupId);
+
+		return assetListEntries.size();
 	}
 
 	public void rewrite(CMSMigrationContext cmsMigrationContext) {

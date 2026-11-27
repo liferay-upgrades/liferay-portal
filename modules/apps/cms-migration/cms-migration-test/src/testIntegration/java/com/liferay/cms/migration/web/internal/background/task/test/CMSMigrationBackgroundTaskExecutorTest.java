@@ -8,6 +8,8 @@ package com.liferay.cms.migration.web.internal.background.task.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.asset.list.constants.AssetListEntryTypeConstants;
+import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.asset.publisher.constants.AssetPublisherPortletKeys;
 import com.liferay.blogs.constants.BlogsPortletKeys;
 import com.liferay.blogs.model.BlogsEntry;
@@ -22,9 +24,11 @@ import com.liferay.document.library.helper.DLURLHelper;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
+import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
+import com.liferay.document.library.kernel.service.DLFolderLocalService;
 import com.liferay.document.library.kernel.store.DLStoreUtil;
 import com.liferay.dynamic.data.mapping.constants.DDMTemplateConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
@@ -91,6 +95,7 @@ import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskExecutor;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskResult;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatusMessageSender;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
@@ -101,6 +106,7 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
@@ -132,6 +138,7 @@ import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.templateparser.TemplateNode;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
@@ -182,6 +189,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1129,6 +1137,234 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		Assert.assertEquals(
 			ObjectFieldConstants.DB_TYPE_DOUBLE, objectField.getDBType());
 		Assert.assertTrue(Validator.isNull(objectField.getIndexedLanguageId()));
+	}
+
+	@Test
+	public void testExecuteWithProgress() throws Exception {
+		_dlAppLocalService.addFolder(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(), StringPool.BLANK,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		_addFileEntry(StringPool.BLANK);
+		_addFileEntry(StringPool.BLANK);
+
+		JournalTestUtil.addFolder(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString());
+
+		JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
+
+		DDMFormField ddmFormField = DDMFormTestUtil.createDDMFormField(
+			"name", "name", DDMFormFieldTypeConstants.TEXT, "string", false,
+			true, false);
+
+		ddmFormField.addNestedDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"url", "url", DDMFormFieldTypeConstants.TEXT, "string", false,
+				true, false));
+
+		ddmForm.addDDMFormField(ddmFormField);
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			_group.getGroupId(), JournalArticle.class.getName(), ddmForm);
+
+		JournalTestUtil.addArticleWithXMLContent(
+			_group.getGroupId(),
+			DDMStructureTestUtil.getSampleStructuredContent(
+				"name", RandomTestUtil.randomString()),
+			ddmStructure.getStructureKey(), null);
+
+		DDMTemplateTestUtil.addTemplate(
+			_group.getGroupId(), _portal.getClassNameId(DDMStructure.class),
+			ddmStructure.getStructureId(),
+			_portal.getClassNameId(JournalArticle.class),
+			TemplateConstants.LANG_TYPE_FTL, "${name.getData()}",
+			LocaleUtil.US);
+		DDMTemplateTestUtil.addTemplate(
+			_group.getGroupId(), _portal.getClassNameId(DDMStructure.class),
+			ddmStructure.getStructureId(),
+			_portal.getClassNameId(JournalArticle.class),
+			TemplateConstants.LANG_TYPE_VM, "$name.getData()", LocaleUtil.US);
+
+		_blogsEntryLocalService.addEntry(
+			TestPropsValues.getUserId(), RandomTestUtil.randomString(),
+			"<p>" + RandomTestUtil.randomString() + "</p>",
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		_assetListEntryLocalService.addAssetListEntry(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			RandomTestUtil.randomString(),
+			AssetListEntryTypeConstants.TYPE_MANUAL,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		LayoutTestUtil.addTypeContentLayout(_group);
+
+		List<Message> messages = new ArrayList<>();
+
+		BackgroundTaskResult backgroundTaskResult = _executeWithStatusMessages(
+			messages);
+
+		_assertSuccessful(backgroundTaskResult);
+
+		Set<String> finishedPhaseKeys = new HashSet<>();
+		Map<String, Long> phaseItemsCounts = new HashMap<>();
+		String phaseKey = null;
+		Map<String, Long> phaseTotals = new HashMap<>();
+		Map<String, Map<String, Long>> plan = null;
+
+		for (Message message : messages) {
+			String messageType = message.getString("messageType");
+
+			if (messageType.equals("finish")) {
+				String finishedPhaseKey = StringBundler.concat(
+					message.getString("bar"), StringPool.POUND,
+					message.getString("phase"));
+
+				finishedPhaseKeys.add(finishedPhaseKey);
+
+				phaseTotals.putIfAbsent(
+					finishedPhaseKey,
+					phaseItemsCounts.getOrDefault(finishedPhaseKey, 0L));
+			}
+			else if (messageType.equals("item")) {
+				String itemPhaseKey = phaseKey;
+
+				if (Validator.isNotNull(message.getString("bar"))) {
+					itemPhaseKey = StringBundler.concat(
+						message.getString("bar"), StringPool.POUND,
+						message.getString("phase"));
+				}
+
+				phaseItemsCounts.merge(itemPhaseKey, 1L, Long::sum);
+			}
+			else if (messageType.equals("phase")) {
+				phaseKey = StringBundler.concat(
+					message.getString("bar"), StringPool.POUND,
+					message.getString("phase"));
+
+				phaseTotals.put(phaseKey, message.getLong("total"));
+			}
+			else if (messageType.equals("plan")) {
+				plan = (Map<String, Map<String, Long>>)message.get("plan");
+			}
+		}
+
+		Map<String, Long> repeatableFieldsPhaseTotals = plan.get(
+			"repeatable-fields");
+
+		Assert.assertTrue(
+			repeatableFieldsPhaseTotals.get("repeatable-groups") > 0);
+
+		for (Map.Entry<String, Map<String, Long>> entry : plan.entrySet()) {
+			Map<String, Long> planPhaseTotals = entry.getValue();
+
+			for (Map.Entry<String, Long> phaseEntry :
+					planPhaseTotals.entrySet()) {
+
+				String key = StringBundler.concat(
+					entry.getKey(), StringPool.POUND, phaseEntry.getKey());
+
+				Assert.assertTrue(key, finishedPhaseKeys.contains(key));
+
+				if (phaseEntry.getValue() != null) {
+					Assert.assertEquals(
+						key, phaseEntry.getValue(), phaseTotals.get(key));
+				}
+			}
+		}
+
+		for (Map.Entry<String, Long> entry : phaseTotals.entrySet()) {
+			Assert.assertEquals(
+				entry.getKey(), entry.getValue(),
+				phaseItemsCounts.getOrDefault(entry.getKey(), 0L));
+		}
+
+		String statusMessage = backgroundTaskResult.getStatusMessage();
+
+		Assert.assertTrue(
+			statusMessage, statusMessage.contains("Skipped the template"));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(statusMessage);
+
+		JSONObject countsJSONObject = jsonObject.getJSONObject("counts");
+
+		Assert.assertEquals(
+			phaseTotals.get("web-content#templates"),
+			Long.valueOf(countsJSONObject.getLong("templates")));
+	}
+
+	@Test
+	public void testExecuteWithProgressAndDLFolderInHiddenDLFolder()
+		throws Exception {
+
+		DLFolder dlFolder = _dlFolderLocalService.addFolder(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			_group.getGroupId(), false,
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(), StringPool.BLANK, true,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		_dlFolderLocalService.addFolder(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			_group.getGroupId(), false, dlFolder.getFolderId(),
+			RandomTestUtil.randomString(), StringPool.BLANK, false,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		List<Message> messages = new ArrayList<>();
+
+		_assertSuccessful(_executeWithStatusMessages(messages));
+
+		boolean finished = false;
+		boolean foldersPhase = false;
+		long itemsCount = 0;
+		Map<String, Map<String, Long>> plan = null;
+		List<Long> totals = new ArrayList<>();
+
+		for (Message message : messages) {
+			String messageType = message.getString("messageType");
+
+			if (messageType.equals("finish")) {
+				if (Objects.equals(
+						message.getString("bar"), "documents-and-media") &&
+					Objects.equals(message.getString("phase"), "folders")) {
+
+					finished = true;
+				}
+			}
+			else if (messageType.equals("item")) {
+				if (foldersPhase) {
+					itemsCount++;
+				}
+			}
+			else if (messageType.equals("phase")) {
+				foldersPhase =
+					Objects.equals(
+						message.getString("bar"), "documents-and-media") &&
+					Objects.equals(message.getString("phase"), "folders");
+
+				if (foldersPhase) {
+					totals.add(message.getLong("total"));
+				}
+			}
+			else if (messageType.equals("plan")) {
+				plan = (Map<String, Map<String, Long>>)message.get("plan");
+			}
+		}
+
+		Map<String, Long> phaseTotals = plan.get("documents-and-media");
+
+		Assert.assertEquals(Long.valueOf(1), phaseTotals.get("folders"));
+
+		Assert.assertEquals(Arrays.asList(1L), totals);
+		Assert.assertTrue(finished);
+		Assert.assertEquals(0, itemsCount);
 	}
 
 	@Test
@@ -4724,6 +4960,25 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 		}
 	}
 
+	private BackgroundTaskResult _executeWithStatusMessages(
+			List<Message> messages)
+		throws Exception {
+
+		BackgroundTaskStatusMessageSender backgroundTaskStatusMessageSender =
+			ReflectionTestUtil.getAndSetFieldValue(
+				_backgroundTaskExecutor, "_backgroundTaskStatusMessageSender",
+				(BackgroundTaskStatusMessageSender)messages::add);
+
+		try {
+			return _execute(_group.getGroupId(), true, true);
+		}
+		finally {
+			ReflectionTestUtil.setFieldValue(
+				_backgroundTaskExecutor, "_backgroundTaskStatusMessageSender",
+				backgroundTaskStatusMessageSender);
+		}
+	}
+
 	private PortletPreferences _getAssetPublisherPortletPreferences(
 			Layout layout)
 		throws Exception {
@@ -5165,6 +5420,9 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 	@Inject
 	private AssetEntryLocalService _assetEntryLocalService;
 
+	@Inject
+	private AssetListEntryLocalService _assetListEntryLocalService;
+
 	@Inject(
 		filter = "background.task.executor.class.name=com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor"
 	)
@@ -5195,6 +5453,9 @@ public class CMSMigrationBackgroundTaskExecutorTest {
 
 	@Inject
 	private DLFileEntryTypeLocalService _dlFileEntryTypeLocalService;
+
+	@Inject
+	private DLFolderLocalService _dlFolderLocalService;
 
 	@Inject
 	private DLURLHelper _dlURLHelper;
