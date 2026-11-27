@@ -4,15 +4,15 @@
  */
 
 import ClayAlert from '@clayui/alert';
-import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
+import ClayButton from '@clayui/button';
 import ClayForm, {ClayCheckbox, ClayInput, ClaySelect} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
-import {ClayTooltipProvider} from '@clayui/tooltip';
 import React, {useState} from 'react';
 
 import {IOption} from '../../types/Form';
 import {CONTENT_TYPES, CREATE_NEW_SPACE} from '../../utils/constants';
+import HelpTooltipIcon from '../forms/HelpTooltipIcon';
 
 interface IProps {
 	groups: IOption[];
@@ -132,77 +132,57 @@ export default function Configuration({
 					)}
 				</ClayLayout.SheetSection>
 
-				<ClayTooltipProvider>
-					<ClayLayout.SheetSection>
-						<h3 className="sheet-subtitle">
-							{Liferay.Language.get(
-								'cms-migration-content-types'
-							)}
-						</h3>
+				<ClayLayout.SheetSection>
+					<h3 className="sheet-subtitle">
+						{Liferay.Language.get('cms-migration-content-types')}
+					</h3>
 
-						{CONTENT_TYPES.map(
-							({defaultChecked, help, label, name}) => (
-								<ClayForm.Group
-									className="align-items-start d-flex"
-									key={name}
-								>
-									<UncontrolledClayCheckbox
-										containerProps={{
-											className:
-												'custom-control-primary mb-0',
-										}}
-										defaultChecked={defaultChecked ?? true}
-										label={label}
-										name={`${portletNamespace}${name}`}
-										value="true"
-									/>
-
-									{help && (
-										<ClayButtonWithIcon
-											aria-label={help}
-											className="component-action mt-n2"
-											data-tooltip-align="top"
-											displayType="unstyled"
-											size="sm"
-											style={
-												{
-													'--component-action-hover-background-color':
-														'transparent',
-												} as React.CSSProperties
-											}
-											symbol="question-circle-full"
-											title={help}
-										/>
-									)}
-								</ClayForm.Group>
-							)
-						)}
-
-						<ClayForm.Group>
-							<label
-								htmlFor={`${portletNamespace}titleObjectFieldNames`}
+					{CONTENT_TYPES.map(
+						({defaultChecked, help, label, name}) => (
+							<ClayForm.Group
+								className="align-items-start d-flex"
+								key={name}
 							>
+								<UncontrolledClayCheckbox
+									containerProps={{
+										className:
+											'custom-control-primary mb-0',
+									}}
+									defaultChecked={defaultChecked ?? true}
+									label={label}
+									name={`${portletNamespace}${name}`}
+									value="true"
+								/>
+
+								{help && <HelpTooltipIcon message={help} />}
+							</ClayForm.Group>
+						)
+					)}
+
+					<ClayForm.Group>
+						<label
+							htmlFor={`${portletNamespace}titleObjectFieldNames`}
+						>
+							{Liferay.Language.get(
+								'cms-migration-title-object-field-names'
+							)}
+						</label>
+
+						<ClayInput
+							id={`${portletNamespace}titleObjectFieldNames`}
+							name={`${portletNamespace}titleObjectFieldNames`}
+							type="text"
+						/>
+
+						<ClayForm.FeedbackGroup>
+							<ClayForm.Text>
 								{Liferay.Language.get(
-									'cms-migration-title-object-field-names'
+									'cms-migration-title-object-field-names-help'
 								)}
-							</label>
-
-							<ClayInput
-								id={`${portletNamespace}titleObjectFieldNames`}
-								name={`${portletNamespace}titleObjectFieldNames`}
-								type="text"
-							/>
-
-							<ClayForm.FeedbackGroup>
-								<ClayForm.Text>
-									{Liferay.Language.get(
-										'cms-migration-title-object-field-names-help'
-									)}
-								</ClayForm.Text>
-							</ClayForm.FeedbackGroup>
-						</ClayForm.Group>
-					</ClayLayout.SheetSection>
-				</ClayTooltipProvider>
+							</ClayForm.Text>
+						</ClayForm.FeedbackGroup>
+					</ClayForm.Group>
+				</ClayLayout.SheetSection>
 
 				{migrationIncomplete && (
 					<ClayAlert displayType="warning">

@@ -232,7 +232,7 @@ describe('Configuration', () => {
 		renderConfiguration();
 
 		expect(
-			screen.getByTitle('cms-migration-rewrite-pages-help')
+			screen.getByRole('img', {name: 'cms-migration-rewrite-pages-help'})
 		).toBeInTheDocument();
 	});
 
@@ -240,7 +240,9 @@ describe('Configuration', () => {
 		renderConfiguration();
 
 		expect(
-			screen.getByTitle('cms-migration-repeatable-fields-help')
+			screen.getByRole('img', {
+				name: 'cms-migration-repeatable-fields-help',
+			})
 		).toBeInTheDocument();
 	});
 
