@@ -5,7 +5,7 @@
 
 // eslint-disable-next-line @liferay/portal/no-cross-module-deep-import
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
-import {render, screen} from '@testing-library/react';
+import {render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -109,6 +109,16 @@ describe('Configuration', () => {
 		expect(form).toHaveFormValues({
 			[`${PORTLET_NAMESPACE}sourceGroupId`]: '2',
 		});
+	});
+
+	it('marks the source site as required', () => {
+		renderConfiguration();
+
+		expect(
+			within(screen.getByText('cms-migration-source-site')).getByText(
+				'required'
+			)
+		).toBeInTheDocument();
 	});
 
 	it('lists the source sites and the target spaces', () => {
@@ -232,7 +242,7 @@ describe('Configuration', () => {
 		renderConfiguration();
 
 		expect(
-			screen.getByTitle('cms-migration-rewrite-pages-help')
+			screen.getByRole('img', {name: 'cms-migration-rewrite-pages-help'})
 		).toBeInTheDocument();
 	});
 
@@ -240,7 +250,9 @@ describe('Configuration', () => {
 		renderConfiguration();
 
 		expect(
-			screen.getByTitle('cms-migration-repeatable-fields-help')
+			screen.getByRole('img', {
+				name: 'cms-migration-repeatable-fields-help',
+			})
 		).toBeInTheDocument();
 	});
 
