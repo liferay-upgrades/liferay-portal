@@ -11,6 +11,7 @@ export interface IMigration {
 	counts: {label: string; value: number}[];
 	createDate: string;
 	errors: string[];
+	exportURLMappingsURL?: string;
 	inProgress: boolean;
 	itemTitle?: string;
 	name: string;
@@ -18,5 +19,17 @@ export interface IMigration {
 	progress: number;
 	statusDisplayType: LabelDisplayType;
 	statusLabel: string;
+	urlMappings?: IURLMapping[];
+	urlMappingsActionRequiredCount?: number;
+	urlMappingsCount?: number;
 	warnings: string[];
+}
+
+export interface IURLMapping {
+	actionRequired: boolean;
+	newURL: string;
+	oldURL: string;
+	status: string;
+	statusLabel: string;
+	type: string;
 }

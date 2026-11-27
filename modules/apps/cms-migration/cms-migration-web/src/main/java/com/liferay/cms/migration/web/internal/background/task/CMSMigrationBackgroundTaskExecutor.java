@@ -40,6 +40,7 @@ import com.liferay.cms.migration.web.internal.migration.structure.StructureEditP
 import com.liferay.cms.migration.web.internal.migration.template.DisplayPageTemplateMigrator;
 import com.liferay.cms.migration.web.internal.migration.template.JournalTemplateMigrator;
 import com.liferay.cms.migration.web.internal.migration.template.WidgetTemplateMigrator;
+import com.liferay.cms.migration.web.internal.migration.url.FriendlyURLMapper;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
@@ -377,6 +378,10 @@ public class CMSMigrationBackgroundTaskExecutor
 				_objectEntryVersionLocalService, _objectFieldLocalService,
 				_objectRelationshipLocalService);
 
+		FriendlyURLMapper friendlyURLMapper = new FriendlyURLMapper(
+			_dlAppLocalService, _friendlyURLEntryLocalService,
+			_groupLocalService, htmlReferenceRewriter, _portal);
+
 		WidgetTemplateMigrator widgetTemplateMigrator =
 			new WidgetTemplateMigrator(
 				_ddmTemplateLocalService, _portal,
@@ -410,8 +415,8 @@ public class CMSMigrationBackgroundTaskExecutor
 			_assetEntryLocalService, assetListEntryReferenceRewriter,
 			blogsEntryMigrator, cmsMigrationBackgroundTaskStatusMessageSender,
 			_depotEntryGroupRelLocalService, displayPageTemplateMigrator,
-			fileEntryMigrator, folderMigrator, _groupLocalService,
-			htmlReferenceRewriter, journalArticleMigrator,
+			fileEntryMigrator, folderMigrator, friendlyURLMapper,
+			_groupLocalService, htmlReferenceRewriter, journalArticleMigrator,
 			journalTemplateMigrator, _layoutLocalService,
 			layoutReferenceRewriter, _objectDefinitionLocalService,
 			objectDefinitionMigrator, _objectEntryLocalService,

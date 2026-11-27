@@ -7,6 +7,7 @@ package com.liferay.cms.migration.web.internal.util;
 
 import com.liferay.cms.migration.web.internal.background.task.CMSMigrationBackgroundTaskExecutor;
 import com.liferay.cms.migration.web.internal.migration.CMSMigrationReport;
+import com.liferay.cms.migration.web.internal.migration.CMSMigrationURLMapping;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskStatus;
@@ -17,10 +18,9 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.portlet.url.builder.ResourceURLBuilder;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.text.Format;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,32 +54,6 @@ public class CMSMigrationUtil {
 			backgroundTask -> _toJSONObject(
 				backgroundTask, liferayPortletResponse, redirect,
 				themeDisplay));
-	}
-
-	private static CMSMigrationReport _getCMSMigrationReport(
-		BackgroundTask backgroundTask) {
-
-		String statusMessage = backgroundTask.getStatusMessage();
-
-		if (Validator.isNull(statusMessage)) {
-			return new CMSMigrationReport();
-		}
-
-		try {
-			return CMSMigrationReport.of(
-				JSONFactoryUtil.createJSONObject(statusMessage));
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception);
-			}
-
-			CMSMigrationReport cmsMigrationReport = new CMSMigrationReport();
-
-			cmsMigrationReport.addError(statusMessage);
-
-			return cmsMigrationReport;
-		}
 	}
 
 	private static int _getProgress(BackgroundTask backgroundTask) {
@@ -150,7 +125,7 @@ public class CMSMigrationUtil {
 			ThemeDisplay themeDisplay)
 		throws Exception {
 
-		CMSMigrationReport cmsMigrationReport = _getCMSMigrationReport(
+		CMSMigrationReport cmsMigrationReport = CMSMigrationReport.of(
 			backgroundTask);
 
 		Map<String, Long> counts = cmsMigrationReport.getCounts();
@@ -211,6 +186,56 @@ public class CMSMigrationUtil {
 				).buildString());
 		}
 
+		List<CMSMigrationURLMapping> cmsMigrationURLMappings =
+			cmsMigrationReport.getCMSMigrationURLMappings();
+
+		if (!cmsMigrationURLMappings.isEmpty()) {
+			jsonObject.put(
+				"exportURLMappingsURL",
+				ResourceURLBuilder.createResourceURL(
+					liferayPortletResponse
+				).setParameter(
+					"backgroundTaskId", backgroundTask.getBackgroundTaskId()
+				).setResourceID(
+					"/cms_migration/export_url_mappings"
+				).buildString()
+			).put(
+				"urlMappings",
+				JSONUtil.toJSONArray(
+					ListUtil.subList(
+						cmsMigrationURLMappings, 0,
+						_URL_MAPPINGS_DISPLAY_LIMIT),
+					cmsMigrationURLMapping -> JSONUtil.put(
+						"actionRequired",
+						cmsMigrationURLMapping.isActionRequired()
+					).put(
+						"newURL", cmsMigrationURLMapping.getNewURL()
+					).put(
+						"oldURL", cmsMigrationURLMapping.getOldURL()
+					).put(
+						"status", cmsMigrationURLMapping.getStatus()
+					).put(
+						"statusLabel",
+						LanguageUtil.get(
+							themeDisplay.getLocale(),
+							"cms-migration-url-mapping-status-" +
+								cmsMigrationURLMapping.getStatus())
+					).put(
+						"type",
+						LanguageUtil.get(
+							themeDisplay.getLocale(),
+							"cms-migration-" + cmsMigrationURLMapping.getType())
+					))
+			).put(
+				"urlMappingsActionRequiredCount",
+				ListUtil.count(
+					cmsMigrationURLMappings,
+					CMSMigrationURLMapping::isActionRequired)
+			).put(
+				"urlMappingsCount", cmsMigrationURLMappings.size()
+			);
+		}
+
 		if (backgroundTask.isInProgress()) {
 			JSONObject statusJSONObject = _getStatusJSONObject(backgroundTask);
 
@@ -230,7 +255,6 @@ public class CMSMigrationUtil {
 		return jsonObject;
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		CMSMigrationUtil.class);
+	private static final int _URL_MAPPINGS_DISPLAY_LIMIT = 100;
 
 }
