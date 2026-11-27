@@ -11,8 +11,11 @@ package com.liferay.source.formatter.dependencies.upgrade;
 public class LPS_191840 {
 
 	public void method(Indexer indexer) {
-		Map<Indexer, Indexer> indexerRequests = new LinkedHashMap<>();
+		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			BugIndexerPortlet.class);
+
 		List<Indexer> indexers = portlet.getIndexerInstances();
+		Map<Indexer, Indexer> indexerRequests = new LinkedHashMap<>();
 	}
 
 }
