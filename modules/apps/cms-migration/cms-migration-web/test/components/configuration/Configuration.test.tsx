@@ -62,6 +62,10 @@ async function submitConfiguration() {
 }
 
 describe('Configuration', () => {
+	afterEach(() => {
+		window.sessionStorage.clear();
+	});
+
 	it('shows the title and the description of the migration', () => {
 		renderConfiguration();
 
@@ -109,6 +113,143 @@ describe('Configuration', () => {
 		expect(form).toHaveFormValues({
 			[`${PORTLET_NAMESPACE}sourceGroupId`]: '2',
 		});
+	});
+
+	it('keeps the form after the page reloads', async () => {
+		const {unmount} = renderConfiguration();
+
+		await userEvent.selectOptions(
+			screen.getByLabelText(/cms-migration-source-site/),
+			'2'
+		);
+		await userEvent.selectOptions(
+			screen.getByLabelText('cms-migration-target-space'),
+			'0'
+		);
+		await userEvent.type(
+			screen.getByLabelText('cms-migration-new-space-name'),
+			'New Space'
+		);
+		await userEvent.click(screen.getByLabelText('blogs'));
+		await userEvent.click(
+			screen.getByLabelText('cms-migration-repeatable-fields')
+		);
+		await userEvent.type(
+			screen.getByLabelText('cms-migration-title-object-field-names'),
+			'name'
+		);
+
+		unmount();
+
+		renderConfiguration();
+
+		const {form} = screen.getByRole<HTMLButtonElement>('button', {
+			name: 'cms-migration-start',
+		});
+
+		expect(form).toHaveFormValues({
+			[`${PORTLET_NAMESPACE}depotEntryId`]: '0',
+			[`${PORTLET_NAMESPACE}migrateBlogsEntries`]: false,
+			[`${PORTLET_NAMESPACE}migrateFileEntries`]: true,
+			[`${PORTLET_NAMESPACE}migrateJournalArticles`]: true,
+			[`${PORTLET_NAMESPACE}migrateObjectEntries`]: false,
+			[`${PORTLET_NAMESPACE}migrateRepeatableFields`]: true,
+			[`${PORTLET_NAMESPACE}rewritePages`]: true,
+			[`${PORTLET_NAMESPACE}sourceGroupId`]: '2',
+			[`${PORTLET_NAMESPACE}spaceName`]: 'New Space',
+			[`${PORTLET_NAMESPACE}titleObjectFieldNames`]: 'name',
+		});
+	});
+
+	it('falls back to the default space when the kept one is gone', async () => {
+		const {unmount} = renderConfiguration();
+
+		await userEvent.selectOptions(
+			screen.getByLabelText(/cms-migration-source-site/),
+			'2'
+		);
+		await userEvent.selectOptions(
+			screen.getByLabelText('cms-migration-target-space'),
+			'20'
+		);
+
+		unmount();
+
+		renderConfiguration({spaces: [SPACES[0]]});
+
+		expect(screen.getByLabelText(/cms-migration-source-site/)).toHaveValue(
+			'2'
+		);
+		expect(screen.getByLabelText('cms-migration-target-space')).toHaveValue(
+			'10'
+		);
+	});
+
+	it('drops the new space from the kept form after the migration is submitted', async () => {
+		const {unmount} = renderConfiguration();
+
+		await userEvent.selectOptions(
+			screen.getByLabelText('cms-migration-target-space'),
+			'0'
+		);
+		await userEvent.type(
+			screen.getByLabelText('cms-migration-new-space-name'),
+			'New Space'
+		);
+		await userEvent.click(screen.getByLabelText('blogs'));
+
+		const {form, onSubmit} = await submitConfiguration();
+
+		expect(onSubmit).toHaveBeenCalledTimes(1);
+		expect(form).toHaveFormValues({
+			[`${PORTLET_NAMESPACE}depotEntryId`]: '0',
+			[`${PORTLET_NAMESPACE}spaceName`]: 'New Space',
+		});
+
+		unmount();
+
+		renderConfiguration();
+
+		expect(screen.getByLabelText('cms-migration-target-space')).toHaveValue(
+			'10'
+		);
+		expect(screen.getByLabelText('blogs')).not.toBeChecked();
+
+		await userEvent.selectOptions(
+			screen.getByLabelText('cms-migration-target-space'),
+			'0'
+		);
+
+		expect(
+			screen.getByLabelText('cms-migration-new-space-name')
+		).toHaveValue('');
+	});
+
+	it('keeps the form after the migration is submitted', async () => {
+		const {unmount} = renderConfiguration();
+
+		await userEvent.selectOptions(
+			screen.getByLabelText(/cms-migration-source-site/),
+			'2'
+		);
+		await userEvent.click(screen.getByLabelText('blogs'));
+
+		const {form, onSubmit} = await submitConfiguration();
+
+		expect(onSubmit).toHaveBeenCalledTimes(1);
+		expect(form).toHaveFormValues({
+			[`${PORTLET_NAMESPACE}migrateBlogsEntries`]: false,
+			[`${PORTLET_NAMESPACE}sourceGroupId`]: '2',
+		});
+
+		unmount();
+
+		renderConfiguration();
+
+		expect(screen.getByLabelText(/cms-migration-source-site/)).toHaveValue(
+			'2'
+		);
+		expect(screen.getByLabelText('blogs')).not.toBeChecked();
 	});
 
 	it('lists the source sites and the target spaces', () => {

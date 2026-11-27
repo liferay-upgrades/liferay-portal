@@ -9,10 +9,18 @@ import ClayForm, {ClayCheckbox, ClayInput, ClaySelect} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import {ClayTooltipProvider} from '@clayui/tooltip';
+import {useSessionState} from 'frontend-js-components-web';
+import {COOKIE_TYPES, sessionStorage} from 'frontend-js-web';
 import React, {useState} from 'react';
 
-import {IOption} from '../../types/Form';
-import {CONTENT_TYPES, CREATE_NEW_SPACE} from '../../utils/constants';
+import {
+	CREATE_NEW_SPACE,
+	FORM_SESSION_KEY,
+	MIGRATABLE_CONTENT_TYPES,
+} from '../../utils/constants';
+import getForm from '../../utils/getForm';
+
+import type {IForm, IOption} from '../../types/Form';
 
 interface IProps {
 	groups: IOption[];
@@ -23,10 +31,6 @@ interface IProps {
 	title: string;
 }
 
-const UncontrolledClayCheckbox = ClayCheckbox as unknown as React.ComponentType<
-	Omit<React.ComponentProps<typeof ClayCheckbox>, 'checked'>
->;
-
 export default function Configuration({
 	groups,
 	migrationIncomplete,
@@ -35,17 +39,39 @@ export default function Configuration({
 	startCMSMigrationURL,
 	title,
 }: IProps) {
-	const [depotEntryId, setDepotEntryId] = useState(
-		spaces.length ? spaces[0].value : CREATE_NEW_SPACE
-	);
+	const [storedForm, setStoredForm] =
+		useSessionState<Partial<IForm>>(FORM_SESSION_KEY);
 	const [submitting, setSubmitting] = useState(false);
+
+	const form = getForm(groups, spaces, storedForm);
+
+	const handleSubmit = () => {
+		const keptForm = {...storedForm};
+
+		delete keptForm.depotEntryId;
+		delete keptForm.spaceName;
+
+		sessionStorage.setItem(
+			FORM_SESSION_KEY,
+			JSON.stringify(keptForm),
+			COOKIE_TYPES.PERSONALIZATION
+		);
+
+		setSubmitting(true);
+	};
+
+	const updateForm = <K extends keyof IForm>(name: K, value: IForm[K]) =>
+		setStoredForm((previousStoredForm) => ({
+			...previousStoredForm,
+			[name]: value,
+		}));
 
 	return (
 		<ClayLayout.Sheet>
 			<form
 				action={startCMSMigrationURL}
 				method="post"
-				onSubmit={() => setSubmitting(true)}
+				onSubmit={handleSubmit}
 			>
 				<ClayLayout.SheetHeader>
 					<h2 className="sheet-title">{title}</h2>
@@ -73,7 +99,11 @@ export default function Configuration({
 						<ClaySelect
 							id={`${portletNamespace}sourceGroupId`}
 							name={`${portletNamespace}sourceGroupId`}
+							onChange={(event) =>
+								updateForm('sourceGroupId', event.target.value)
+							}
 							required
+							value={form.sourceGroupId}
 						>
 							{groups.map(({label, value}) => (
 								<ClaySelect.Option
@@ -94,9 +124,9 @@ export default function Configuration({
 							id={`${portletNamespace}depotEntryId`}
 							name={`${portletNamespace}depotEntryId`}
 							onChange={(event) =>
-								setDepotEntryId(event.target.value)
+								updateForm('depotEntryId', event.target.value)
 							}
-							value={depotEntryId}
+							value={form.depotEntryId}
 						>
 							<ClaySelect.Option
 								label={Liferay.Language.get(
@@ -115,7 +145,7 @@ export default function Configuration({
 						</ClaySelect>
 					</ClayForm.Group>
 
-					{depotEntryId === CREATE_NEW_SPACE && (
+					{form.depotEntryId === CREATE_NEW_SPACE && (
 						<ClayForm.Group>
 							<label htmlFor={`${portletNamespace}spaceName`}>
 								{Liferay.Language.get(
@@ -126,7 +156,11 @@ export default function Configuration({
 							<ClayInput
 								id={`${portletNamespace}spaceName`}
 								name={`${portletNamespace}spaceName`}
+								onChange={(event) =>
+									updateForm('spaceName', event.target.value)
+								}
 								type="text"
+								value={form.spaceName}
 							/>
 						</ClayForm.Group>
 					)}
@@ -140,43 +174,44 @@ export default function Configuration({
 							)}
 						</h3>
 
-						{CONTENT_TYPES.map(
-							({defaultChecked, help, label, name}) => (
-								<ClayForm.Group
-									className="align-items-start d-flex"
-									key={name}
-								>
-									<UncontrolledClayCheckbox
-										containerProps={{
-											className:
-												'custom-control-primary mb-0',
-										}}
-										defaultChecked={defaultChecked ?? true}
-										label={label}
-										name={`${portletNamespace}${name}`}
-										value="true"
-									/>
+						{MIGRATABLE_CONTENT_TYPES.map(({help, label, name}) => (
+							<ClayForm.Group
+								className="align-items-start d-flex"
+								key={name}
+							>
+								<ClayCheckbox
+									checked={form[name]}
+									containerProps={{
+										className:
+											'custom-control-primary mb-0',
+									}}
+									label={label}
+									name={`${portletNamespace}${name}`}
+									onChange={(event) =>
+										updateForm(name, event.target.checked)
+									}
+									value="true"
+								/>
 
-									{help && (
-										<ClayButtonWithIcon
-											aria-label={help}
-											className="component-action mt-n2"
-											data-tooltip-align="top"
-											displayType="unstyled"
-											size="sm"
-											style={
-												{
-													'--component-action-hover-background-color':
-														'transparent',
-												} as React.CSSProperties
-											}
-											symbol="question-circle-full"
-											title={help}
-										/>
-									)}
-								</ClayForm.Group>
-							)
-						)}
+								{help && (
+									<ClayButtonWithIcon
+										aria-label={help}
+										className="component-action mt-n2"
+										data-tooltip-align="top"
+										displayType="unstyled"
+										size="sm"
+										style={
+											{
+												'--component-action-hover-background-color':
+													'transparent',
+											} as React.CSSProperties
+										}
+										symbol="question-circle-full"
+										title={help}
+									/>
+								)}
+							</ClayForm.Group>
+						))}
 
 						<ClayForm.Group>
 							<label
@@ -190,7 +225,14 @@ export default function Configuration({
 							<ClayInput
 								id={`${portletNamespace}titleObjectFieldNames`}
 								name={`${portletNamespace}titleObjectFieldNames`}
+								onChange={(event) =>
+									updateForm(
+										'titleObjectFieldNames',
+										event.target.value
+									)
+								}
 								type="text"
+								value={form.titleObjectFieldNames}
 							/>
 
 							<ClayForm.FeedbackGroup>

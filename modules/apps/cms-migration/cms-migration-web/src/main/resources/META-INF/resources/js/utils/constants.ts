@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-export const CONTENT_TYPES = [
+import type {IMigratableContentType} from '../types/MigratableContentType';
+
+export const MIGRATABLE_CONTENT_TYPES: IMigratableContentType[] = [
 	{
 		label: Liferay.Language.get('web-content'),
 		name: 'migrateJournalArticles',
@@ -39,3 +41,5 @@ export const CONTENT_TYPES = [
 ];
 
 export const CREATE_NEW_SPACE = '0';
+
+export const FORM_SESSION_KEY = 'cms-migration-form';
