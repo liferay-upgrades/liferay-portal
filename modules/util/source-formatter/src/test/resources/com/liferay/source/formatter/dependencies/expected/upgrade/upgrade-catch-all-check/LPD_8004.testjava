@@ -1,0 +1,29 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.source.formatter.dependencies.upgrade;
+
+import com.liferay.info.item.field.reader.InfoItemFieldReader;
+
+/**
+ * @author Lucas Ferruccio
+ */
+public class LPD_8004 implements InfoItemFieldReader<t> {
+
+	@Override
+	public InfoField getInfoField() {
+		return InfoField.builder(
+		).infoFieldType(
+			ImageInfoFieldType.INSTANCE
+		).namespace(
+			t.class.getSimpleName()
+		).name(
+			key
+		).labelInfoLocalizedValue(
+			InfoLocalizedValue.localize(getClass(), key)
+		).build();
+	}
+
+}

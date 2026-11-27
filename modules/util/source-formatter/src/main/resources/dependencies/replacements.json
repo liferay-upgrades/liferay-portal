@@ -165,6 +165,19 @@
 		"to": "updateDocument(param#1#, param#2#)"
 	},
 	{
+		"classNames": [
+			"InfoItemFieldReader"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-8004",
+		"methodsToFormat": [
+			{
+				"from": "regex:(?<beforeMethod>implements\\s*?InfoItemFieldReader<(?<classType>\\w+)>\\s*?\\{[\\s\\S]*?@Override\\s*?public\\s*?InfoField\\s*?getInfoField\\(\\)\\s*?\\{[\\s\\S]*?infoFieldType\\(\\s*?\\S*?\\s*?\\))(?!.namespace)",
+				"to": "${beforeMethod}.namespace(\n\t\t\t${classType}.class.getSimpleName()\n\t\t)"
+			}
+		]
+	},
+	{
 		"from": "JSONUtil.isValid",
 		"issueKey": "LPD-8007",
 		"to": "JSONUtil.isJSONObject",
